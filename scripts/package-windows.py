@@ -31,8 +31,8 @@ def main():
     uv = ROOT/'runtime/uv'/TRIPLE
     if not (uv/'uv.exe').is_file(): raise ValueError('Portable uv runtime is missing')
     copy_tree(uv, stage/'runtime/uv'/TRIPLE)
-    copy_tree(ROOT/'docs/runtime-licenses', stage/'LICENSES/runtime')
-    shutil.copy2(ROOT/'docs/runtime-lock.json',stage/'runtime/versions.json')
+    copy_tree(ROOT/'packaging/runtime-licenses', stage/'LICENSES/runtime')
+    shutil.copy2(ROOT/'packaging/runtime-lock.json',stage/'runtime/versions.json')
     (stage/'configs').mkdir()
     # Intentional fresh config, NOT derived from the developer's settings.
     (stage/'configs/config.toml').write_text('''[general]
@@ -65,10 +65,12 @@ model_3p = ""
 [autoplay]
 enabled = false
 ''',encoding='utf8')
-    shutil.copy2(ROOT/'docs/RELEASE_README.txt',stage/'README.txt')
+    shutil.copy2(ROOT/'packaging/README.txt',stage/'README.txt')
     # Hash every shipped file before any local smoke-test creates profiles/logs.
     files={str(f.relative_to(stage)).replace('\\','/'):digest(f) for f in sorted(stage.rglob('*')) if f.is_file()}
     forbidden = [s for s in files if any(x in Path(s).parts for x in ['.local','.git','logs','ca','history']) or s.endswith(('.key','.pyc')) or (s.endswith('.bat') and not s.startswith('runtime/'))]
+    private_notes = {'COMMIT_MESSAGE.md', 'COMMIT_MESSAGE.txt', 'VALIDATION.md', 'RELEASE_NOTES.md', 'AMATSUKI_FEASIBILITY.md', 'ZHANGXIN_RESEARCH.md'}
+    forbidden += [s for s in files if Path(s).name in private_notes or set(Path(s).parts) & {'docs', 'notes', 'research'}]
     assert not forbidden, forbidden
     commit=subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip()
     plugin_version=tomllib.loads((ROOT/'plugins/zhangxinplus/plugin.toml').read_text('utf8'))['version']

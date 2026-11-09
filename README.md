@@ -30,12 +30,12 @@ Zhangxin requires no proxy or CA certificate. Special modes, joining an existing
 
 Installers verify supported files and preserve originals for restoration. Local cosmetics do not change server ownership, currency, rewards or progression; other players may not see them.
 
-Amatsuki is not integrated in this fork: upstream v2 has a legacy bridge, while v3 lists it as planned. See the [feasibility notes](docs/AMATSUKI_FEASIBILITY.md).
+Amatsuki is not integrated in this fork: upstream v2 has a legacy bridge, while v3 lists it as planned.
 
 ## Updates and development
 
 Release archives contain fresh defaults, not developer profiles, keys, certificates, logs or game assets. Back up your settings and preserve restoration backups before updating the complete package. Version `v3.8.0-plus.2` identifies the integrated upstream base plus this fork's revision. Update checks target this fork; preview downloads are available on Releases.
 
-Source development uses `start.bat`; game launching is in the GUI. See [development](docs/AKAGIPLUS.md), [release build](docs/RELEASE.md) and [validation](docs/VALIDATION.md).
+Source builds require Rust/MSVC, the Windows SDK, Node.js 24, protoc and CMake. Install frontend dependencies, then use `start.bat`. Build the Windows portable package with `scripts/build-release.ps1`; runtime versions and hashes are in `packaging/runtime-lock.json`. Game launching is in the GUI.
 
 Akagi and ZhangxinPlus use Apache-2.0. Adapted MajsoulMax components retain GPL-3.0 with corresponding sources, license and [provenance](plugins/majsoulmax/PROVENANCE.md). See LICENSE.txt, NOTICE and LICENSES. Game clients, Proxifier and external RiichiCityUnlock binaries are not distributed.

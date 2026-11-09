@@ -37,7 +37,7 @@ $env:CARGO_PROFILE_DEV_DEBUG = '0'
 $env:CARGO_BUILD_JOBS = '4'
 $env:npm_config_cache = Join-Path $tools 'npm-cache'
 foreach ($command in @('cargo', 'node', 'npm.cmd')) {
-    if (-not (Get-Command $command -ErrorAction SilentlyContinue)) { throw "Missing $command. See docs/AKAGIPLUS.md; this launcher never installs tools automatically." }
+    if (-not (Get-Command $command -ErrorAction SilentlyContinue)) { throw "Missing $command. See README.md; this launcher never installs tools automatically." }
 }
 if (-not (Test-Path -LiteralPath '.venv\Scripts\python.exe')) { throw 'MajsoulMax environment missing. Run: py -3.11 -m venv .venv, then .venv\Scripts\python -m pip install -r plugins/majsoulmax/requirements.txt' }
 if (-not (Test-Path -LiteralPath 'frontend\node_modules\.bin\tauri.cmd')) { throw 'Frontend dependencies missing. Run npm ci in frontend first.' }

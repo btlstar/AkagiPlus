@@ -78,3 +78,12 @@ plugins/majsoulmax/**/settings*.yaml
 .env
 .env.*
 !.env.example
+
+# Private working notes stay outside published source.
+/AGENTS.md
+/notes/
+/research/
+/docs/*RESEARCH*
+/docs/*FEASIBILITY*
+/docs/COMMIT_MESSAGE*
+/docs/VALIDATION*

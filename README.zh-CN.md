@@ -33,7 +33,7 @@ AkagiPlus 截图使用当前界面与演示配置，不含账号或密钥。掌�
 | 掌心麻将 | Windows 客户端，本地消息通道；友人局普通立直三麻、四麻已实测 | ZhangxinPlus 0.1.5；角色、皮肤、特效、桌布、牌背、麻将牌、立直棒、表情、音乐、称号、头像框与方案 |
 | 天凤 | 保留上游启动、捕获和 AI | 本版没有新增装扮插件 |
 
-天月麻将尚未接入：上游 v2 有历史协议桥，v3 仍列为计划中。装扮与 AI 接入的证据和待验证项见[天月调查](docs/AMATSUKI_FEASIBILITY.md)。
+天月麻将尚未接入：上游 v2 有历史协议桥，v3 仍列为计划中。
 
 掌心无需代理或证书，目前适配资源 **92217**。特殊玩法、中途恢复和自动操作尚未支持；头像与语音未完整适配。详见 [ZhangxinPlus](plugins/zhangxinplus/README.md)。
 
@@ -51,6 +51,6 @@ AkagiPlus 截图使用当前界面与演示配置，不含账号或密钥。掌�
 
 ## 开发与许可
 
-源码使用 `start.bat` 开发启动，发布版直接运行 EXE，游戏入口均在 GUI 中。[开发说明](docs/AKAGIPLUS.md) · [发布构建](docs/RELEASE.md) · [验证范围](docs/VALIDATION.md)。
+源码运行需要 Rust/MSVC、Windows SDK、Node.js 24、protoc 和 CMake；安装前端依赖后通过 `start.bat` 启动。Windows 便携构建使用 `scripts/build-release.ps1`，运行依赖版本及摘要见 `packaging/runtime-lock.json`。发布版直接运行 EXE，游戏入口均在 GUI 中。
 
 Akagi 主体与自编写 ZhangxinPlus 保留 Apache-2.0；MajsoulMax 改编部分保留 GPL-3.0，并随包提供对应源码、许可和[来源记录](plugins/majsoulmax/PROVENANCE.md)。详见 LICENSE.txt、NOTICE、LICENSES。一番街可选外部 RiichiCityUnlock、Proxifier 及游戏客户端不随包提供。

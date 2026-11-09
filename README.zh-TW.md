@@ -24,7 +24,7 @@ AkagiPlus 截圖使用目前介面和示範設定；掌心畫面由使用者實�
 
 插件核驗已支援資源並備份原檔，未知更新會停止安裝。本機裝扮不改變伺服器擁有物、貨幣、獎勵或養成進度，不保證其他玩家視角可見。
 
-天月麻將尚未接入：上游 v2 有歷史協定橋，v3 仍列為規劃中。裝扮與 AI 接入調查見[調查說明](docs/AMATSUKI_FEASIBILITY.md)。
+天月麻將尚未接入：上游 v2 有歷史協定橋，v3 仍列為規劃中。
 
 ## 更新與開發
 
@@ -32,4 +32,4 @@ AkagiPlus 截圖使用目前介面和示範設定；掌心畫面由使用者實�
 
 版本 `v3.8.0-plus.2` 跟隨已整合的上游基線，僅檢查本分支更新。預發布版本可於 Releases 手動下載。源碼開發保留 `start.bat`，日常遊戲入口在 GUI。
 
-[開發說明](docs/AKAGIPLUS.md) · [發布指南](docs/RELEASE.md) · [ZhangxinPlus](plugins/zhangxinplus/README.md)。Akagi 與 ZhangxinPlus 採 Apache-2.0；MajsoulMax 改編部分保留 GPL-3.0 及對應源碼、許可和來源記錄，詳見 LICENSE.txt、NOTICE、LICENSES。外部 RiichiCityUnlock、Proxifier 及遊戲客戶端不隨包提供。
+源碼執行需要 Rust/MSVC、Windows SDK、Node.js 24、protoc 與 CMake；前端依賴準備後使用 `start.bat`。便攜包建置入口為 `scripts/build-release.ps1`，執行依賴摘要見 `packaging/runtime-lock.json`。[ZhangxinPlus 使用說明](plugins/zhangxinplus/README.md)。Akagi 與 ZhangxinPlus 採 Apache-2.0；MajsoulMax 改編部分保留 GPL-3.0 及對應源碼、許可和來源記錄，詳見 LICENSE.txt、NOTICE、LICENSES。外部 RiichiCityUnlock、Proxifier 及遊戲客戶端不隨包提供。

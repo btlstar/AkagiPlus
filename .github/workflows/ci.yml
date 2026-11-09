@@ -1,7 +1,7 @@
 name: CI
 
 # Check the fork on Linux, Windows, and macOS. Release packaging is manual;
-# archived upstream packaging workflows live in docs/upstream-workflows.
+# end-user archives are created with the allowlisted Windows packager.
 
 on:
   pull_request:

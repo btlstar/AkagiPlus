@@ -19,6 +19,6 @@ if (-not $PackageOnly) {
     if ($LASTEXITCODE -ne 0) { throw 'Release build failed' }
 }
 $python = '.\runtime\python\x86_64-pc-windows-msvc\python.exe'
-if (-not (Test-Path -LiteralPath $python)) { throw 'Prepare the pinned portable runtime first; see docs/RELEASE.md' }
+if (-not (Test-Path -LiteralPath $python)) { throw 'Prepare the pinned portable runtime first; see README.md and packaging/runtime-lock.json' }
 & $python scripts/package-windows.py
 if ($LASTEXITCODE -ne 0) { throw 'Packaging failed' }
