@@ -30,6 +30,8 @@ Zhangxin requires no proxy or CA certificate. Special modes, joining an existing
 
 Installers verify supported files and preserve originals for restoration. Local cosmetics do not change server ownership, currency, rewards or progression; other players may not see them.
 
+Amatsuki is not integrated in this fork: upstream v2 has a legacy bridge, while v3 lists it as planned. See the [feasibility notes](docs/AMATSUKI_FEASIBILITY.md).
+
 ## Updates and development
 
 Release archives contain fresh defaults, not developer profiles, keys, certificates, logs or game assets. Back up your settings and preserve restoration backups before updating the complete package. Version `v3.8.0-plus.2` identifies the integrated upstream base plus this fork's revision. Update checks target this fork; preview downloads are available on Releases.
