@@ -1,7 +1,12 @@
 mod ca;
 pub mod certstore;
 mod handler;
+pub mod majsoulmax;
+#[cfg(windows)]
+mod owned_process;
 pub mod rewrite;
+mod riichicity_host;
+pub mod riichicity_unlock;
 mod upstream;
 
 pub use handler::ProxyHandler;
@@ -50,6 +55,47 @@ where
     let addr = SocketAddr::from_str(&config.addr)
         .with_context(|| format!("Invalid proxy addr: {}", config.addr))?;
 
+    // Keep ownership for the lifetime of this capture. Failure must not silently bypass cosmetics.
+    let mut external = if config.riichicity_unlock.enabled && platform == Platform::RiichiCity {
+        Some(riichicity_unlock::Adapter::start(&config.riichicity_unlock).await?)
+    } else {
+        riichicity_unlock::set_phase("disabled");
+        None
+    };
+    let external_proxy = external.as_ref().map(|_| riichicity_unlock::address());
+    let external_ca = external.as_ref().map(|adapter| adapter.certificate.clone());
+
+    let majsoulmax = if config.majsoulmax.enabled && platform == Platform::Majsoul {
+        majsoulmax::set_phase("starting");
+        match majsoulmax::Worker::start(&config.majsoulmax).await {
+            Ok(worker) => {
+                info!("AkagiPlus MajsoulMax ready");
+                if let Some(tx) = &notify_tx {
+                    let _ = tx.send(
+                        crate::schema::Notification::info("MajsoulMax 已就绪")
+                            .body("装扮模块已加载；请重新登录游戏以加载装扮。"),
+                    );
+                }
+                Some(worker)
+            }
+            Err(error) => {
+                majsoulmax::set_phase("failed");
+                tracing::warn!("MajsoulMax startup failed: {error:#}");
+                if let Some(tx) = &notify_tx {
+                    let _ = tx.send(
+                        crate::schema::Notification::warn("MajsoulMax 未启动")
+                            .body("请检查设置中的 Python 和插件路径；AI 捕获继续运行。")
+                            .sticky()
+                            .id("majsoulmax-error"),
+                    );
+                }
+                None
+            }
+        }
+    } else {
+        majsoulmax::set_phase("disabled");
+        None
+    };
     let handler = ProxyHandler::new(
         session.clone(),
         platform,
@@ -61,20 +107,38 @@ where
         config.rewrite_certificate_report,
         config.block_telemetry,
         inject,
-    )?;
+    )?
+    .with_majsoulmax(majsoulmax);
 
     info!("Starting proxy on {addr}");
 
     let proxy = Proxy::builder()
         .with_addr(addr)
         .with_ca(ca)
-        .with_http_connector(upstream::http_connector(certs.clone()))
+        .with_http_connector(upstream::http_connector(
+            certs.clone(),
+            external_proxy,
+            external_ca.clone(),
+        ))
         .with_http_handler(handler.clone())
         .with_websocket_handler(handler)
-        .with_websocket_connector(upstream::websocket_connector(certs.clone()))
+        .with_websocket_connector(upstream::websocket_connector(certs.clone(), external_ca))
+        .with_websocket_proxy(external_proxy)
         .with_graceful_shutdown(shutdown)
         .build()
         .context("Failed to build proxy")?;
 
-    proxy.start().await.context("Proxy stopped with error")
+    let result = if let Some(adapter) = external.as_mut() {
+        tokio::select! {
+            result = proxy.start() => result.context("Proxy stopped with error"),
+            exit = adapter.wait() => {
+                riichicity_unlock::set_phase("failed");
+                Err(anyhow::anyhow!("RiichiCityUnlock 已停止（{exit:?}），游戏捕获已中止；请重启捕获"))
+            }
+        }
+    } else {
+        proxy.start().await.context("Proxy stopped with error")
+    };
+    majsoulmax::set_phase("stopped");
+    result
 }

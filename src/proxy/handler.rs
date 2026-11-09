@@ -101,6 +101,9 @@ pub struct ProxyHandler {
     /// proxy shares, so the flow a reconnect opens carries on from what the
     /// dropped one saw. See `bridge::tenhou::journal`.
     tenhou_journal: crate::bridge::tenhou::journal::SharedJournal,
+    majsoulmax: Option<Arc<super::majsoulmax::Worker>>,
+    majsoulmax_flows: Arc<StdMutex<HashMap<SocketAddr, Arc<super::majsoulmax::Flow>>>>,
+    majsoulmax_failed: Arc<AtomicBool>,
 }
 
 impl ProxyHandler {
@@ -141,7 +144,27 @@ impl ProxyHandler {
             block_telemetry,
             inject,
             tenhou_journal: crate::bridge::tenhou::journal::new_shared(),
+            majsoulmax: None,
+            majsoulmax_flows: Default::default(),
+            majsoulmax_failed: Default::default(),
         })
+    }
+
+    pub fn with_majsoulmax(mut self, worker: Option<Arc<super::majsoulmax::Worker>>) -> Self {
+        self.majsoulmax = worker;
+        self
+    }
+
+    fn majsoulmax_error(&self) {
+        if !self.majsoulmax_failed.swap(true, Ordering::Relaxed) {
+            super::majsoulmax::set_phase("failed");
+            warn!("MajsoulMax disabled for this capture; forwarding original frames");
+            if let Some(tx) = &self.notify_tx {
+                let _ = tx.send(Notification::warn("MajsoulMax 已暂停")
+                    .body("装扮处理失败，已恢复原始消息转发。请停止捕获后重启并重新登录游戏。AI 捕获继续运行。")
+                    .sticky().id("majsoulmax-error"));
+            }
+        }
     }
 
     /// Tell the user, once, that their redirector is proxying loopback. The
@@ -583,6 +606,9 @@ impl HttpHandler for ProxyHandler {
         // client's certificate report otherwise describes Akagi's own CA.
         // See `rewrite::majsoul_cert` for what it substitutes and why.
         let mut req = req;
+        if self.platform == Platform::RiichiCity && super::riichicity_host::restore(&mut req) {
+            info!(target: "akagi::proxy::forward", "restored RiichiCity original host for upstream: {}", req.uri().host().unwrap_or("-"));
+        }
         if self.rewrite_cert_report && self.platform == Platform::Majsoul {
             self.rewrite_certificate_report(&mut req);
         }
@@ -856,6 +882,31 @@ impl WebSocketHandler for ProxyHandler {
         let server_uri = server_uri(&ctx);
         let bridge = self.acquire_bridge(client, &server_uri);
         let force_close = self.force_close.clone();
+        // Both WS directions share an injection bus, subscribed before the first request.
+        let majsoulmax_flow = if self.majsoulmax.is_some() && server_uri.path() != "/ob" {
+            let mut flows = self
+                .majsoulmax_flows
+                .lock()
+                .expect("MajsoulMax flows poisoned");
+            Some(
+                flows
+                    .entry(client)
+                    .or_insert_with(super::majsoulmax::Flow::new)
+                    .clone(),
+            )
+        } else {
+            None
+        };
+        let mut majsoulmax_rx = if matches!(&ctx, WebSocketContext::ServerToClient { .. }) {
+            majsoulmax_flow.as_ref().and_then(|flow| {
+                flow.receiver
+                    .lock()
+                    .expect("MajsoulMax receiver poisoned")
+                    .take()
+            })
+        } else {
+            None
+        };
 
         // Riichi City autoplay injects on the client→server leg only — that
         // sink leads to the game server. The bridge's `in_game` gate keeps
@@ -874,6 +925,19 @@ impl WebSocketHandler for ProxyHandler {
                     info!("force-closing WS flow for {client}");
                     let _ = sink.send(Message::Close(None)).await;
                     break;
+                }
+                injected = async {
+                    match majsoulmax_rx.as_mut() {
+                        Some(rx) => rx.recv().await,
+                        None => std::future::pending().await,
+                    }
+                } => {
+                    match injected {
+                        Some(bytes) => {
+                            if sink.send(Message::Binary(bytes.into())).await.is_err() { break; }
+                        }
+                        None => break,
+                    }
                 }
                 frame = async {
                     match inject_rx.as_mut() {
@@ -934,9 +998,31 @@ impl WebSocketHandler for ProxyHandler {
                     let Some(message) = next else { break };
                     match message {
                         Ok(message) => {
-                            let Some(out) = self.handle_message(&ctx, message, &bridge).await else {
+                            let Some(mut out) = self.handle_message(&ctx, message, &bridge).await else {
                                 continue;
                             };
+                            // Keep original parser/logging above; cosmetics never generate AI events.
+                            if !self.majsoulmax_failed.load(Ordering::Relaxed) {
+                                if let (Some(worker), Some(bus), Message::Binary(bytes)) = (&self.majsoulmax, &majsoulmax_flow, &out) {
+                                    let up = matches!(&ctx, WebSocketContext::ClientToServer { .. });
+                                    match worker.transform(&client.to_string(), up, bytes).await {
+                                        Ok(result) => {
+                                            for injected in result.inject_client {
+                                                if up {
+                                                    // The other leg's sink leads back to this game client.
+                                                    if bus.sender.try_send(injected).is_err() { self.majsoulmax_error(); }
+                                                } else if sink.send(Message::Binary(injected.into())).await.is_err() {
+                                                    self.majsoulmax_error();
+                                                    break;
+                                                }
+                                            }
+                                            if result.drop { continue; }
+                                            out = Message::Binary(result.data.into());
+                                        }
+                                        Err(_) => self.majsoulmax_error(),
+                                    }
+                                }
+                            }
                             match sink.send(out).await {
                                 Ok(()) => (),
                                 // Peer already gone — normal at end of game / lobby.
@@ -966,6 +1052,28 @@ impl WebSocketHandler for ProxyHandler {
         }
 
         self.release_bridge(client, bridge);
+        drop(majsoulmax_rx);
+        drop(majsoulmax_flow);
+        let removed = {
+            let mut flows = self
+                .majsoulmax_flows
+                .lock()
+                .expect("MajsoulMax flows poisoned");
+            if flows
+                .get(&client)
+                .is_some_and(|bus| Arc::strong_count(bus) == 1)
+            {
+                flows.remove(&client);
+                true
+            } else {
+                false
+            }
+        };
+        if removed {
+            if let Some(worker) = &self.majsoulmax {
+                worker.close(&client.to_string()).await;
+            }
+        }
     }
 }
 

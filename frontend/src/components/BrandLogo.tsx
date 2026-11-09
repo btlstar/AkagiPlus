@@ -1,7 +1,5 @@
 import iconLight from '@/assets/logo/akagi-icon-light.svg'
 import iconDark from '@/assets/logo/akagi-icon-dark.svg'
-import logoLight from '@/assets/logo/akagi-logo-light.svg'
-import logoDark from '@/assets/logo/akagi-logo-dark.svg'
 import { cn } from '@/lib/utils'
 
 // The Akagi brand ships two inkings per asset: `-light` for light
@@ -22,10 +20,7 @@ export function AkagiIcon({ className }: { className?: string }) {
 
 /** The full logo: tile mark + "Akagi" wordmark. Wide ratio ≈ 2.87. */
 export function AkagiWordmark({ className }: { className?: string }) {
-  return (
-    <span className={cn('inline-flex shrink-0', className)}>
-      <img src={logoLight} alt="Akagi" className="h-full w-auto dark:hidden" />
-      <img src={logoDark} alt="Akagi" className="hidden h-full w-auto dark:block" />
-    </span>
-  )
+  return <span className={cn('inline-flex items-center gap-2 font-semibold tracking-tight', className)}>
+    <AkagiIcon className="h-full" /><span>Akagi<span className="text-muted-foreground">Plus</span></span>
+  </span>
 }

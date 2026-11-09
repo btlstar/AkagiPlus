@@ -15,6 +15,7 @@ pub mod flow;
 pub mod http;
 pub mod hudsucker_backend;
 pub mod telemetry;
+pub mod zhangxin;
 
 use crate::autoplay::AutoplayContext;
 use crate::config::Platform;
@@ -33,6 +34,7 @@ use tokio::sync::Notify;
 pub enum CaptureKind {
     Mitm,
     Chromium,
+    Native,
 }
 
 impl CaptureKind {
@@ -40,6 +42,7 @@ impl CaptureKind {
         match self {
             CaptureKind::Mitm => "mitm",
             CaptureKind::Chromium => "chromium",
+            CaptureKind::Native => "native",
         }
     }
 }

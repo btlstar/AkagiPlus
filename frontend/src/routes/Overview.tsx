@@ -1,3 +1,4 @@
+import { GameLauncher } from '@/components/GameLauncher'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Bot, Shield, ScrollText, Gamepad2, Settings as SettingsIcon, Download, X } from 'lucide-react'
@@ -30,7 +31,7 @@ export function Overview() {
   const logDir = useConfigStore((s) => s.logDir)
   const lastAnalysis = useAnalysisStore((s) => s.updatedAt)
 
-  const captureTitle = 'kind' in capture && capture.kind === 'chromium' ? t('overview.capture_chromium') : t('overview.capture_mitm')
+  const captureTitle = 'kind' in capture && capture.kind === 'native' ? '掌心本地消息' : 'kind' in capture && capture.kind === 'chromium' ? t('overview.capture_chromium') : t('overview.capture_mitm')
   const captureDetail = 'descriptor' in capture && capture.descriptor ? capture.descriptor : '—'
 
   return (
@@ -38,9 +39,11 @@ export function Overview() {
       <div className="flex justify-center pt-2 pb-1">
         <AkagiWordmark className="h-28" />
       </div>
-      <header>
+      <header className="flex flex-wrap items-start justify-between gap-4">
+        <div>
         <h1 className="text-2xl font-semibold">{t('overview.title')}</h1>
         <p className="text-sm text-muted-foreground">{t('overview.description')}</p>
+      </div><GameLauncher />
       </header>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

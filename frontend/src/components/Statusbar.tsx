@@ -38,6 +38,8 @@ export function Statusbar() {
   const capture = useCaptureStore((s) => s.status)
   const bot = useBotStore((s) => s.status)
 
+
+
   // Capture LED — "is Akagi reading the game?" (proxy / capture transport).
   // Tooltip surfaces the capture descriptor, or the error message on failure,
   // so the user can see *why* it's down.

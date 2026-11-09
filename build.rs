@@ -1,6 +1,7 @@
 use std::{env, path::PathBuf};
 
 fn main() {
+    println!("cargo:rerun-if-env-changed=PROTOC");
     let out_dir = PathBuf::from(env::var("OUT_DIR").expect("OUT_DIR not set"));
 
     prost_build::Config::new()

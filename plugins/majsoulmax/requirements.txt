@@ -1,0 +1,2 @@
+protobuf==4.25.8
+ruamel.yaml==0.18.16

@@ -31,7 +31,7 @@ export function UpdateNotifier() {
   useEffect(() => {
     if (!HAS_TAURI || !autoCheckEnabled) return
     const id = window.setTimeout(() => {
-      void checkNow(false)
+      void checkNow(false).catch(() => {})
     }, 3000)
     return () => window.clearTimeout(id)
     // checkNow is stable (zustand action) — listing it would just churn.

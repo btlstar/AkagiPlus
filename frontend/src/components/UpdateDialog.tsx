@@ -1,5 +1,4 @@
 import { useTranslation } from 'react-i18next'
-import { toast } from 'sonner'
 
 import {
   Dialog,
@@ -23,7 +22,6 @@ export function UpdateDialog() {
   const closeDialog = useUpdaterStore((s) => s.closeDialog)
   const pending = useUpdaterStore((s) => s.pendingUpdate)
   const applying = useUpdaterStore((s) => s.applying)
-  const applyUpdate = useUpdaterStore((s) => s.applyUpdate)
   const skip = useUpdaterStore((s) => s.skip)
   const hasNotifiable = useUpdaterStore(selectHasNotifiableUpdate)
 
@@ -32,47 +30,6 @@ export function UpdateDialog() {
   // (sidebar / settings) can trigger it without prop drilling.
   if (!pending) return null
 
-  const handleUpdate = async () => {
-    const err = await applyUpdate()
-    // On success applyUpdate never returns (backend restart). Only
-    // failures land here.
-    if (!err) return
-    const fallback = () => openExternal(pending.html_url)
-    switch (err.kind) {
-      case 'read_only_install':
-        toast.error(t('updates.dialog.error_read_only'), {
-          action: { label: t('updates.dialog.open_release'), onClick: fallback },
-        })
-        break
-      case 'unsupported_platform':
-        toast.error(t('updates.dialog.error_unsupported_platform'), {
-          action: { label: t('updates.dialog.open_release'), onClick: fallback },
-        })
-        break
-      case 'no_matching_asset':
-        toast.error(t('updates.dialog.error_no_matching_asset'), {
-          action: { label: t('updates.dialog.open_release'), onClick: fallback },
-        })
-        break
-      case 'digest_mismatch':
-        toast.error(t('updates.dialog.error_digest_mismatch'), {
-          action: { label: t('updates.dialog.open_release'), onClick: fallback },
-        })
-        break
-      case 'signature_missing':
-        toast.error(t('updates.dialog.error_signature_missing'), {
-          action: { label: t('updates.dialog.open_release'), onClick: fallback },
-        })
-        break
-      case 'signature_invalid':
-        toast.error(t('updates.dialog.error_signature_invalid'), {
-          action: { label: t('updates.dialog.open_release'), onClick: fallback },
-        })
-        break
-      default:
-        toast.error(t('updates.dialog.error_generic', { message: err.message }))
-    }
-  }
 
   return (
     <Dialog open={open && hasNotifiable} onOpenChange={(v) => !v && closeDialog()}>
@@ -94,14 +51,6 @@ export function UpdateDialog() {
         </div>
         <DialogFooter className="bg-transparent p-0 border-0 mx-0 mb-0 flex-wrap gap-2">
           <Button
-            variant="outline"
-            size="sm"
-            onClick={() => openExternal(pending.html_url)}
-            disabled={applying}
-          >
-            {t('updates.dialog.open_release')}
-          </Button>
-          <Button
             variant="ghost"
             size="sm"
             onClick={() => skip(pending.latest_tag)}
@@ -112,8 +61,8 @@ export function UpdateDialog() {
           <Button variant="secondary" size="sm" onClick={closeDialog} disabled={applying}>
             {t('updates.dialog.later')}
           </Button>
-          <Button size="sm" onClick={handleUpdate} disabled={applying}>
-            {applying ? t('updates.dialog.applying') : t('updates.dialog.update_now')}
+          <Button size="sm" onClick={() => openExternal(pending.html_url)} disabled={applying}>
+            下载完整新版
           </Button>
         </DialogFooter>
       </DialogContent>

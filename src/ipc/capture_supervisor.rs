@@ -27,6 +27,7 @@ fn schema_kind(k: RtCaptureKind) -> CaptureKind {
     match k {
         RtCaptureKind::Mitm => CaptureKind::Mitm,
         RtCaptureKind::Chromium => CaptureKind::Chromium,
+        RtCaptureKind::Native => CaptureKind::Native,
     }
 }
 
@@ -103,19 +104,25 @@ pub async fn spawn_capture_supervisor(state: AppState) -> Result<()> {
     let (shutdown_token, shutdown_notify) = ShutdownToken::new();
 
     // Build backend per mode.
-    let backend: Box<dyn CaptureBackend> = match mode {
-        CaptureMode::Mitm => {
-            let force_close = {
-                let ctl = state.capture_control.lock().await;
-                ctl.force_close.clone()
-            };
-            Box::new(HudsuckerBackend::new(
-                proxy_cfg.clone(),
-                http_cfg.clone(),
-                force_close,
-            ))
+    let backend: Box<dyn CaptureBackend> = if platform == crate::config::Platform::Zhangxin {
+        Box::new(crate::capture::zhangxin::ZhangxinBackend::new(
+            &proxy_cfg.zhangxinplus.client_path,
+        )?)
+    } else {
+        match mode {
+            CaptureMode::Mitm => {
+                let force_close = {
+                    let ctl = state.capture_control.lock().await;
+                    ctl.force_close.clone()
+                };
+                Box::new(HudsuckerBackend::new(
+                    proxy_cfg.clone(),
+                    http_cfg.clone(),
+                    force_close,
+                ))
+            }
+            CaptureMode::Chromium => Box::new(ChromiumBackend::new(chromium_cfg)),
         }
-        CaptureMode::Chromium => Box::new(ChromiumBackend::new(chromium_cfg)),
     };
     let descriptor = backend.descriptor();
     let kind = schema_kind(descriptor.kind);
@@ -126,6 +133,7 @@ pub async fn spawn_capture_supervisor(state: AppState) -> Result<()> {
     let label = match descriptor.kind {
         RtCaptureKind::Mitm => proxy_cfg.addr.clone(),
         RtCaptureKind::Chromium => format!("chromium ({})", descriptor.label),
+        RtCaptureKind::Native => descriptor.label.clone(),
     };
     let running_status = CaptureStatus::Running {
         kind,
@@ -211,5 +219,6 @@ fn kind_label(k: CaptureKind) -> &'static str {
     match k {
         CaptureKind::Mitm => "MITM",
         CaptureKind::Chromium => "Chromium",
+        CaptureKind::Native => "本地消息",
     }
 }

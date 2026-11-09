@@ -813,6 +813,8 @@
     "bot_stopped": "Bot: Stopped"
   },
   "platform": {
+    "zhangxin": "Zhangxin Mahjong",
+    "zhangxin_desc": "Native client · ZhangxinPlus cosmetics and riichi AI preview",
     "majsoul": "Mahjong Soul",
     "majsoul_desc": "game.maj-soul.com — yonma + sanma",
     "tenhou": "Tenhou",
@@ -835,7 +837,7 @@
       "later": "Later",
       "open_release": "Open release page",
       "applying": "Downloading and applying…",
-      "runtime_caveat": "Auto-update swaps the binary in place. If the bundled Python runtime changed in this release the app may misbehave — reinstall from the release page in that case.",
+      "runtime_caveat": "Download the full portable package. Close the game and AkagiPlus and back up personal data before updating; do not replace only the EXE.",
       "error_read_only": "Akagi can't write to its install directory. Open the release page to update manually.",
       "error_unsupported_platform": "Auto-update is not available for your platform. Open the release page to download manually.",
       "error_no_matching_asset": "This release has no build for your platform yet.",
@@ -885,6 +887,24 @@
       "settings_button": "Announcements"
     },
     "entries": {
+      "plus_3_8_0_2": {
+        "title": "AkagiPlus 3.8.0 · Plus 2",
+        "zhangxin_title": "Zhangxin AI",
+        "zhangxin_desc": "Ordinary riichi 3p/4p friend matches user-tested through local messages, without a proxy or CA.",
+        "cosmetics_title": "Local cosmetics on three platforms",
+        "cosmetics_desc": "MajsoulMax, RiichiCity local cosmetics and ZhangxinPlus 0.1.5 with GUI installation, restoration and game launching.",
+        "display_title": "Dashboard fixes",
+        "display_desc": "Correct red-five ordering and player-card scrollbar oscillation, plus Zhangxin scheme application and local persistence."
+      },
+      "plus_3_8_0_1": {
+        "title": "First AkagiPlus portable release",
+        "launcher_title": "Launch games from the app",
+        "launcher_desc": "Overview and Game share a launcher that waits for capture and reuses existing game windows.",
+        "cosmetics_title": "Local in-game cosmetics",
+        "cosmetics_desc": "MajsoulMax and native RiichiCity cosmetics, with patch installation and restoration under Cosmetics.",
+        "portable_title": "Complete portable updates",
+        "portable_desc": "Cosmetic dependencies are bundled. Update checks target AkagiPlus only; download the full package."
+      },
       "v3_8_0": {
         "title": "Tenhou reconnects and autoplay thinking time",
         "tenhou_rejoin_title": "Tenhou reconnects",

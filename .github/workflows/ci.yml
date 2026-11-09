@@ -1,18 +1,7 @@
 name: CI
 
-# Fast PR gate: lint + test on Linux, plus a compile-only check on the other
-# two release targets. The full cross-platform build and packaging still lives
-# in release.yml (tag-triggered). The goal here is to catch fmt / clippy /
-# compile / test / frontend breakage before merge — `cargo test --lib` alone
-# misses integration-test compile breaks, so we also compile every test target.
-#
-# The macOS/Windows check exists because Linux alone is not enough to prove the
-# code compiles: an API can be `cfg`'d out on another platform and still build
-# clean here. That is not hypothetical — `WebviewWindowBuilder::transparent` is
-# gated behind Tauri's `macos-private-api` feature on macOS, so the overlay
-# window compiled fine on Linux, passed every PR, and only blew up when the
-# v3.3.2 tag reached release.yml, which is the first thing that ever compiles
-# for macOS.
+# Check the fork on Linux, Windows, and macOS. Release packaging is manual;
+# archived upstream packaging workflows live in docs/upstream-workflows.
 
 on:
   pull_request:
@@ -120,7 +109,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '24'
           cache: 'npm'
           cache-dependency-path: frontend/package-lock.json
 
@@ -133,3 +122,24 @@ jobs:
       # `npm run build` is `tsc -b && vite build` — type-checks too.
       - name: Build
         run: npm run build
+
+  majsoulmax-adapter:
+    name: MajsoulMax isolated adapter
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Prepare isolated MajsoulMax dependencies
+        run: |
+          python -m venv .venv
+          .venv/bin/python -m pip install -r plugins/majsoulmax/requirements.txt
+      - name: Protocol regression
+        run: .venv/bin/python -m unittest discover -s tests -p test_majsoulmax_worker.py -v
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: tests/majsoulmax_bridge
+      - name: Real Rust and Python message bridge
+        run: cargo test --manifest-path tests/majsoulmax_bridge/Cargo.toml --locked

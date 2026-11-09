@@ -213,7 +213,7 @@ export function Sidebar() {
               }
               disabled={!hasUpdate}
             >
-              <span>v{version}</span>
+              <span>v{version.replace(/-plus\.(\d+)$/, ' · Plus $1')}</span>
               {hasUpdate && (
                 <span
                   className="inline-block h-1.5 w-1.5 rounded-full bg-red-500"

@@ -112,6 +112,18 @@ impl RiichiCityBridge {
         }
     }
 
+    /// Common gameplay JSON after platform-specific framing and validation.
+    /// Zhangxin uses this only after checking its own ordinary-riichi rules,
+    /// roster, card encoding and action enum against client resource 92217.
+    pub(crate) fn decoded_events(&mut self, uid: i64, body: &JsonValue) -> Vec<MjaiEvent> {
+        self.uid = uid;
+        self.dispatch(&WPacket {
+            message_index: 0,
+            cmd: 18,
+            body: body.clone(),
+        })
+    }
+
     fn dispatch(&mut self, pkt: &WPacket) -> Vec<MjaiEvent> {
         // The binary auth handshake (client → server) carries our uid.
         if pkt.cmd == CMD_AUTH {

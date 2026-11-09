@@ -21,7 +21,7 @@ export type ThemePalette = 'default' | 'crimson' | 'slate' | 'custom'
 export const THEME_MODES: readonly ThemeMode[] = ['light', 'dark', 'system']
 export const THEME_PALETTES: readonly ThemePalette[] = ['default', 'crimson', 'slate', 'custom']
 
-export const THEME_MODE_DEFAULT: ThemeMode = 'system'
+export const THEME_MODE_DEFAULT: ThemeMode = 'dark'
 export const THEME_PALETTE_DEFAULT: ThemePalette = 'default'
 
 // Subset the user can edit in the custom editor. The remaining tokens are

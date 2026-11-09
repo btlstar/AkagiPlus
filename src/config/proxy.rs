@@ -5,6 +5,9 @@ use std::path::PathBuf;
 #[serde(default)]
 pub struct ProxyConfig {
     pub enabled: bool,
+    pub zhangxinplus: ZhangxinPlusConfig,
+    pub riichicity_unlock: crate::proxy::riichicity_unlock::RiichiCityUnlockConfig,
+    pub majsoulmax: crate::proxy::majsoulmax::MajsoulMaxConfig,
     pub addr: String,
     pub ca_dir: PathBuf,
     /// Correct the certificate report a Mahjong Soul standalone client
@@ -48,6 +51,9 @@ impl Default for ProxyConfig {
     fn default() -> Self {
         Self {
             enabled: true,
+            zhangxinplus: Default::default(),
+            majsoulmax: Default::default(),
+            riichicity_unlock: Default::default(),
             addr: "127.0.0.1:23410".to_string(),
             ca_dir: PathBuf::from("./ca"),
             rewrite_certificate_report: true,
@@ -84,4 +90,11 @@ mod tests {
         assert!(cfg.rewrite_certificate_report);
         assert!(cfg.block_telemetry);
     }
+}
+
+/// Local client path; installation state is verified from the plugin journal.
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(default)]
+pub struct ZhangxinPlusConfig {
+    pub client_path: PathBuf,
 }

@@ -59,6 +59,26 @@ export type AnnouncementEntry = {
  */
 export const ANNOUNCEMENTS: AnnouncementEntry[] = [
   {
+    id: 'plus_3_8_0_2',
+    date: '2026-11-09',
+    version: '3.8.0-plus.2',
+    features: [
+      { icon: Gamepad2, key: 'zhangxin' },
+      { icon: AppWindow, key: 'cosmetics' },
+      { icon: SlidersHorizontal, key: 'display' },
+    ],
+  },
+  {
+    id: 'plus_3_8_0_1',
+    date: '2026-11-06',
+    version: '3.8.0-plus.1',
+    features: [
+      { icon: Gamepad2, key: 'launcher' },
+      { icon: AppWindow, key: 'cosmetics' },
+      { icon: Download, key: 'portable' },
+    ],
+  },
+  {
     id: 'v3_8_0',
     date: '2026-11-04',
     version: '3.8.0',

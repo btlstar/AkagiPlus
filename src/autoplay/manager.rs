@@ -189,6 +189,9 @@ impl AutoplayManager {
             )
         };
         let platform_kind = cfg_guard.platform.kind;
+        if platform_kind == crate::config::Platform::Zhangxin {
+            return;
+        }
         drop(cfg_guard);
 
         // Tenhou's planner needs the bridge's hand at Tenhou tile-index

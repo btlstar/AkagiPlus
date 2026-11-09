@@ -22,7 +22,7 @@ export function ProxyControlTile({ bp }: { bp: Breakpoint }) {
   const dot = STATE_COLOR[status.state] ?? 'bg-zinc-500'
   const descriptor = 'descriptor' in status && status.descriptor ? status.descriptor : '—'
   const kind = 'kind' in status ? status.kind : null
-  const title = kind === 'chromium' ? t('overview.capture_chromium') : t('overview.capture_mitm')
+  const title = kind === 'native' ? '掌心本地消息' : kind === 'chromium' ? t('overview.capture_chromium') : t('overview.capture_mitm')
 
   const call = async (cmd: 'start_capture' | 'stop_capture' | 'restart_capture') => {
     setBusy(true)

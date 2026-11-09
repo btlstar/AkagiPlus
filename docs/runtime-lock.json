@@ -1,0 +1,29 @@
+{
+  "python": {
+    "url": "https://github.com/astral-sh/python-build-standalone/releases/download/20260414/cpython-3.12.13+20260414-x86_64-pc-windows-msvc-install_only.tar.gz",
+    "sha256": "c5a9e011e284c49c48106ca177342f3e3f64e95b4c6652d4a382cc7c9bb1cc46"
+  },
+  "uv": {
+    "version": "0.11.8",
+    "url": "https://github.com/astral-sh/uv/releases/download/0.11.8/uv-x86_64-pc-windows-msvc.zip",
+    "sha256": "c84629a56e0706b69a47ea35862208af827cb6fbfa1d0ca763c52c67594637e8"
+  },
+  "python_packages": {
+    "protobuf": "4.25.8",
+    "ruamel.yaml": "0.18.16",
+    "UnityPy": "1.25.4",
+    "astc-encoder-py": "0.1.12",
+    "archspec": "0.2.7",
+    "ruamel.yaml.clib": "0.2.15",
+    "texture2ddecoder": "1.0.6",
+    "attrs": "26.1.0",
+    "brotli": "1.2.1",
+    "etcpak": "0.9.15",
+    "fmod_toolkit": "0.1.3",
+    "pyfmodex": "0.7.2",
+    "fsspec": "2026.9.0",
+    "lz4": "4.4.5",
+    "pillow": "13.0.0",
+    "tpk_ar": "0.2.4"
+  }
+}

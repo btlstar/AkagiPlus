@@ -1,0 +1,15 @@
+{
+  "imported_on": "2026-11-05",
+  "source_project": "MahjongCopilotPlus",
+  "files": {
+    "majsoulmax/plugin/mod.py": "9ccd643065795a2ac70d760cb67924984997fd3efc76be6ea0c455afc80e8f56",
+    "majsoulmax/proto/basic_pb2.py": "6fde3a1595d9b76e382fc6cf4154eb13d39fda686e285106ac9345194d60e507",
+    "majsoulmax/proto/liqi_pb2.py": "601082f2461050d0c48426948b803f23a2ab0b90450922a9106b0d5e907b4b90",
+    "majsoulmax/proto/protocol.py": "6e8bb519d570cd0c92c3da47419a3996036a3feb248732a161d2ac0dca5ae1ec",
+    "majsoulmax/proto/liqi.desc": "ba18b4d1a42dbbe4429feb90ce1977eb96cdfd037debe00837c3e16be697d7c9",
+    "majsoulmax/proto/liqi.json": "384478f555117086f13f0fd7874e02093d1427c8815dd3d837d8b34ecd03e3b8",
+    "majsoulmax/config/max_data.yaml": "3e426f0d606920e61edd9925e1d1dd67f85e9ec7ab6ddfb1e82053a598e7f46f",
+    "majsoulmax/config/data_version.json": "73394105ad75b03be4fc1776d2352892034085a4c9bbaf30268795388d002fc6"
+  },
+  "hash_scope": "Imported source bytes before AkagiPlus adaptation; file keys identify destinations within this adapter."
+}

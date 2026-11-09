@@ -1,5 +1,6 @@
 import {
   Bot,
+  Palette,
   Gamepad2,
   History as HistoryIcon,
   LayoutDashboard,
@@ -39,6 +40,7 @@ export function getMenuList(t: Translate): MenuGroup[] {
       menus: [
         { href: '/', label: t('nav.overview'), icon: LayoutDashboard },
         { href: '/game', label: t('nav.game'), icon: Gamepad2 },
+        { href: '/cosmetics', label: '装扮', icon: Palette },
         { href: '/bots', label: t('nav.bots'), icon: Bot },
         { href: '/history', label: t('nav.history'), icon: HistoryIcon },
         { href: '/review', label: t('nav.review'), icon: SearchCheck },

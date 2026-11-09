@@ -199,6 +199,9 @@ async fn the_report_that_leaves_describes_the_origin_not_akagi() {
     let (stop, stop_rx) = oneshot::channel::<()>();
     let proxy = tokio::spawn(start_proxy(
         ProxyConfig {
+            majsoulmax: Default::default(),
+            zhangxinplus: Default::default(),
+            riichicity_unlock: Default::default(),
             enabled: true,
             addr: format!("127.0.0.1:{proxy_port}"),
             ca_dir: tmp.path().join("ca"),

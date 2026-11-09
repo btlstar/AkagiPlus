@@ -7,6 +7,7 @@
 pub mod majsoul;
 pub mod riichi_city;
 pub mod tenhou;
+pub mod zhangxin;
 
 pub use majsoul::MajsoulBridge;
 pub use riichi_city::RiichiCityBridge;
@@ -117,6 +118,7 @@ pub fn for_platform(
     hooks: BridgeHooks,
 ) -> Box<dyn Bridge> {
     match platform {
+        crate::config::Platform::Zhangxin => Box::new(zhangxin::ZhangxinBridge::new()),
         crate::config::Platform::Majsoul => Box::new(
             MajsoulBridge::new(flow_log, session)
                 .with_time_budget(hooks.time_budget)

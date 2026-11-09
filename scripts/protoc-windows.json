@@ -1,0 +1,6 @@
+{
+  "version": "33.0",
+  "url": "https://github.com/protocolbuffers/protobuf/releases/download/v33.0/protoc-33.0-win64.zip",
+  "sha256": "3742cd49c8b6bd78b6760540367eb0ff62fa70a1032e15dafe131bfaf296986a",
+  "api_url": "https://api.github.com/repos/protocolbuffers/protobuf/releases/assets/304726610"
+}

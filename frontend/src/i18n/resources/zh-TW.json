@@ -418,7 +418,7 @@
     "cft_status_count": "已安裝 {{count}} 個版本",
     "cft_channel": "頻道 / 版本",
     "cft_channel_hint": "「stable」/「beta」/「dev」/「canary」，或具體版號(如「131.0.6778.85」)。",
-    "restart_capture": "重啟 capture",
+    "restart_capture": "重啟擷取",
     "restarting": "重啟中…",
     "appearance_sidebar_peek": "側欄滑鼠停留時暫展開",
     "appearance_hide_sidebar": "完全隱藏側欄",
@@ -813,6 +813,8 @@
     "bot_stopped": "Bot：已停止"
   },
   "platform": {
+    "zhangxin": "掌心麻將",
+    "zhangxin_desc": "原生客戶端 · ZhangxinPlus 裝扮與立直 AI 預覽",
     "majsoul": "雀魂",
     "majsoul_desc": "game.maj-soul.com — 四麻 + 三麻",
     "tenhou": "天鳳",
@@ -835,7 +837,7 @@
       "later": "稍後",
       "open_release": "開啟發佈頁面",
       "applying": "下載並安裝中…",
-      "runtime_caveat": "自動更新只替換執行檔。若此版本同時更新了內建 Python 環境，更新後 app 可能無法正常運作 — 此情況請至發佈頁面手動重新安裝。",
+      "runtime_caveat": "請下載完整壓縮包，退出遊戲與 AkagiPlus 並備份個人資料後更新。不要只替換 EXE。",
       "error_read_only": "Akagi 沒有權限寫入安裝目錄。請至發佈頁面手動下載更新。",
       "error_unsupported_platform": "您的平台目前不支援自動更新。請至發佈頁面手動下載。",
       "error_no_matching_asset": "此版本尚未提供您平台的執行檔。",
@@ -885,6 +887,24 @@
       "settings_button": "公告"
     },
     "entries": {
+      "plus_3_8_0_2": {
+        "title": "AkagiPlus 3.8.0 · Plus 2",
+        "zhangxin_title": "掌心麻將 AI",
+        "zhangxin_desc": "友人局普通立直三麻、四麻已實測，透過本機訊息連接，無須代理或憑證。",
+        "cosmetics_title": "三平台本機裝扮",
+        "cosmetics_desc": "整合 MajsoulMax、一番街本機裝扮與 ZhangxinPlus 0.1.5，統一安裝、還原和遊戲啟動入口。",
+        "display_title": "對局顯示修正",
+        "display_desc": "修復紅五顯示順序與玩家模組捲軸反覆切換，完善掌心方案使用和本機儲存。"
+      },
+      "plus_3_8_0_1": {
+        "title": "AkagiPlus 首個可攜版本",
+        "launcher_title": "從介面啟動遊戲",
+        "launcher_desc": "總覽與對局頁新增啟動入口，等待擷取就緒並重用既有遊戲視窗。",
+        "cosmetics_title": "遊戲內本機換裝",
+        "cosmetics_desc": "雀魂 MajsoulMax 與一番街本機裝扮；一番街補丁可在裝扮頁安裝、更新和還原。",
+        "portable_title": "完整可攜套件更新",
+        "portable_desc": "附帶裝扮執行依賴；僅檢查 AkagiPlus 發布，更新時下載完整壓縮包。"
+      },
       "v3_8_0": {
         "title": "天鳳斷線重連與自動打牌思考時間更新",
         "tenhou_rejoin_title": "天鳳斷線重連",

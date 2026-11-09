@@ -26,6 +26,13 @@ use tracing::{error, info, warn};
 
 pub fn run() {
     platform::setup();
+    if !cfg!(debug_assertions) {
+        if let Ok(exe) = std::env::current_exe() {
+            if let Some(root) = exe.parent() {
+                let _ = std::env::set_current_dir(root);
+            }
+        }
+    }
 
     let args = cli::Cli::parse();
     let (cfg, config_path) = config::load_config(args.config.as_deref());
@@ -76,7 +83,10 @@ pub fn run() {
         }
     };
 
-    info!("Config loaded: {cfg:?}");
+    info!(
+        "Config loaded for {:?} ({:?})",
+        cfg.platform.kind, cfg.capture.mode
+    );
     info!("Log session at {}", session.dir().display());
 
     // All buses constructed up front so AppState owns the canonical

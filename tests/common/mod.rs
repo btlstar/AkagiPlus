@@ -167,6 +167,9 @@ impl Harness {
         let upstream_port = stub_upstream().await;
         let proxy_port = free_port().await;
         let config = ProxyConfig {
+            majsoulmax: Default::default(),
+            zhangxinplus: Default::default(),
+            riichicity_unlock: Default::default(),
             enabled: true,
             addr: format!("127.0.0.1:{proxy_port}"),
             ca_dir: tmp.path().join("ca"),

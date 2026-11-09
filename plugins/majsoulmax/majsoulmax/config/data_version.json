@@ -1,0 +1,18 @@
+{
+  "version": "0.16.289-4.0.51",
+  "source": "https://github.com/Avenshy/MajsoulData/releases/tag/0.16.289-4.0.51",
+  "majsoulmax_version": "v2026.07.07",
+  "sha256": {
+    "max_data.yaml": "3e426f0d606920e61edd9925e1d1dd67f85e9ec7ab6ddfb1e82053a598e7f46f",
+    "liqi.desc": "ba18b4d1a42dbbe4429feb90ce1977eb96cdfd037debe00837c3e16be697d7c9"
+  },
+  "counts": {
+    "character": 125,
+    "skin": 516,
+    "title": 166,
+    "item": 519,
+    "loading_image": 286,
+    "emoji": 123,
+    "endings": 166
+  }
+}

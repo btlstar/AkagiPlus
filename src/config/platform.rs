@@ -13,6 +13,8 @@ pub enum Platform {
     /// captured exclusively through the MITM proxy — the Chromium/CDP backend
     /// does not apply. Observe-only (no autoplay).
     RiichiCity,
+    /// Native local decoded-message capture (ordinary-riichi AI preview).
+    Zhangxin,
 }
 
 impl Platform {
@@ -23,6 +25,7 @@ impl Platform {
             Platform::Majsoul => "majsoul",
             Platform::Tenhou => "tenhou",
             Platform::RiichiCity => "riichi_city",
+            Platform::Zhangxin => "zhangxin",
         }
     }
 }
@@ -36,6 +39,7 @@ impl From<Platform> for schema::Platform {
             Platform::Majsoul => schema::Platform::Majsoul,
             Platform::Tenhou => schema::Platform::Tenhou,
             Platform::RiichiCity => schema::Platform::RiichiCity,
+            Platform::Zhangxin => schema::Platform::Zhangxin,
         }
     }
 }

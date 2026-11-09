@@ -66,3 +66,15 @@ native_bot/out/
 
 # ZCode session artifacts
 .zcode/
+
+# AkagiPlus private runtime and development environments
+.venv/
+.local/
+configs/
+configs.toml
+plugins/majsoulmax/**/settings*.yaml
+*.local.*
+
+.env
+.env.*
+!.env.example

@@ -118,18 +118,27 @@ fn encode_concat(tiles: &[String]) -> String {
             _ => {}
         }
     }
-    // Canonical-sort each bucket (digits ascending) so identical hands render
-    // the same string regardless of input order.
-    let sort_bucket = |s: &mut String| {
+    // Red five is encoded as 0, but belongs between 4 and 6 for display.
+    // Sort only these output digits; the snapshot and AI events stay unchanged.
+    let sort_bucket = |s: &mut String, numbered_suit: bool| {
         let mut v: Vec<char> = s.chars().collect();
-        v.sort();
+        v.sort_by_key(|&digit| {
+            (
+                if numbered_suit && digit == '0' {
+                    '5'
+                } else {
+                    digit
+                },
+                digit,
+            )
+        });
         s.clear();
         s.extend(v);
     };
-    sort_bucket(&mut man);
-    sort_bucket(&mut pin);
-    sort_bucket(&mut sou);
-    sort_bucket(&mut honor);
+    sort_bucket(&mut man, true);
+    sort_bucket(&mut pin, true);
+    sort_bucket(&mut sou, true);
+    sort_bucket(&mut honor, false);
 
     let mut out = String::new();
     if !man.is_empty() {
@@ -497,6 +506,23 @@ mod tests {
             .map(|s| s.to_string())
             .collect();
         assert_eq!(encode_concat(&tiles), "123m0p99s15z");
+    }
+
+    #[test]
+    fn red_fives_sort_as_fives_without_changing_the_snapshot() {
+        let mut p = pl(
+            0,
+            vec![
+                "7m", "2m", "5mr", "2m", "6m", "6p", "5p", "5pr", "4p", "5s", "5sr", "6s", "4s",
+            ],
+            vec![],
+            vec![],
+        );
+        let original = p.tehai.clone();
+        assert_eq!(encode_hand(&p, Some(0)), "22067m4056p4056s");
+        assert_eq!(p.tehai, original);
+        p.tehai.reverse();
+        assert_eq!(encode_hand(&p, Some(0)), "22067m4056p4056s");
     }
 
     #[test]

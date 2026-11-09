@@ -418,7 +418,7 @@
     "cft_status_count": "已安装 {{count}} 个版本",
     "cft_channel": "频道 / 版本",
     "cft_channel_hint": "「stable」/「beta」/「dev」/「canary」，或具体版本号(如「131.0.6778.85」)。",
-    "restart_capture": "重启 capture",
+    "restart_capture": "重启捕获",
     "restarting": "重启中…",
     "appearance_sidebar_peek": "侧栏鼠标悬停时临时展开",
     "appearance_hide_sidebar": "完全隐藏侧栏",
@@ -813,6 +813,8 @@
     "bot_stopped": "Bot：已停止"
   },
   "platform": {
+    "zhangxin": "掌心麻将",
+    "zhangxin_desc": "原生客户端 · ZhangxinPlus 装扮与普通立直 AI 预览",
     "majsoul": "雀魂",
     "majsoul_desc": "game.maj-soul.com — 四麻 + 三麻",
     "tenhou": "天凤",
@@ -835,7 +837,7 @@
       "later": "稍后",
       "open_release": "打开发布页",
       "applying": "下载并应用中…",
-      "runtime_caveat": "自动更新只替换可执行文件。如果此版本同时更新了内置 Python 环境，更新后 app 可能无法正常工作 — 此情况请到发布页手动重新安装。",
+      "runtime_caveat": "请下载完整压缩包，退出游戏与 AkagiPlus 并备份个人资料后更新。不要只替换 EXE。",
       "error_read_only": "Akagi 没有权限写入安装目录。请到发布页手动下载更新。",
       "error_unsupported_platform": "您的平台目前不支持自动更新。请到发布页手动下载。",
       "error_no_matching_asset": "此版本尚未提供您平台的可执行文件。",
@@ -885,6 +887,24 @@
       "settings_button": "公告"
     },
     "entries": {
+      "plus_3_8_0_2": {
+        "title": "AkagiPlus 3.8.0 · Plus 2",
+        "zhangxin_title": "掌心麻将 AI",
+        "zhangxin_desc": "友人局普通立直三麻、四麻已实测，通过本地消息连接，无需代理或证书。",
+        "cosmetics_title": "三平台本地装扮",
+        "cosmetics_desc": "集成 MajsoulMax、一番街本地装扮与 ZhangxinPlus 0.1.5，统一安装、还原和游戏启动入口。",
+        "display_title": "对局显示修正",
+        "display_desc": "修复红五显示顺序及玩家模块滚动条反复切换，完善掌心方案使用与本地保存。"
+      },
+      "plus_3_8_0_1": {
+        "title": "AkagiPlus 首个便携版本",
+        "launcher_title": "从界面启动游戏",
+        "launcher_desc": "总览与对局页新增启动入口，自动等待捕获就绪并复用已有游戏窗口。",
+        "cosmetics_title": "游戏内本地换装",
+        "cosmetics_desc": "雀魂 MajsoulMax 与一番街本地装扮；一番街补丁可在装扮页安装、更新和还原。",
+        "portable_title": "完整便携包更新",
+        "portable_desc": "随包提供装扮运行依赖；仅检查 AkagiPlus 发布，更新时下载完整压缩包。"
+      },
       "v3_8_0": {
         "title": "天凤断线重连与自动打牌思考时间更新",
         "tenhou_rejoin_title": "天凤断线重连",

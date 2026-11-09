@@ -29,6 +29,16 @@ use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 use tauri::{AppHandle, State};
 
+#[tauri::command]
+pub fn get_majsoulmax_status() -> crate::proxy::majsoulmax::Status {
+    crate::proxy::majsoulmax::status()
+}
+
+#[tauri::command]
+pub fn get_riichicity_unlock_status() -> crate::proxy::riichicity_unlock::Status {
+    crate::proxy::riichicity_unlock::status()
+}
+
 /// Returns `true` exactly once per process the first time `bot_enabled`
 /// is observed as `true` here. Side-effect on success: flips `flag`
 /// false→true via a CAS. Used by `update_config` to decide whether the
@@ -88,6 +98,39 @@ pub async fn update_config(
     app: AppHandle,
     state: State<'_, AppState>,
 ) -> CmdResult<()> {
+    if new_config.platform.kind == crate::config::Platform::Zhangxin && new_config.autoplay.enabled
+    {
+        return Err("掌心麻将 AI 预览暂不支持自动操作。".into());
+    }
+    if new_config.proxy.majsoulmax.enabled
+        && new_config.platform.kind == crate::config::Platform::Majsoul
+        && (new_config.capture.mode != crate::config::CaptureMode::Mitm
+            || !new_config.proxy.enabled)
+    {
+        return Err("MajsoulMax 需要启用 MITM 捕获；请在装扮页面切换模式后保存。".into());
+    }
+    if new_config.proxy.riichicity_unlock.enabled
+        && new_config.platform.kind == crate::config::Platform::RiichiCity
+        && (new_config.capture.mode != crate::config::CaptureMode::Mitm
+            || !new_config.proxy.enabled)
+    {
+        return Err("RiichiCityUnlock 需要启用 MITM 捕获。".into());
+    }
+    let previous = state.config.read().await.clone();
+    let platform_switch = previous.platform.kind != new_config.platform.kind;
+    if platform_switch
+        && state
+            .game_tracker
+            .lock()
+            .await
+            .snapshot()
+            .is_some_and(|s| !s.is_done)
+    {
+        return Err("请先结束当前对局，再切换游戏平台。".into());
+    }
+    let _launch_guard = crate::ipc::game_launcher::OPERATION
+        .try_lock()
+        .map_err(|_| "正在启动游戏或管理补丁，请稍候再保存。".to_owned())?;
     persist_config(&new_config, &state.config_path).map_err(|e| e.to_string())?;
 
     // Snapshot the *previous* capture-relevant fields before we overwrite,
@@ -122,13 +165,9 @@ pub async fn update_config(
     if capture_changed || proxy_changed || platform_changed {
         // Run the restart in the background — `update_config` returns
         // promptly so the UI doesn't hang on slow shutdowns.
-        let st = (*state).clone();
-        tauri::async_runtime::spawn(async move {
-            if let Err(e) = restart_capture_inner(st).await {
-                let _ = ();
-                tracing::error!("auto-restart capture failed: {e:#}");
-            }
-        });
+        restart_capture_inner((*state).clone())
+            .await
+            .map_err(|e| format!("捕获启动失败：{e:#}"))?;
         let body = if platform_changed {
             "Applied platform / capture / proxy config changes."
         } else {
@@ -538,6 +577,9 @@ pub async fn sync_bot_deps(name: String, force: bool, state: State<'_, AppState>
 /// instead if you want to swap.
 #[tauri::command]
 pub async fn start_capture(state: State<'_, AppState>) -> CmdResult<()> {
+    let _launch_guard = crate::ipc::game_launcher::OPERATION
+        .try_lock()
+        .map_err(|_| "正在启动游戏或管理补丁，请稍候。".to_owned())?;
     let already_running = {
         let ctl = state.capture_control.lock().await;
         ctl.stop.is_some()
@@ -556,6 +598,9 @@ pub async fn start_capture(state: State<'_, AppState>) -> CmdResult<()> {
 /// running (becomes a plain start).
 #[tauri::command]
 pub async fn restart_capture(state: State<'_, AppState>) -> CmdResult<()> {
+    let _launch_guard = crate::ipc::game_launcher::OPERATION
+        .try_lock()
+        .map_err(|_| "正在启动游戏或管理补丁，请稍候。".to_owned())?;
     restart_capture_inner((*state).clone())
         .await
         .map_err(|e| format!("restart capture: {e:#}"))
@@ -624,6 +669,9 @@ pub async fn remove_chrome_for_testing(
 /// nothing is running.
 #[tauri::command]
 pub async fn stop_capture(state: State<'_, AppState>) -> CmdResult<()> {
+    let _launch_guard = crate::ipc::game_launcher::OPERATION
+        .try_lock()
+        .map_err(|_| "正在启动游戏或管理补丁，请稍候。".to_owned())?;
     let (stop, force_close) = {
         let mut ctl = state.capture_control.lock().await;
         (ctl.stop.take(), ctl.force_close.clone())
@@ -1365,61 +1413,31 @@ pub async fn delete_game_history_entry(id: String, state: State<'_, AppState>) -
     Ok(removed)
 }
 
-/// `shinkuan/Akagi` is the canonical upstream — kept here as a const
-/// instead of plumbing through config so the user can't accidentally
-/// point the auto-updater at a fork.
-const UPSTREAM_REPO: &str = "shinkuan/Akagi";
+// Fork-only release metadata; portable updates replace the complete package.
 
-/// One-shot "is there a newer release?" — frontend calls this on app
-/// launch (with a 6h cache) and from the Settings "Check for updates"
-/// button. Returns `Ok(None)` for "already up to date" or unsupported
-/// platforms; `Err(String)` for network / parse failures (the toast in
-/// the frontend surfaces the message verbatim).
+/// Check only AkagiPlus releases; upstream binaries are never update candidates.
 #[tauri::command]
 pub async fn check_for_update(
     state: State<'_, AppState>,
 ) -> CmdResult<Option<crate::updater::UpdateInfo>> {
-    let Ok(_guard) = state.updater_lock.try_lock() else {
-        return Err("another update operation is in progress".into());
-    };
     let net = state.config.read().await.network.clone();
-    let info = crate::updater::check_for_update(UPSTREAM_REPO, &net)
+    let result = crate::updater::check::check_for_update("btlstar/AkagiPlus", &net)
         .await
-        .map_err(|e| format!("check for update: {e:#}"))?;
-    // Stash server-side: `apply_update` acts only on what *we* fetched,
-    // never on an UpdateInfo the webview hands back.
-    *state.pending_update.write().await = info.clone();
-    Ok(info)
+        .map_err(|e| e.to_string())?;
+    *state.pending_update.write().await = result.clone();
+    Ok(result)
 }
 
-/// Download the release zip found by the last `check_for_update`
-/// (mirror fallback per `[network]` config), verify digest + minisign
-/// signature, swap the binary via `self_replace::self_replace`, then
-/// relaunch. Takes no payload — the pending update is read from
-/// `AppState`, so the webview cannot substitute its own URLs or trust
-/// markers. On success the process exits inside `app.restart()` and
-/// this never returns. The typed error variant lets the frontend
-/// distinguish "fall back to release page" (`read_only_install`,
-/// `unsupported_platform`, `no_matching_asset`, `signature_missing`)
-/// from a real network / integrity error.
+/// Retained IPC compatibility: single-binary replacement cannot update the portable plugins/runtime.
 #[tauri::command]
 pub async fn apply_update(
     app: tauri::AppHandle,
     state: State<'_, AppState>,
 ) -> Result<(), crate::updater::UpdateError> {
-    let Ok(_guard) = state.updater_lock.try_lock() else {
-        return Err(crate::updater::UpdateError::Other {
-            message: "another update operation is in progress".into(),
-        });
-    };
-    let info = state.pending_update.read().await.clone();
-    let Some(info) = info else {
-        return Err(crate::updater::UpdateError::Other {
-            message: "no pending update — run a check first".into(),
-        });
-    };
-    let net = state.config.read().await.network.clone();
-    crate::updater::apply::download_and_apply(&app, &info, &net).await
+    let _ = (app, state);
+    Err(crate::updater::UpdateError::Other {
+        message: "请从 AkagiPlus 发布页下载完整压缩包，退出程序后更新；不要只替换 EXE。".into(),
+    })
 }
 
 // ---------- Built-in bot cloud inference (native API) ----------
@@ -1777,6 +1795,12 @@ macro_rules! ipc_handlers {
     () => {
         ::tauri::generate_handler![
             $crate::ipc::commands::get_config,
+            $crate::ipc::game_launcher::launch_game,
+            $crate::ipc::game_launcher::get_game_launch_status,
+            $crate::ipc::game_launcher::riichicity_local,
+            $crate::ipc::game_launcher::zhangxinplus,
+            $crate::ipc::commands::get_majsoulmax_status,
+            $crate::ipc::commands::get_riichicity_unlock_status,
             $crate::ipc::commands::update_config,
             $crate::ipc::commands::set_overlay_enabled,
             $crate::ipc::commands::list_bots,

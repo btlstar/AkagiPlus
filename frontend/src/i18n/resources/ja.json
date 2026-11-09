@@ -418,7 +418,7 @@
     "cft_status_count": "{{count}} 件インストール済み",
     "cft_channel": "チャンネル / バージョン",
     "cft_channel_hint": "「stable」/「beta」/「dev」/「canary」、または具体的なバージョン番号（例「131.0.6778.85」）。",
-    "restart_capture": "capture を再起動",
+    "restart_capture": "キャプチャを再起動",
     "restarting": "再起動中…",
     "appearance_sidebar_peek": "ホバー時にサイドバーを一時展開",
     "appearance_hide_sidebar": "サイドバーを完全に隠す",
@@ -813,6 +813,8 @@
     "bot_stopped": "Bot: 停止"
   },
   "platform": {
+    "zhangxin": "掌心麻雀",
+    "zhangxin_desc": "ネイティブ版 · ZhangxinPlus 装飾・リーチ麻雀 AI プレビュー",
     "majsoul": "雀魂",
     "majsoul_desc": "game.maj-soul.com — 四麻 + 三麻",
     "tenhou": "天鳳",
@@ -835,7 +837,7 @@
       "later": "後で",
       "open_release": "リリースページを開く",
       "applying": "ダウンロードして適用中…",
-      "runtime_caveat": "自動更新は実行ファイルのみを置き換えます。このリリースで同梱の Python ランタイムも更新されている場合、更新後にアプリが正常に動作しないことがあります。その場合はリリースページから手動で再インストールしてください。",
+      "runtime_caveat": "完全な配布パッケージをダウンロードしてください。ゲームと AkagiPlus を終了し、個人データをバックアップしてから更新してください。",
       "error_read_only": "Akagi のインストールディレクトリに書き込めません。リリースページから手動で更新してください。",
       "error_unsupported_platform": "お使いのプラットフォームは自動更新に対応していません。リリースページからダウンロードしてください。",
       "error_no_matching_asset": "このリリースにはお使いのプラットフォーム用のビルドがまだありません。",
@@ -885,6 +887,24 @@
       "settings_button": "お知らせ"
     },
     "entries": {
+      "plus_3_8_0_2": {
+        "title": "AkagiPlus 3.8.0 · Plus 2",
+        "zhangxin_title": "掌心麻雀の AI",
+        "zhangxin_desc": "通常ルールの三麻・四麻友人戦を実機確認。本機のメッセージで接続し、プロキシや証明書は不要です。",
+        "cosmetics_title": "3 プラットフォームのローカル着せ替え",
+        "cosmetics_desc": "MajsoulMax、一番街の着せ替え、ZhangxinPlus 0.1.5 を統合。導入・復元・ゲーム起動を GUI から操作できます。",
+        "display_title": "対局表示の修正",
+        "display_desc": "赤五の表示順とプレイヤーパネルのスクロールバー振動を修正。掌心の装飾プラン適用と保存を改善しました。"
+      },
+      "plus_3_8_0_1": {
+        "title": "AkagiPlus 初のポータブル版",
+        "launcher_title": "アプリからゲームを起動",
+        "launcher_desc": "概要と対局に起動ボタンを追加。キャプチャの準備を待ち、既存のゲームウィンドウを再利用します。",
+        "cosmetics_title": "ゲーム内のローカル着せ替え",
+        "cosmetics_desc": "雀魂 MajsoulMax と一番街のローカル装飾に対応。装飾ページでパッチの導入・更新・復元ができます。",
+        "portable_title": "完全パッケージで更新",
+        "portable_desc": "装飾の実行環境を同梱。AkagiPlus の公開版のみを確認し、完全パッケージをダウンロードして更新します。"
+      },
       "v3_8_0": {
         "title": "天鳳の切断・再接続と自動打牌の思考時間を更新",
         "tenhou_rejoin_title": "天鳳の切断・再接続",

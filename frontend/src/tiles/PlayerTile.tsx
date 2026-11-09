@@ -38,6 +38,8 @@ export function PlayerTile({ seat, bp }: { seat: number; bp: Breakpoint }) {
   const seatWind = game ? bakazeFor(seat, game.oya, numPlayers) : '—'
   const kitaCount = player?.kita_tiles?.length ?? 0
 
+  // Keep the sizing width stable when vertical overflow changes; otherwise
+  // the scrollbar and ResizeObserver-driven tile sizes can toggle each other.
   return (
     <TileFrame
       id={id}
@@ -48,7 +50,7 @@ export function PlayerTile({ seat, bp }: { seat: number; bp: Breakpoint }) {
           {t(KIND_TKEY[kind])}
         </span>
       }
-      contentClassName="flex flex-col gap-2"
+      contentClassName="flex flex-col gap-2 [scrollbar-gutter:stable]"
     >
       <div className="flex items-baseline justify-between">
         <div className="flex items-center gap-2">

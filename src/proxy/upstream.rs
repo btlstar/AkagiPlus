@@ -1,4 +1,7 @@
 //! Upstream connector for the MITM proxy.
+//! AkagiPlus: the optional RiichiCityUnlock chain uses its public CA and
+//! normal trust roots with strict TLS validation. The original direct-mode
+//! verifier below remains unchanged.
 //!
 //! Why this isn't `hudsucker::Proxy::builder().with_rustls_connector(...)`:
 //! hudsucker's built-in rustls connector calls `with_webpki_roots()` and does
@@ -21,6 +24,7 @@
 //! installed, so the local security boundary doesn't change.
 
 use super::certstore::CertStore;
+use hudsucker::hyper_util::rt::TokioIo;
 use hudsucker::{
     hyper_util::client::legacy::connect::HttpConnector,
     rustls::{
@@ -31,7 +35,43 @@ use hudsucker::{
     },
     tokio_tungstenite::Connector as WsConnector,
 };
-use std::sync::Arc;
+use std::{
+    future::Future,
+    net::SocketAddr,
+    pin::Pin,
+    sync::Arc,
+    task::{Context, Poll},
+};
+use tokio::net::TcpStream;
+use tower_service::Service;
+
+#[derive(Clone)]
+pub struct LocalConnector {
+    direct: HttpConnector,
+    proxy: Option<SocketAddr>,
+}
+impl Service<http::Uri> for LocalConnector {
+    type Response = TokioIo<TcpStream>;
+    type Error = Box<dyn std::error::Error + Send + Sync>;
+    type Future = Pin<Box<dyn Future<Output = Result<Self::Response, Self::Error>> + Send>>;
+    fn poll_ready(&mut self, cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
+        self.direct
+            .poll_ready(cx)
+            .map_err(|e| Box::new(e) as Self::Error)
+    }
+    fn call(&mut self, uri: http::Uri) -> Self::Future {
+        if let Some(proxy) = self.proxy {
+            Box::pin(async move {
+                Ok(TokioIo::new(
+                    hudsucker::upstream::connect(proxy, &uri).await?,
+                ))
+            })
+        } else {
+            let future = self.direct.call(uri);
+            Box::pin(async move { Ok(future.await?) })
+        }
+    }
+}
 
 /// `ServerCertVerifier` that approves every chain. See module docs for
 /// the threat model justification.
@@ -107,7 +147,19 @@ impl ServerCertVerifier for NoVerify {
 /// Shared rustls `ClientConfig`. aws-lc-rs as the crypto provider to match
 /// hudsucker's `RcgenAuthority` (so we don't load two different providers
 /// in the process). TLS 1.2 + TLS 1.3 enabled, no client cert auth.
-fn client_config(store: Arc<CertStore>) -> Arc<ClientConfig> {
+fn client_config(store: Arc<CertStore>, ca: Option<CertificateDer<'static>>) -> Arc<ClientConfig> {
+    if let Some(ca) = ca {
+        let mut roots = hudsucker::rustls::RootCertStore::empty();
+        roots.extend(webpki_roots::TLS_SERVER_ROOTS.iter().cloned());
+        roots.add(ca).expect("validated external CA");
+        return Arc::new(
+            ClientConfig::builder_with_provider(Arc::new(aws_lc_rs::default_provider()))
+                .with_safe_default_protocol_versions()
+                .expect("TLS versions")
+                .with_root_certificates(roots)
+                .with_no_client_auth(),
+        );
+    }
     let provider = aws_lc_rs::default_provider();
     let cfg = ClientConfig::builder_with_provider(Arc::new(provider))
         .with_safe_default_protocol_versions()
@@ -120,19 +172,32 @@ fn client_config(store: Arc<CertStore>) -> Arc<ClientConfig> {
 
 /// HTTPS connector for the proxy's upstream HTTP/WS leg. HTTP/1 + HTTP/2
 /// both enabled; ALPN is negotiated per-connection by hyper-rustls.
-pub fn http_connector(store: Arc<CertStore>) -> hyper_rustls::HttpsConnector<HttpConnector> {
-    let config = client_config(store);
+pub fn http_connector(
+    store: Arc<CertStore>,
+    proxy: Option<SocketAddr>,
+    ca: Option<CertificateDer<'static>>,
+) -> hyper_rustls::HttpsConnector<LocalConnector> {
+    let config = client_config(store, ca);
+    let mut direct = HttpConnector::new();
+    direct.enforce_http(false);
     hyper_rustls::HttpsConnectorBuilder::new()
         .with_tls_config((*config).clone())
         .https_or_http()
         .enable_http1()
         .enable_http2()
-        .build()
+        .wrap_connector(LocalConnector { direct, proxy })
 }
 
 /// WebSocket connector for upstream WS upgrades originating from the
 /// proxy. Same `ClientConfig` as `http_connector` so the same NoVerify
 /// policy applies.
-pub fn websocket_connector(store: Arc<CertStore>) -> WsConnector {
-    WsConnector::Rustls(client_config(store))
+pub fn websocket_connector(
+    store: Arc<CertStore>,
+    ca: Option<CertificateDer<'static>>,
+) -> WsConnector {
+    WsConnector::Rustls(client_config(store, ca))
 }
+
+#[cfg(test)]
+#[path = "upstream_tests.rs"]
+mod transport_tests;

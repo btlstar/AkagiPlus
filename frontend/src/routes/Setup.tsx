@@ -114,9 +114,10 @@ export function Setup() {
     return <div className="p-6 text-muted-foreground">{t('setup.loading')}</div>
   }
 
-  const idx = STEPS.indexOf(step)
+  const steps: Step[] = draft.platform.kind === 'Zhangxin' ? ['welcome', 'platform', 'configure', 'finish'] : STEPS
+  const idx = steps.indexOf(step)
   const canBack = idx > 0
-  const canNext = idx < STEPS.length - 1
+  const canNext = idx < steps.length - 1
 
   const saveBotSettings = async () => {
     for (const [name, settings] of Object.entries(botSettingsDraft)) {
@@ -158,9 +159,9 @@ export function Setup() {
       }
       setBusy(false)
     }
-    setStep(STEPS[idx + 1])
+    setStep(steps[idx + 1])
   }
-  const back = () => setStep(STEPS[idx - 1])
+  const back = () => setStep(steps[idx - 1])
 
   const finish = async () => {
     setBusy(true)
@@ -220,10 +221,10 @@ export function Setup() {
           <div className="flex items-center justify-between">
             <CardTitle>{t('setup.title')}</CardTitle>
             <span className="text-xs text-muted-foreground">
-              {t('setup.step_progress', { current: idx + 1, total: STEPS.length })}
+              {t('setup.step_progress', { current: idx + 1, total: steps.length })}
             </span>
           </div>
-          <Stepper current={idx} />
+          <Stepper current={idx} count={steps.length} />
         </CardHeader>
         <CardContent className="grid gap-6">
           {step === 'welcome' && <WelcomeStep />}
@@ -272,10 +273,10 @@ export function Setup() {
   )
 }
 
-function Stepper({ current }: { current: number }) {
+function Stepper({ current, count }: { current: number; count: number }) {
   return (
     <div className="flex gap-1.5 mt-3">
-      {STEPS.map((_, i) => (
+      {Array.from({ length: count }, (_, i) => (
         <div
           key={i}
           className={`h-1 flex-1 rounded ${i <= current ? 'bg-primary' : 'bg-muted'}`}
@@ -307,6 +308,7 @@ function PlatformStep({
     setDraft({
       ...draft,
       platform: { kind },
+      autoplay: kind === 'Zhangxin' ? { ...draft.autoplay, enabled: false } : draft.autoplay,
       capture: {
         ...draft.capture,
         // Native-only platforms (no web client) can't use Chromium capture —
@@ -988,6 +990,7 @@ function FinishStep({ draft }: { draft: AppConfig }) {
   ].filter((p): p is string => p !== null)
   const botSummary =
     botParts.length > 0 ? botParts.join(', ') : t('setup.finish.bots_none')
+  if (draft.platform.kind === 'Zhangxin') return <div className="grid gap-3"><h2 className="text-lg font-semibold">掌心麻将 · AI 接入预览</h2><p className="text-sm text-muted-foreground">完成后在「装扮」页安装 ZhangxinPlus，再从总览启动游戏。普通立直麻将通过本地消息提供 AI 建议，无需代理或证书。请先在「机器人」页确认 AI 配置；特殊玩法与自动操作暂不支持。</p></div>
   return (
     <div className="grid gap-3">
       <h2 className="text-lg font-semibold">{t('setup.finish.title')}</h2>

@@ -54,7 +54,7 @@ export type BotStatus =
   | { state: 'error'; bot: string; error: string }
   | { state: 'stopped'; bot: string }
 
-export type CaptureKind = 'mitm' | 'chromium'
+export type CaptureKind = 'mitm' | 'chromium' | 'native'
 
 export type CaptureStatus =
   | { state: 'stopped' }
@@ -82,7 +82,15 @@ export type ChromiumConfig = {
   block_telemetry: boolean
 }
 
+export type HttpCaptureConfig = {
+  record_all: boolean
+  bodies: boolean
+  max_body_bytes: number
+  static_assets: boolean
+}
+
 export type CaptureConfig = {
+  http?: HttpCaptureConfig
   mode: CaptureMode
   chromium: ChromiumConfig
 }
@@ -96,7 +104,7 @@ export type DetectedBrowser = {
 /// share names but the schema enum carries extra archive-only variants).
 /// Mirrors `src/config/platform.rs::Platform` (`#[derive(Serialize)]` →
 /// PascalCase JSON: `"Majsoul"`, `"Tenhou"`).
-export type PlatformKind = 'Majsoul' | 'Tenhou' | 'RiichiCity'
+export type PlatformKind = 'Majsoul' | 'Tenhou' | 'RiichiCity' | 'Zhangxin'
 
 /** A duration setting as an inclusive `[min, max]` range, ms. Mirrors
  *  `src/config/range.rs::MsRange`; every decision draws one value from it. */
@@ -200,11 +208,22 @@ export const OVERLAY_TOP_N_MAX = 5
 export const OVERLAY_OPACITY_MIN = 0.3
 export const OVERLAY_OPACITY_MAX = 1.0
 
+export type MajsoulMaxConfig = {
+  enabled: boolean
+  python: string
+  worker: string
+  data_dir: string
+}
+export type RiichiCityUnlockConfig = {
+  enabled: boolean; executable: string; ca_path: string; client_path: string; injector_path: string
+}
+export type MajsoulMaxStatus = { phase: string; modified: number; snapshot: string }
+
 export type AppConfig = {
   general: { first_run_completed: boolean; developer_mode: boolean }
   logging: { dir: string; level: string; all_level: string }
   platform: { kind: PlatformKind }
-  proxy: { enabled: boolean; addr: string; ca_dir: string; block_telemetry: boolean }
+  proxy: { enabled: boolean; addr: string; ca_dir: string; block_telemetry: boolean; majsoulmax?: MajsoulMaxConfig; riichicity_unlock?: RiichiCityUnlockConfig; zhangxinplus?: { client_path: string } }
   bot: {
     enabled: boolean
     active_4p: string
@@ -542,6 +561,7 @@ export type Platform =
   | 'majsoul'
   | 'tenhou'
   | 'riichi_city'
+  | 'zhangxin'
   | 'mjai'
   | 'unknown'
 

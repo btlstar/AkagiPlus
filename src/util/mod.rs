@@ -9,7 +9,7 @@ pub fn is_appimage() -> bool {
 /// `~/.config/akagi` (Linux) or platform equivalent. None if unresolvable.
 /// All AppImage runtime paths (config, logs, bot dir, CA dir) anchor here.
 pub fn user_config_root() -> Option<PathBuf> {
-    dirs::config_dir().map(|p| p.join("akagi"))
+    dirs::config_dir().map(|p| p.join("akagiplus"))
 }
 
 /// Strip a leading `./` so `./logs` joins cleanly under a user dir.

@@ -136,3 +136,12 @@ mjai.app
 
   Subprocess convention reference (JSONL stdin/stdout, argv, env vars,
   end-of-batch flush) in src/bot/ and mjai_bot/. Convention only.
+
+AkagiPlus modifications (2026-11-05): opt-in process-isolated MajsoulMax integration,
+Cosmetics UI, source launchers, independent runtime data, and update isolation.
+The bundled MajsoulMax-derived Python implementation is GPL-3.0; see
+plugins/majsoulmax/PROVENANCE.md and plugins/majsoulmax/LICENSE.txt.
+
+RiichiCity integration (2026):
+- RiichiCityUnlock is an external user-provided program from https://github.com/Avenshy/RiichiCityUnlock ; no binary or proprietary source is redistributed.
+- vendor/hudsucker is hudsucker 0.24.0 (MIT OR Apache-2.0), with a local WebSocket CONNECT patch documented there. Original license files retained.
