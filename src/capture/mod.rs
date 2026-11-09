@@ -10,6 +10,7 @@
 //! Both implement [`CaptureBackend`] and feed frames through [`flow::FlowBridges`]
 //! into the platform bridge, which emits mjai events on [`crate::event_bus::MjaiBus`].
 
+pub mod amatsuki;
 pub mod chromium;
 pub mod flow;
 pub mod http;

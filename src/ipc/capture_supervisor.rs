@@ -104,7 +104,11 @@ pub async fn spawn_capture_supervisor(state: AppState) -> Result<()> {
     let (shutdown_token, shutdown_notify) = ShutdownToken::new();
 
     // Build backend per mode.
-    let backend: Box<dyn CaptureBackend> = if platform == crate::config::Platform::Zhangxin {
+    let backend: Box<dyn CaptureBackend> = if platform == crate::config::Platform::Amatsuki {
+        Box::new(crate::capture::amatsuki::AmatsukiBackend::new(
+            &proxy_cfg.amatsuki.client_path,
+        )?)
+    } else if platform == crate::config::Platform::Zhangxin {
         Box::new(crate::capture::zhangxin::ZhangxinBackend::new(
             &proxy_cfg.zhangxinplus.client_path,
         )?)

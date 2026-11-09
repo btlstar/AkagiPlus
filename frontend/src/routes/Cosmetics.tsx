@@ -65,7 +65,7 @@ export function Cosmetics() {
         <h1 className="text-2xl font-semibold">装扮</h1>
         <p className="text-sm text-muted-foreground mt-2">为各平台提供独立的装扮扩展。</p>
       </header>
-      {config?.platform.kind === 'Zhangxin' ? <ZhangxinPlusCard /> : config?.platform.kind === 'RiichiCity' ? <><RiichiCityLocalCard /><details className="text-sm"><summary className="cursor-pointer text-muted-foreground mb-4">可选：外部 RiichiCityUnlock</summary><RiichiCityUnlockCard /></details></> : <Card>
+      {config?.platform.kind === 'Amatsuki' ? <Card><CardHeader><CardTitle>AmatsukiStyle · 天月本地装扮</CardTitle></CardHeader><CardContent className="text-sm text-muted-foreground">天月装扮目前使用独立的 AmatsukiStyle 开发版，请单独启动工具。AkagiPlus 的天月 AI 接入可独立使用。</CardContent></Card> : config?.platform.kind === 'Zhangxin' ? <ZhangxinPlusCard /> : config?.platform.kind === 'RiichiCity' ? <><RiichiCityLocalCard /><details className="text-sm"><summary className="cursor-pointer text-muted-foreground mb-4">可选：外部 RiichiCityUnlock</summary><RiichiCityUnlockCard /></details></> : <Card>
         <CardHeader className="flex flex-row items-center justify-between gap-4">
           <div><CardTitle>雀魂 · MajsoulMax</CardTitle><p className="text-xs text-muted-foreground mt-2">MajsoulMax</p></div>
           <Switch aria-label="启用 MajsoulMax" checked={draft.enabled} disabled={!supported || saving}

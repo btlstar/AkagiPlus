@@ -25,6 +25,8 @@ def main():
         dst=stage/'plugins/riichicity_local'/file; dst.parent.mkdir(parents=True,exist_ok=True); shutil.copy2(ROOT/'plugins/riichicity_local'/file,dst)
     for file in ['local_cosmetics.lua', 'build.py', 'manage.py', 'README.md', 'requirements.txt', 'plugin.toml', 'LICENSE.txt']:
         dst=stage/'plugins/zhangxinplus'/file; dst.parent.mkdir(parents=True,exist_ok=True); shutil.copy2(ROOT/'plugins/zhangxinplus'/file,dst)
+    for file in ['host.py','capture.js','il2cpp.js','protocol.py','README.md','requirements.txt']:
+        dst=stage/'plugins/amatsuki'/file; dst.parent.mkdir(parents=True,exist_ok=True); shutil.copy2(ROOT/'plugins/amatsuki'/file,dst)
     (stage/'scripts').mkdir()
     shutil.copy2(ROOT/'scripts/riichicity-local.py', stage/'scripts/riichicity-local.py')
     copy_tree(runtime, stage/'runtime/python'/TRIPLE)

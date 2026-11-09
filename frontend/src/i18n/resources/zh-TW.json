@@ -504,6 +504,8 @@
       "links_label": "專案首頁與官方社群："
     },
     "platform": {
+    "amatsuki": "天月麻將",
+    "amatsuki_desc": "原生客戶端 · 本地訊息 AI 建議，無需代理",
       "title": "選擇遊戲平台",
       "desc": "Akagi 一次只能監聽一個遊戲的 WebSocket 協定。之後可以在「設定」中變更。"
     },

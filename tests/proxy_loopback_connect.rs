@@ -95,6 +95,7 @@ async fn loopback_connect_is_refused_without_blocking() {
     let config = ProxyConfig {
         majsoulmax: Default::default(),
         zhangxinplus: Default::default(),
+        amatsuki: Default::default(),
         riichicity_unlock: Default::default(),
         enabled: true,
         addr: format!("127.0.0.1:{port}"),

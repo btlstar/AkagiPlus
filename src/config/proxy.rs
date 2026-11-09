@@ -5,7 +5,8 @@ use std::path::PathBuf;
 #[serde(default)]
 pub struct ProxyConfig {
     pub enabled: bool,
-    pub zhangxinplus: ZhangxinPlusConfig,
+    pub zhangxinplus: NativeClientConfig,
+    pub amatsuki: NativeClientConfig,
     pub riichicity_unlock: crate::proxy::riichicity_unlock::RiichiCityUnlockConfig,
     pub majsoulmax: crate::proxy::majsoulmax::MajsoulMaxConfig,
     pub addr: String,
@@ -52,6 +53,7 @@ impl Default for ProxyConfig {
         Self {
             enabled: true,
             zhangxinplus: Default::default(),
+            amatsuki: Default::default(),
             majsoulmax: Default::default(),
             riichicity_unlock: Default::default(),
             addr: "127.0.0.1:23410".to_string(),
@@ -92,9 +94,9 @@ mod tests {
     }
 }
 
-/// Local client path; installation state is verified from the plugin journal.
+/// Optional native game executable; empty selects automatic detection.
 #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(default)]
-pub struct ZhangxinPlusConfig {
+pub struct NativeClientConfig {
     pub client_path: PathBuf,
 }

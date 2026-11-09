@@ -145,3 +145,7 @@ plugins/majsoulmax/PROVENANCE.md and plugins/majsoulmax/LICENSE.txt.
 RiichiCity integration (2026):
 - RiichiCityUnlock is an external user-provided program from https://github.com/Avenshy/RiichiCityUnlock ; no binary or proprietary source is redistributed.
 - vendor/hudsucker is hudsucker 0.24.0 (MIT OR Apache-2.0), with a local WebSocket CONNECT patch documented there. Original license files retained.
+
+Amatsuki native capture (2026):
+- plugins/amatsuki is an original read-only adapter. The IL2CPP reflection helper is shared from btlstar/AmatsukiStyle under Apache-2.0.
+- Frida Python bindings 17.26.2: https://github.com/frida/frida-python ; wxWindows Library Licence 3.1, see LICENSES/frida-COPYING.txt.

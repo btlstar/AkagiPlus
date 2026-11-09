@@ -15,6 +15,7 @@ pub enum Platform {
     RiichiCity,
     /// Native local decoded-message capture (ordinary-riichi AI preview).
     Zhangxin,
+    Amatsuki,
 }
 
 impl Platform {
@@ -26,6 +27,7 @@ impl Platform {
             Platform::Tenhou => "tenhou",
             Platform::RiichiCity => "riichi_city",
             Platform::Zhangxin => "zhangxin",
+            Platform::Amatsuki => "amatsuki",
         }
     }
 }
@@ -40,6 +42,7 @@ impl From<Platform> for schema::Platform {
             Platform::Tenhou => schema::Platform::Tenhou,
             Platform::RiichiCity => schema::Platform::RiichiCity,
             Platform::Zhangxin => schema::Platform::Zhangxin,
+            Platform::Amatsuki => schema::Platform::Amatsuki,
         }
     }
 }
@@ -56,6 +59,10 @@ mod tests {
 
     #[test]
     fn config_to_schema_platform_round_trip() {
+        assert_eq!(
+            schema::Platform::from(Platform::Amatsuki),
+            schema::Platform::Amatsuki
+        );
         assert_eq!(
             schema::Platform::from(Platform::Majsoul),
             schema::Platform::Majsoul

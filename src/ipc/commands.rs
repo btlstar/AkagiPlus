@@ -98,9 +98,12 @@ pub async fn update_config(
     app: AppHandle,
     state: State<'_, AppState>,
 ) -> CmdResult<()> {
-    if new_config.platform.kind == crate::config::Platform::Zhangxin && new_config.autoplay.enabled
+    if matches!(
+        new_config.platform.kind,
+        crate::config::Platform::Zhangxin | crate::config::Platform::Amatsuki
+    ) && new_config.autoplay.enabled
     {
-        return Err("掌心麻将 AI 预览暂不支持自动操作。".into());
+        return Err("此平台的本地 AI 接入暂不支持自动操作。".into());
     }
     if new_config.proxy.majsoulmax.enabled
         && new_config.platform.kind == crate::config::Platform::Majsoul

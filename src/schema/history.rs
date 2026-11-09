@@ -26,6 +26,7 @@ pub enum Platform {
     Tenhou,
     RiichiCity,
     Zhangxin,
+    Amatsuki,
     Mjai,
     Unknown,
 }

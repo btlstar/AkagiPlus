@@ -14,3 +14,5 @@ ruamel.yaml.clib==0.2.15
 texture2ddecoder==1.0.6
 tpk_ar==0.2.4
 UnityPy==1.25.4
+
+frida==17.26.2

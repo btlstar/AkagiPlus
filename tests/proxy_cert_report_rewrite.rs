@@ -201,6 +201,7 @@ async fn the_report_that_leaves_describes_the_origin_not_akagi() {
         ProxyConfig {
             majsoulmax: Default::default(),
             zhangxinplus: Default::default(),
+            amatsuki: Default::default(),
             riichicity_unlock: Default::default(),
             enabled: true,
             addr: format!("127.0.0.1:{proxy_port}"),

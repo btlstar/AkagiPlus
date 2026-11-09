@@ -819,7 +819,7 @@ function PlatformCard({
     setDraft({
       ...draft,
       platform: { kind },
-      autoplay: kind === 'Zhangxin' ? { ...draft.autoplay, enabled: false } : draft.autoplay,
+      autoplay: (kind === 'Zhangxin' || kind === 'Amatsuki') ? { ...draft.autoplay, enabled: false } : draft.autoplay,
       capture: {
         ...draft.capture,
         // Native-only platforms (no web client) are MITM-only — force the
@@ -901,6 +901,7 @@ function AutoplayCard({
       ...draft,
       autoplay: { ...ap, delay: { ...delay, ...patch } },
     })
+  if (draft.platform.kind === 'Amatsuki') return <Card><CardHeader><CardTitle>自动操作</CardTitle></CardHeader><CardContent className="text-sm text-muted-foreground">天月 AI 目前提供建议显示，暂不支持自动操作。</CardContent></Card>
   if (draft.platform.kind === 'Zhangxin') return <Card><CardHeader><CardTitle>自动操作</CardTitle></CardHeader><CardContent className="text-sm text-muted-foreground">掌心 AI 目前提供建议预览，暂不支持自动操作。</CardContent></Card>
   return (
     <Card>
@@ -1147,6 +1148,7 @@ function CaptureCard({
       },
     })
 
+  if (draft.platform.kind === 'Amatsuki') return <Card><CardHeader><CardTitle>天月麻将 · 本地消息接入</CardTitle></CardHeader><CardContent className="text-sm text-muted-foreground">从「总览」或「对局」页启动天月，并在「机器人」页选择 AI。请在普通立直麻将对局开局前连接；无需代理、证书或装扮插件。特殊玩法、对局中途恢复与自动操作暂不支持。</CardContent></Card>
   if (draft.platform.kind === 'Zhangxin') return <Card><CardHeader><CardTitle>掌心麻将 · 本地消息接入</CardTitle></CardHeader><CardContent className="text-sm text-muted-foreground">在「装扮」页安装 ZhangxinPlus，再从「总览」或「对局」页启动游戏。在「机器人」页配置 AI。普通立直麻将对局通过 ZhangxinPlus 本地消息接入，无需代理或证书。请在一场对局开局前连接，特殊玩法与自动操作暂不支持。</CardContent></Card>
 
   return (

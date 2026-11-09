@@ -48,14 +48,14 @@ describe('GUI game launch', () => {
     expect(await screen.findByRole('dialog')).toBeTruthy()
     expect(screen.getByLabelText('游戏程序')).toBeTruthy()
   })
-  it('selects Zhangxin without retaining automatic play', async () => {
+  it.each(['Zhangxin', 'Amatsuki'] as const)('selects %s without retaining automatic play', async (kind) => {
     useConfigStore.setState({ config: { ...config, autoplay: { enabled: true } } as AppConfig })
     render(<GameLauncher />)
-    fireEvent.change(screen.getByRole('combobox'), { target: { value: 'Zhangxin' } })
-    await waitFor(() => expect(useConfigStore.getState().config?.platform.kind).toBe('Zhangxin'))
+    fireEvent.change(screen.getByRole('combobox'), { target: { value: kind } })
+    await waitFor(() => expect(useConfigStore.getState().config?.platform.kind).toBe(kind))
     expect(useConfigStore.getState().config?.autoplay.enabled).toBe(false)
     fireEvent.click(screen.getByRole('button', { name: '配置游戏路径' }))
-    expect(await screen.findByText('掌心麻将游戏路径')).toBeTruthy()
+    expect(await screen.findByText(kind === 'Amatsuki' ? '天月麻将游戏路径' : '掌心麻将游戏路径')).toBeTruthy()
   })
 
 })

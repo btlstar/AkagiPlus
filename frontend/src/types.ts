@@ -104,7 +104,7 @@ export type DetectedBrowser = {
 /// share names but the schema enum carries extra archive-only variants).
 /// Mirrors `src/config/platform.rs::Platform` (`#[derive(Serialize)]` →
 /// PascalCase JSON: `"Majsoul"`, `"Tenhou"`).
-export type PlatformKind = 'Majsoul' | 'Tenhou' | 'RiichiCity' | 'Zhangxin'
+export type PlatformKind = 'Majsoul' | 'Tenhou' | 'RiichiCity' | 'Zhangxin' | 'Amatsuki'
 
 /** A duration setting as an inclusive `[min, max]` range, ms. Mirrors
  *  `src/config/range.rs::MsRange`; every decision draws one value from it. */
@@ -223,7 +223,7 @@ export type AppConfig = {
   general: { first_run_completed: boolean; developer_mode: boolean }
   logging: { dir: string; level: string; all_level: string }
   platform: { kind: PlatformKind }
-  proxy: { enabled: boolean; addr: string; ca_dir: string; block_telemetry: boolean; majsoulmax?: MajsoulMaxConfig; riichicity_unlock?: RiichiCityUnlockConfig; zhangxinplus?: { client_path: string } }
+  proxy: { enabled: boolean; addr: string; ca_dir: string; block_telemetry: boolean; majsoulmax?: MajsoulMaxConfig; riichicity_unlock?: RiichiCityUnlockConfig; zhangxinplus?: { client_path: string }; amatsuki?: { client_path: string } }
   bot: {
     enabled: boolean
     active_4p: string
@@ -562,6 +562,7 @@ export type Platform =
   | 'tenhou'
   | 'riichi_city'
   | 'zhangxin'
+  | 'amatsuki'
   | 'mjai'
   | 'unknown'
 

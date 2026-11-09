@@ -30,7 +30,7 @@ Zhangxin requires no proxy or CA certificate. Special modes, joining an existing
 
 Installers verify supported files and preserve originals for restoration. Local cosmetics do not change server ownership, currency, rewards or progression; other players may not see them.
 
-Amatsuki is not integrated in this fork: upstream v2 has a legacy bridge, while v3 lists it as planned.
+The development branch has a new Amatsuki local-message AI capture prototype; existing release archives do not include it yet. Select Amatsuki, configure `mahjongP.exe`, and connect before a new ordinary-riichi game begins. No proxy, certificate or cosmetic plugin is needed. Mid-game recovery and autoplay are not supported yet.
 
 ## Updates and development
 

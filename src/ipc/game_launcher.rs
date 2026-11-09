@@ -45,9 +45,15 @@ pub fn python() -> Result<PathBuf> {
     bail!("运行依赖缺失，请重新解压完整 AkagiPlus 发布包。")
 }
 fn is_native(c: &AppConfig) -> bool {
-    matches!(c.platform.kind, Platform::RiichiCity | Platform::Zhangxin)
+    matches!(
+        c.platform.kind,
+        Platform::RiichiCity | Platform::Zhangxin | Platform::Amatsuki
+    )
 }
 fn native_client(c: &AppConfig) -> PathBuf {
+    if c.platform.kind == Platform::Amatsuki {
+        return crate::capture::amatsuki::client_path(&c.proxy.amatsuki.client_path);
+    }
     if c.platform.kind == Platform::Zhangxin {
         return crate::capture::zhangxin::client_path(&c.proxy.zhangxinplus.client_path);
     }
@@ -169,7 +175,7 @@ pub async fn get_game_launch_status(state: State<'_, AppState>) -> Result<Launch
     })
 }
 async fn ready(state: &AppState, c: &AppConfig) -> Result<()> {
-    if c.platform.kind == Platform::Zhangxin {
+    if matches!(c.platform.kind, Platform::Zhangxin | Platform::Amatsuki) {
         if !matches!(
             state.capture_control.lock().await.status,
             CaptureStatus::Running { .. }
@@ -261,20 +267,25 @@ async fn launch_inner(state: &AppState) -> Result<LaunchStatus> {
             client_path: String::new(),
         });
     }
+    if c.platform.kind == Platform::Amatsuki && !native_client(&c).is_file() {
+        bail!("未找到天月客户端，请选择 mahjongP.exe。");
+    }
     if c.platform.kind == Platform::Zhangxin && !native_client(&c).is_file() {
         bail!("未找到掌心客户端，请选择 zhangxinmj.exe。");
     }
     if c.platform.kind == Platform::RiichiCity && !native_client(&c).is_file() {
         bail!("未找到一番街客户端，请选择 Game 文件夹中的 Mahjong-JP.exe。");
     }
-    if c.platform.kind != Platform::Zhangxin
+    if !matches!(c.platform.kind, Platform::Zhangxin | Platform::Amatsuki)
         && c.capture.mode == CaptureMode::Mitm
         && !c.proxy.enabled
     {
         bail!("请先在设置中启用 MITM 捕获。");
     }
     ready(state, &c).await?;
-    if c.platform.kind == Platform::Zhangxin || c.capture.mode != CaptureMode::Chromium {
+    if matches!(c.platform.kind, Platform::Zhangxin | Platform::Amatsuki)
+        || c.capture.mode != CaptureMode::Chromium
+    {
         let mut command = if is_native(&c) {
             let path = native_client(&c);
             let mut cmd = Command::new(&path);

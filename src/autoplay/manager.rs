@@ -189,7 +189,10 @@ impl AutoplayManager {
             )
         };
         let platform_kind = cfg_guard.platform.kind;
-        if platform_kind == crate::config::Platform::Zhangxin {
+        if matches!(
+            platform_kind,
+            crate::config::Platform::Zhangxin | crate::config::Platform::Amatsuki
+        ) {
             return;
         }
         drop(cfg_guard);

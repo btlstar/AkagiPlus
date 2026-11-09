@@ -504,6 +504,8 @@
       "links_label": "Project home and community:"
     },
     "platform": {
+    "amatsuki": "Amatsuki Mahjong",
+    "amatsuki_desc": "Native client · local AI capture, no proxy required",
       "title": "Pick your platform",
       "desc": "Akagi listens for one game's WebSocket protocol at a time. You can change this later in Settings."
     },

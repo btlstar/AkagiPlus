@@ -169,6 +169,7 @@ impl Harness {
         let config = ProxyConfig {
             majsoulmax: Default::default(),
             zhangxinplus: Default::default(),
+            amatsuki: Default::default(),
             riichicity_unlock: Default::default(),
             enabled: true,
             addr: format!("127.0.0.1:{proxy_port}"),

@@ -29,6 +29,7 @@ export type PlatformInfo = {
 }
 
 export const PLATFORMS: PlatformInfo[] = [
+  { kind: 'Amatsuki', labelKey: 'platform.amatsuki', descriptionKey: 'platform.amatsuki_desc', defaultStartUrl: '', supportsChromium: false },
   { kind: 'Zhangxin', labelKey: 'platform.zhangxin', descriptionKey: 'platform.zhangxin_desc', defaultStartUrl: '', supportsChromium: false },
   {
     kind: 'Majsoul',

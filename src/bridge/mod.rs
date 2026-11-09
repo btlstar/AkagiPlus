@@ -4,6 +4,7 @@
 //! mjai JSONL event stream consumed by AI bots. One bridge instance per
 //! independent game session (e.g. one Majsoul WebSocket flow).
 
+pub mod amatsuki;
 pub mod majsoul;
 pub mod riichi_city;
 pub mod tenhou;
@@ -118,6 +119,7 @@ pub fn for_platform(
     hooks: BridgeHooks,
 ) -> Box<dyn Bridge> {
     match platform {
+        crate::config::Platform::Amatsuki => Box::new(amatsuki::AmatsukiBridge::default()),
         crate::config::Platform::Zhangxin => Box::new(zhangxin::ZhangxinBridge::new()),
         crate::config::Platform::Majsoul => Box::new(
             MajsoulBridge::new(flow_log, session)
