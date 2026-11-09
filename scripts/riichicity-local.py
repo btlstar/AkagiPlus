@@ -1,4 +1,4 @@
-"""Manage the opt-in, reversible native RiichiCity cosmetic prototype."""
+"""Manage the opt-in, reversible native RiichiCity cosmetic patch."""
 import argparse
 import importlib.util
 import json

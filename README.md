@@ -23,7 +23,7 @@ Select a game on Overview and use Start Game / Return to Game. Install or enable
 |---|---|---|
 | Mahjong Soul | Dedicated browser; upstream capture and AI retained | MajsoulMax, using MITM capture |
 | RiichiCity | Windows standalone client; configure and run Proxifier | Characters, skins, avatars, titles, favorites and schemes |
-| Zhangxin | Local decoded messages; ordinary riichi 3p/4p friend matches user-tested | ZhangxinPlus 0.1.5, resource version 92217 |
+| Zhangxin | Local decoded messages; ordinary riichi 3p/4p friend matches | ZhangxinPlus 0.1.5, resource version 92217 |
 | Tenhou | Upstream capture and AI retained | No additional cosmetic plugin |
 
 Zhangxin requires no proxy or CA certificate. Special modes, joining an existing match and autoplay are unsupported. Avatar and voice coverage is incomplete. See [ZhangxinPlus](plugins/zhangxinplus/README.md). RiichiCity uses `Game/Mahjong-JP.exe`; its safety-mode self filter can replace selected skins during matches.

@@ -23,7 +23,7 @@ def verify_snapshot():
 class Worker:
     def __init__(self):
         self.manifest = verify_snapshot()
-        self.plugin = mod('AkagiPlus prototype')
+        self.plugin = mod('AkagiPlus')
         self.flows = {}
 
     def handle(self, request):

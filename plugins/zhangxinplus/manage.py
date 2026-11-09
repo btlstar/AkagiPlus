@@ -1,4 +1,4 @@
-"""Install/status/restore a verified Zhangxin prototype. Never kills a game process."""
+"""Install/status/restore a verified Zhangxin patch. Never kills a game process."""
 import argparse, json, os, subprocess, tempfile
 from pathlib import Path
 from build import BASELINE, digest, build

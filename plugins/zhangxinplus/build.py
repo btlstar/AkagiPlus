@@ -1,4 +1,4 @@
-"""Build a private Zhangxin prototype; no installed files are written."""
+"""Build a verified Zhangxin local patch; no installed files are written."""
 import argparse, hashlib, io, json, re
 from pathlib import Path
 import UnityPy
