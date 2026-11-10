@@ -8,12 +8,12 @@ consumed by AI bots.
 
 ```rust
 pub trait Bridge: Send {
-    fn parse(&mut self, content: &[u8]) -> Vec<MjaiEvent>;
+    fn parse(&mut self, direction: Direction, content: &[u8]) -> ParseResult;
     fn build(&mut self, command: &MjaiEvent) -> Option<Vec<u8>>;
 }
 ```
 
-- `parse` — raw inbound WS binary frame → zero or more `MjaiEvent`s.
+- `parse` — a directional frame or native message → mjai events and an optional parsed view.
 - `build` — outbound mjai command (also `MjaiEvent`) → optional raw WS binary frame (autoplay).
 
 ## mjai types
@@ -36,8 +36,7 @@ is isolated.
 ## `BridgeHooks`
 
 Shared slots the autoplay layer hands to a bridge. Every field is optional and
-platform-specific, and only the chromium capture path wires them at all — the
-MITM path has no `Page` handle, so nothing consumes them. They exist because
+platform-specific. Chromium supplies browser slots; MITM supplies the available frame-injection and notification slots. They exist because
 autoplay needs facts only the protocol parser sees:
 
 | Field | Platform | Carries |
@@ -70,4 +69,5 @@ list of every constructor between here and the capture backend.
   implements `build` in the other direction — not on the autoplay path, which
   drives the client's own input instead. See `tenhou/README.md`.
 - `riichi_city/` — Riichi City (JSON inside a 15-byte binary header).
-  Observe-only. See `riichi_city/README.md`.
+  See `riichi_city/README.md`; autoplay uses the MITM injection path.
+- `zhangxin/` and `amatsuki/` — native local messages for ordinary riichi AI; no autoplay or mid-match recovery.

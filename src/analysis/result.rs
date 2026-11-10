@@ -2,8 +2,8 @@
 //!
 //! Mirrors mahjong-helper's `Hand13AnalysisResult` / `Hand14AnalysisResult`
 //! structures with field-for-field equivalence where the algorithm has been
-//! ported. Phase 1 only populated [`WaitInfo`]; Phase 2 fills in
-//! [`Hand13Result`] / [`Hand14Result`] / [`DiscardCandidate`].
+//! ported, including [`WaitInfo`], [`Hand13Result`], [`Hand14Result`] and
+//! [`DiscardCandidate`].
 
 use serde::Serialize;
 
@@ -15,12 +15,12 @@ use super::waits::Waits;
 pub struct WaitInfo {
     pub tile: String,
     pub left: u8,
-    /// Per-wait agari rate (percent). `None` until Phase 2 populates it.
+    /// Per-wait agari rate (percent), when computed.
     pub agari_rate: Option<f64>,
 }
 
 impl WaitInfo {
-    /// Build wait infos with no agari rate (Phase 1 helper).
+    /// Build wait infos with no agari rate.
     pub fn from_waits(waits: &Waits) -> Vec<WaitInfo> {
         waits
             .map

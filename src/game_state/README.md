@@ -46,10 +46,10 @@ Spawned from `lib.rs` once the MJAI bus exists:
 ```rust
 let tracker = game_state::spawn(mjai_bus.subscribe());
 // tracker: Arc<Mutex<GameTracker>>
-//   → IPC commands (future) read snapshot via `tracker.lock().await.snapshot()`
+//   → IPC commands read snapshot via `tracker.lock().await.snapshot()`
 ```
 
-The handle is held by `AppState` so future IPC commands can pull
+The handle is held by `AppState` so IPC commands can pull
 snapshots without keeping a separate reference.
 
 ## Querying

@@ -2,7 +2,7 @@
 
 Translates Riichi City's WebSocket traffic into the mjai event stream. Native
 client only (no web build), so it is reachable **only through the MITM proxy**;
-the Chromium/CDP capture backend does not apply. **Observe-only** — no autoplay.
+the Chromium/CDP capture backend does not apply. Autoplay uses the MITM frame-injection path; local cosmetics are provided separately by [RiichiCityStyle](https://github.com/btlstar/RiichiCityStyle).
 
 This is a Rust port of the original Akagi v2 Python bridge
 (`mitm/bridge/riichi_city/`). The on-the-wire framing comes from the

@@ -1,9 +1,6 @@
 # Majsoul Bridge
 
-Decodes Majsoul's `lq.*` protobuf-over-WebSocket protocol. Parses and logs
-every frame, and currently emits the first mjai event — `start_game` with
-the bot's own seat (`id`). Remaining mjai state-machine phases (kyoku, draws,
-discards, calls, agari/ryukyoku) are still TODO.
+Decodes Majsoul's `lq.*` protobuf-over-WebSocket protocol into mjai events, including game and round starts, draws, discards, calls, riichi and results. Per-flow state tracks seat identity and reconnect replay.
 
 ## Seat resolution & names
 
@@ -408,11 +405,8 @@ The proxy handler (`src/proxy/handler.rs`) constructs a fresh
   re-run `scripts/extract_liqi.py` (or let the `auto-liqi` workflow do it) to
   regenerate `proto/liqi.proto` + `liqi.json` from the live Unity client.
   Pool lookup happens dynamically by name.
-- **Mjai conversion**: add a state machine layer that consumes
-  `ParsedMessage` and emits `MjaiEvent`. Game state (seat assignments,
-  tehai, doras, …) lives there, not in the parser.
-- **Outbound build**: implement `Bridge::build` to take an `MjaiEvent`
-  and return the wire bytes (autoplay).
+- **Mjai conversion**: extend the state machine in `mod.rs`; keep seat, hand and dora state out of the wire parser.
+- **Autoplay**: keep platform-specific action handling in the existing autoplay path.
 
 ## References
 

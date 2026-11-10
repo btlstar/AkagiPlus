@@ -1,9 +1,7 @@
 //! Analysis engine — Rust port of the mahjong-helper Go `util/` package.
 //!
-//! Phase 1 (current): tiles, hand input, shanten, per-tile waits.
-//! Later phases add Hand13/Hand14 search, agari rate, point expectation,
-//! and the risk engine. See `README.md` in this directory for the
-//! contributor-facing layout.
+//! Provides hand search, shanten, waits, agari rate, point expectation and risk
+//! analysis. See `README.md` for the module layout.
 //!
 //! ## License note
 //!

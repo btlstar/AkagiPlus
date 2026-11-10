@@ -153,3 +153,7 @@ Amatsuki native capture (2026):
 AmatsukiStyle integration (2026):
 - plugins/amatsukistyle includes the original AmatsukiStyle local cosmetic adapter, Apache-2.0; see its LICENSE.txt and NOTICE.
 - Catalog parsing reads the user-installed game files; game assets and account profiles are not distributed.
+
+RiichiCityStyle integration (2026):
+- plugins/riichicity_local is the integrated RiichiCityStyle cosmetic core, Apache-2.0.
+- Standalone manager: https://github.com/btlstar/RiichiCityStyle . Compatibility identifiers and existing local preferences are preserved.

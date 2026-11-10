@@ -1,14 +1,15 @@
-//! Capture transports — the layer that supplies WebSocket frames to the
+//! Capture transports — supplies WebSocket frames or local game messages to the
 //! [`crate::bridge::Bridge`] parser.
 //!
-//! Two backends today:
-//! - [`hudsucker_backend::HudsuckerBackend`] — MITM proxy (legacy, requires
-//!   system proxy + CA cert install).
+//! - [`hudsucker_backend::HudsuckerBackend`] — MITM proxy; requires traffic
+//!   routing and CA trust.
 //! - [`chromium::ChromiumBackend`] — controlled Chromium browser, intercepts
 //!   WebSocket frames via CDP. No proxy/CA setup.
+//! - [`zhangxin::ZhangxinBackend`] — whitelisted local game-message queue.
+//! - [`amatsuki::AmatsukiBackend`] — local Python / Frida capture worker.
 //!
-//! Both implement [`CaptureBackend`] and feed frames through [`flow::FlowBridges`]
-//! into the platform bridge, which emits mjai events on [`crate::event_bus::MjaiBus`].
+//! All implement [`CaptureBackend`] and emit mjai events through their platform
+//! bridge. WebSocket transports use [`flow::FlowBridges`] for per-flow state.
 
 pub mod amatsuki;
 pub mod chromium;

@@ -9,13 +9,12 @@ tenpai-rate, and risk engine on top.
 
 ### Adding a new analysis output
 
-1. Add the field to `result::AnalysisResult` (or `Hand13Result` /
-   `Hand14Result` once they exist).
+1. Add the field to `result::AnalysisResult`, `Hand13Result` or `Hand14Result`.
 2. Compute it in the relevant module (e.g. risk numbers in
    `risk/`, hand metrics in `analysis/`).
 3. Wire it through `analyze()` in `mod.rs`.
 
-### Adding a new risk-correction term (Phase 3)
+### Adding a new risk-correction term
 
 1. Implement the per-tile correction inside `risk/base.rs` as a
    method on `RiskTiles34`, mirroring the Go `FixWith*` family.
@@ -23,9 +22,8 @@ tenpai-rate, and risk engine on top.
 
 ### Updating riichienv-core
 
-The crate is touched in only three files: `tile.rs`, `shanten.rs`,
-and (Phase 2 onward) `score.rs`. If `riichienv-core` changes its
-shanten / parser API, only those modules need to follow.
+Review `tile.rs`, `shanten.rs` and `score.rs` when changing the dependency.
+Keep hand parsing, shanten and score conversion consistent with its API.
 
 ## Files
 

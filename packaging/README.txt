@@ -5,7 +5,8 @@ AkagiPlus @VERSION@ — Windows x64
 在「机器人」配置 AI；新对局开局前连接，建议显示在「对局」或悬浮窗。
 
 雀魂：在「装扮」启用 MajsoulMax，使用 MITM 与专用浏览器。
-麻雀一番街：选择 Game/Mahjong-JP.exe，配置并保持 Proxifier 运行。
+麻雀一番街：选择 Game/Mahjong-JP.exe，AI 捕获需配置并保持 Proxifier 运行。
+RiichiCityStyle 装扮在「装扮」页安装、更新和还原；仅装扮无需代理。
 掌心全民麻将：完成官方更新并退出游戏后，在「装扮」安装 ZhangxinPlus。
 当前适配掌心资源 92217，普通立直友人局支持三麻、四麻 AI，无需代理或证书。
 天月麻雀：选择 mahjongP.exe，AmatsukiStyle 默认启用，登录后恢复本地大厅装扮。
@@ -14,7 +15,11 @@ AkagiPlus @VERSION@ — Windows x64
 
 天月与掌心的特殊玩法、中途恢复和自动操作暂不支持。
 掌心头像和语音尚未完整适配。装扮与 AI 的具体范围见对应插件使用说明。
-独立 AmatsukiStyle 与内置天月装扮无需同时运行。
+独立工具与内置装扮无需重复启用；恢复时保留与游戏目录匹配的备份。
+独立装扮项目：
+RiichiCityStyle：https://github.com/btlstar/RiichiCityStyle
+ZhangxinPlus：https://github.com/btlstar/ZhangxinPlus
+AmatsukiStyle：https://github.com/btlstar/AmatsukiStyle
 系统要求：Windows x64、WebView2；无需另装 Python 或 Node。
 发布包不含个人配置、密钥、登录资料、证书、日志、游戏客户端或游戏资源。
 本地装扮不增加服务器拥有物，也不改变真实购买、奖励和养成进度。

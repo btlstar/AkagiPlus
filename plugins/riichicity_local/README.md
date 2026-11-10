@@ -1,6 +1,8 @@
-# 一番街本地装扮
+# RiichiCityStyle · 麻雀一番街本地装扮
 
 在游戏原有界面选择角色、皮肤、头像、称号和装备，保存装扮方案与星标。补丁保留真实养成数值；头像、语音及随机方案的覆盖范围有限。
+
+独立图形管理工具见 [RiichiCityStyle](https://github.com/btlstar/RiichiCityStyle)，与本目录使用同一装扮核心。独立装扮无需代理；下述 Proxifier 用于 AkagiPlus 的一番街 AI 捕获。
 
 ## 使用
 

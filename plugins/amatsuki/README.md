@@ -6,6 +6,8 @@
 
 源码运行需安装 `requirements.txt`；发布包自带运行依赖。捕获进程只读取日麻消息，不修改游戏文件或发送游戏指令，不读取登录凭据。
 
+独立装扮工具见 [AmatsukiStyle](https://github.com/btlstar/AmatsukiStyle)，无需与内置装扮同时运行。
+
 在「装扮」页可开关 AmatsukiStyle；默认启用。与 AI 捕获一起加载，游戏重启后会自动重新连接。装扮选择沿用本机 AmatsukiStyle 配置，不影响真实持有物品和养成进度。关闭捕获或 AkagiPlus 会停止插件；需要完全恢复原始显示时重新启动游戏。
 
 登录后会自动恢复本机保存的大厅雀士、背景和音乐，无需进入雀士页重新切换。

@@ -1,8 +1,5 @@
-// Mahgen tile sizing — port of frontend/js/app.js.
-// See frontend/mahgen.md for the full background on why every "obvious"
-// CSS-only approach fails. The TL;DR: mahgen renders into an open shadow
-// root; setting host + inner <img> dimensions in pixels is the only path
-// that survives the WebKitGTK + circular-containing-block constraints.
+// Mahgen renders an image in an open shadow root. Size both host and image
+// in pixels to avoid circular container sizing; see frontend/mahgen.md.
 
 export type MahgenKind =
   | 'river' | 'hand' | 'melds' | 'dora' | 'rec' | 'bot-action' | 'bot-show'

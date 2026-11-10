@@ -93,7 +93,7 @@ impl Default for ManifestBot {
     }
 }
 
-/// Optional source pointer for Phase 3 (GitHub install). Tagged on `type`.
+/// Optional GitHub installation source, tagged on `type`.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum BotSource {

@@ -17,6 +17,8 @@
 
 ## 独立管理
 
+需要独立图形管理窗口时，下载 [ZhangxinPlus](https://github.com/btlstar/ZhangxinPlus)；独立工具版本与装扮核心版本分别管理，本版核心为 0.1.5。
+
 Python 需要 UnityPy 1.25.4；AkagiPlus 附带的 runtime Python 已包含依赖。在仓库根目录运行：
 
 ```powershell

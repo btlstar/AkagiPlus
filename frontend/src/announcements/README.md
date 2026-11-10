@@ -20,9 +20,7 @@ time.
 
 ## Adding an announcement for a release (pre-release checklist)
 
-Do this **before** tagging the release — the maintainer's release tagging
-script (a local script, not part of this repo) refuses to tag a version
-that has no committed entry here.
+Update the bundled announcement and all four locale resources before building a new application release.
 
 1. **`entries.ts`** — prepend an entry to `ANNOUNCEMENTS` (newest first;
    dates must be unique and strictly descending down the array):

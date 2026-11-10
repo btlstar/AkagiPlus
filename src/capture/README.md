@@ -1,7 +1,7 @@
 # Capture Module
 
 `crate::capture` is the transport layer that supplies binary WebSocket
-frames to `crate::bridge::Bridge` (the protocol parser). Two backends
+frames or local decoded messages to `crate::bridge::Bridge` (the protocol parser). The backends
 share one trait so the rest of the app — bot manager, game tracker,
 analysis runner, IPC forwarders — never sees which capture mode is
 running.
@@ -15,7 +15,12 @@ running.
   with `--user-data-dir=<our profile>` and intercepts WebSocket frames
   via the Chrome DevTools Protocol. No proxy / CA setup.
 
-Both implement `CaptureBackend`:
+- **`zhangxin::ZhangxinBackend`** — reads whitelisted local game messages for ordinary riichi matches.
+- **`amatsuki::AmatsukiBackend`** — runs the local Python / Frida worker for ordinary riichi matches, optionally loading AmatsukiStyle.
+
+All implement `CaptureBackend`. Native capture needs no proxy or certificate; it does not support mid-match recovery or autoplay.
+
+The backend contract is:
 
 ```rust
 #[async_trait]
@@ -40,10 +45,9 @@ cooperative cancellation handle wired to the supervisor.
 4. Wire it into `src/ipc/capture_supervisor.rs::spawn_capture_supervisor`
    alongside the existing match arms.
 
-## Why two backends, not one trait + N parsers
+## Transport and protocol separation
 
-The `Bridge` trait already abstracts protocols (Majsoul, future
-Tenhou…). What this module abstracts is *transport* — the same Majsoul
+The `Bridge` trait abstracts the supported platform protocols. What this module abstracts is *transport* — the same Majsoul
 parser runs against either MITM-intercepted bytes or CDP-intercepted
 bytes. Don't reimplement parsing per backend; route frames into the
 existing platform bridge.
@@ -144,14 +148,3 @@ Chrome-for-Testing install, etc.):
   lives. None of the capture code currently needs that — `resolve_dir`
   already routes to user-config under AppImage and similar read-only
   mounts.
-
-## Phasing
-
-Phase 1 (this commit): trait, system Chrome detect, basic CDP frame
-capture, supervisor multiplexing, Settings UI toggle.
-
-Phase 2 (planned): Chrome-for-Testing manifest fetch + download +
-extract, macOS quarantine strip, Windows + macOS smoke testing.
-
-Phase 3 (planned): first-run wizard, `Snapshot.capture_status`
-migration, removal of `start_proxy`/`stop_proxy` aliases.
