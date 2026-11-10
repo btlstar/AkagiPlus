@@ -8,7 +8,7 @@ AkagiPlus @VERSION@ — Windows x64
 麻雀一番街：选择 Game/Mahjong-JP.exe，AI 捕获需配置并保持 Proxifier 运行。
 RiichiCityStyle 装扮在「装扮」页安装、更新和还原；仅装扮无需代理。
 掌心全民麻将：完成官方更新并退出游戏后，在「装扮」安装 ZhangxinPlus。
-当前适配掌心资源 92217，普通立直友人局支持三麻、四麻 AI，无需代理或证书。
+掌心资源兼容性由安装器检查，普通立直友人局支持三麻、四麻 AI，无需代理或证书。
 天月麻雀：选择 mahjongP.exe，AmatsukiStyle 默认启用，登录后恢复本地大厅装扮。
 天月通过本地消息提供普通立直 AI，无需代理或证书，客户端重启后自动重新连接。
 天凤：保留原有浏览器启动、捕获与 AI 功能。

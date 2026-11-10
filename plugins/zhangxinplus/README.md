@@ -1,6 +1,6 @@
 # ZhangxinPlus · 掌心 Plus
 
-独立的掌心全民麻将本地装扮插件，当前版本 **0.1.5**，适配 Windows 客户端资源 **92217**。AkagiPlus 提供安装、还原和游戏启动入口；插件运行不依赖 AkagiPlus 代理或 Proxifier。
+掌心全民麻将本地装扮插件，版本见 [plugin.toml](plugin.toml)，资源兼容性由安装器核验。AkagiPlus 提供安装、还原和游戏启动入口；插件运行不依赖 AkagiPlus 代理或 Proxifier。
 
 ## 使用
 
@@ -17,7 +17,7 @@
 
 ## 独立管理
 
-需要独立图形管理窗口时，下载 [ZhangxinPlus](https://github.com/btlstar/ZhangxinPlus)；独立工具版本与装扮核心版本分别管理，本版核心为 0.1.5。
+需要独立图形管理窗口时，下载 [ZhangxinPlus](https://github.com/btlstar/ZhangxinPlus)。
 
 Python 需要 UnityPy 1.25.4；AkagiPlus 附带的 runtime Python 已包含依赖。在仓库根目录运行：
 

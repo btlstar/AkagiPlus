@@ -23,13 +23,15 @@ Select a game on Overview and use Start Game / Return to Game. Install or enable
 |---|---|---|
 | Mahjong Soul | Dedicated browser; upstream capture and AI retained | MajsoulMax, using MITM capture |
 | RiichiCity | Windows standalone client; configure and run Proxifier | RiichiCityStyle; characters, skins, avatars, titles, favorites and schemes |
-| Zhangxin | Local decoded messages; ordinary riichi 3p/4p friend matches | ZhangxinPlus 0.1.5, resource version 92217 |
-| Amatsuki Mahjong | Native Windows client and local ordinary-riichi AI capture | AmatsukiStyle 0.1.0; in-game cosmetics and sets, local voice previews, automatic lobby restoration |
+| Zhangxin | Local decoded messages; ordinary riichi 3p/4p friend matches | ZhangxinPlus; characters, outfits, cosmetics and local schemes |
+| Amatsuki Mahjong | Native Windows client and local ordinary-riichi AI capture | AmatsukiStyle; in-game cosmetics and sets, local voice previews, automatic lobby restoration |
 | Tenhou | Upstream capture and AI retained | No additional cosmetic plugin |
 
 Zhangxin requires no proxy or CA certificate. Special modes, joining an existing match and autoplay are unsupported. Avatar and voice coverage is incomplete. See [ZhangxinPlus](plugins/zhangxinplus/README.md). RiichiCity uses `Game/Mahjong-JP.exe`; its safety-mode self filter can replace selected skins during matches.
 
 RiichiCityStyle cosmetics work without a proxy; Proxifier is required for RiichiCity AI capture. The integrated installer and standalone manager use the same cosmetic core.
+
+RiichiCity AI reads WebSocket traffic through AkagiPlus's local proxy; Proxifier routes the game process to it. Zhangxin reads a local decoded-message queue, while Amatsuki reads decoded client messages through its local worker. Neither needs game traffic routed through a proxy. Plugin versions and compatibility details belong to each plugin's metadata and installer checks.
 
 Resource-patch installers verify supported files and preserve originals for restoration. Local cosmetics do not change server ownership, currency, rewards or progression; other players may not see them.
 
