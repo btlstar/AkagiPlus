@@ -21,9 +21,8 @@ export type PlatformInfo = {
   defaultStartUrl: string
   /**
    * Whether the Chromium (CDP) capture backend can drive this platform.
-   * `false` for native clients with no web build (e.g. Riichi City), which
-   * are only reachable through the MITM proxy. The UI hides / disables the
-   * Chromium option and forces MITM for these.
+   * Native-only clients hide the Chromium option. Riichi City uses MITM;
+   * Zhangxin and Amatsuki use their local message backends.
    */
   supportsChromium: boolean
 }

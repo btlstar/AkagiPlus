@@ -390,7 +390,7 @@
     "active_bot_3p": "启用的 Bot(三麻)",
     "platform_card_title": "平台",
     "platform_game_label": "游戏",
-    "platform_game_hint": "选择要解析哪个游戏的 WebSocket 协议。保存后会重启 capture，下一场对局即由新的 bridge 接管。",
+    "platform_game_hint": "选择要连接的游戏。保存后会重新连接，请从新对局开局开始同步。",
     "capture_card_title": "封包捕获",
     "capture_mode_label": "模式",
     "capture_mode_hint": "MITM 代理需要 CA 证书 + 系统代理；Chromium 模式则启动受控浏览器，无需前置设置。",
@@ -499,15 +499,13 @@
     "loading": "加载中…",
     "welcome": {
       "title": "欢迎使用 Akagi",
-      "body1": "Akagi 会监听你的麻将游戏流量，并同时运行一个 mjai 协议的 Bot 提供实时建议。在 Bot 工作之前，Akagi 需要一种方式来捕获游戏的 WebSocket 流量。",
+      "body1": "AkagiPlus 读取当前游戏的对局信息，并由 AI 提供实时建议。雀魂和天凤通过浏览器或代理连接，麻雀一番街通过代理连接，掌心全民麻将和天月麻雀通过本地客户端连接。",
       "body2": "下一页你可以在「传统 MITM 代理」(功能强但需要信任 CA 证书)与「受控的 Chromium 浏览器」(无需配置代理／证书 — Akagi 会自己启动浏览器)之间二选一。",
       "links_label": "项目主页与官方社群："
     },
     "platform": {
-    "amatsuki": "天月麻将",
-    "amatsuki_desc": "原生客户端 · 本地消息 AI 建议，无需代理",
       "title": "选择游戏平台",
-      "desc": "Akagi 一次只能监听一个游戏的 WebSocket 协议。之后可在「设置」中变更。"
+      "desc": "AkagiPlus 一次连接一个游戏平台，可在「总览」或「设置」中切换。"
     },
     "mode": {
       "title": "选择捕获模式",
@@ -728,7 +726,7 @@
   },
   "overview": {
     "title": "总览",
-    "description": "显示 Bot、capture 与当前日志 session 的实时状态。",
+    "description": "显示 AI、对局连接和当前日志的实时状态。",
     "bot_card_title": "Bot",
     "capture_chromium": "Capture(Chromium)",
     "capture_mitm": "Capture(MITM)",
@@ -815,15 +813,35 @@
     "bot_stopped": "Bot：已停止"
   },
   "platform": {
-    "zhangxin": "掌心麻将",
-    "zhangxin_desc": "原生客户端 · ZhangxinPlus 装扮与普通立直 AI 预览",
+    "zhangxin": "掌心全民麻将",
+    "zhangxin_desc": "客户端 · ZhangxinPlus 装扮与普通立直 AI 建议",
     "majsoul": "雀魂",
     "majsoul_desc": "game.maj-soul.com — 四麻 + 三麻",
     "tenhou": "天凤",
     "tenhou_desc": "tenhou.net — 四麻 + 三麻",
     "riichi_city": "麻雀一番街",
     "riichi_city_desc": "原生客户端 — 仅 MITM · 四麻 + 三麻",
-    "mjai": "mjai"
+    "mjai": "mjai",
+    "amatsuki": "天月麻雀",
+    "amatsuki_desc": "客户端 · AmatsukiStyle 装扮与普通立直 AI 建议",
+    "native_capture_title": "{{game}} · 对局连接",
+    "game_path_title": "{{game}}游戏路径",
+    "plugin_title": "{{game}} · {{plugin}}",
+    "amatsuki_guide": "从「总览」或「对局」页启动天月麻雀，在「机器人」页选择四麻 / 三麻 AI。普通立直麻将须在新对局开局前连接；无需代理或证书。AmatsukiStyle 默认启用，登录后自动恢复本地装扮，可在「装扮」页关闭。",
+    "zhangxin_guide": "先启动掌心全民麻将完成官方更新，退出游戏后在「装扮」页安装 / 更新 ZhangxinPlus。再从「总览」或「对局」页启动游戏，并在「机器人」页选择四麻 / 三麻 AI。普通立直麻将须在新对局开局前连接；无需代理或证书。",
+    "native_advice_only": "普通立直麻将支持四麻、三麻 AI 建议。特殊玩法、对局中途恢复和自动操作暂不支持。",
+    "amatsuki_path_hint": "选择天月麻雀安装目录中的 mahjongP.exe。启动后自动连接对局并加载已启用的 AmatsukiStyle，无需代理或证书。",
+    "zhangxin_path_hint": "选择掌心全民麻将安装目录中的 zhangxinmj.exe。请先在「装扮」页安装 ZhangxinPlus，无需代理或证书。",
+    "riichi_city_path_hint": "选择麻雀一番街 Game 文件夹中的 Mahjong-JP.exe。请保持已配置的 Proxifier 运行。",
+    "amatsuki_enabled": "随对局连接自动加载，等待登录完成后恢复本地装扮；游戏重启后自动重新连接。",
+    "amatsuki_disabled": "本地装扮已关闭，AI 对局连接仍可使用。",
+    "amatsuki_cosmetics": "在游戏内选择雀士、皮肤、装扮和套组；选择按账号保存在本机。",
+    "amatsuki_status_hint": "连接状态和错误显示在通知与日志中。",
+    "amatsuki_reset_hint": "更改开关会重新连接，请从新对局开局同步。关闭后重新启动游戏可恢复官方显示。",
+    "reconnect": "重新连接",
+    "zhangxin_cosmetics": "安装后，在游戏内选择雀士、皮肤、桌布、麻将牌、立直棒、特效、表情包、音乐、称号、头像框和装扮方案。选择按账号保存在本机。",
+    "zhangxin_install_hint": "先完成官方资源更新并退出游戏，再安装插件。原文件会自动备份，未知资源版本会停止安装；停用时还原游戏文件。",
+    "zhangxin_limits": "无需 Proxifier。普通立直友人局支持四麻、三麻 AI 建议；头像和语音尚未完整适配。"
   },
   "updates": {
     "toast": {
@@ -891,7 +909,7 @@
     "entries": {
       "plus_3_8_0_2": {
         "title": "AkagiPlus 3.8.0 · Plus 2",
-        "zhangxin_title": "掌心麻将 AI",
+        "zhangxin_title": "掌心全民麻将 AI",
         "zhangxin_desc": "友人局普通立直三麻、四麻已实测，通过本地消息连接，无需代理或证书。",
         "cosmetics_title": "三平台本地装扮",
         "cosmetics_desc": "集成 MajsoulMax、一番街本地装扮与 ZhangxinPlus 0.1.5，统一安装、还原和游戏启动入口。",
@@ -950,6 +968,15 @@
         "zero_setup_desc": "下载、解压、运行。AI 就在程序里。",
         "image_alt": "AkagiMS 正在全自动模式下自己打一局段位战",
         "link_label": "前往下载"
+      },
+      "plus_3_8_0_3": {
+        "title": "AkagiPlus 3.8.0 · Plus 3",
+        "amatsuki_title": "天月麻雀 AI 与启动入口",
+        "amatsuki_desc": "接入普通立直麻将本地对局消息，在统一启动入口打开客户端并获取 AI 建议，无需代理或证书。",
+        "cosmetics_title": "天月本地换装",
+        "cosmetics_desc": "内置 AmatsukiStyle，在游戏内选择雀士、皮肤、装扮和套组；登录后自动恢复本地大厅选择。",
+        "connection_title": "自动重连与使用说明",
+        "connection_desc": "客户端重启后自动连接，等待登录不再中断捕获；统一平台名称与使用说明，增加本地平台重新连接入口。"
       }
     }
   },

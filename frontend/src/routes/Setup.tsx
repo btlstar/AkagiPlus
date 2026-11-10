@@ -481,9 +481,10 @@ function ConfigStep({
   setDraft: (c: AppConfig) => void
 }) {
   const { t } = useTranslation()
-  if (draft.platform.kind === 'Amatsuki') return <div className="grid gap-3">
-    <h2 className="text-lg font-semibold">天月麻将 · 本地消息接入</h2>
-    <p className="text-sm text-muted-foreground">无需代理或证书。在启动入口配置 mahjongP.exe 的路径，在「机器人」页选择 AI，并在新对局开局前保持连接。</p>
+  if (draft.platform.kind === 'Amatsuki' || draft.platform.kind === 'Zhangxin') return <div className="grid gap-3">
+    <h2 className="text-lg font-semibold">{t('platform.native_capture_title', { game: t(platformInfo(draft.platform.kind).labelKey) })}</h2>
+    <p className="text-sm text-muted-foreground">{t(draft.platform.kind === 'Amatsuki' ? 'platform.amatsuki_guide' : 'platform.zhangxin_guide')}</p>
+    <p className="text-sm text-muted-foreground">{t('platform.native_advice_only')}</p>
   </div>
   if (draft.capture.mode === 'mitm') {
     return (
@@ -994,7 +995,7 @@ function FinishStep({ draft }: { draft: AppConfig }) {
   ].filter((p): p is string => p !== null)
   const botSummary =
     botParts.length > 0 ? botParts.join(', ') : t('setup.finish.bots_none')
-  if (draft.platform.kind === 'Zhangxin') return <div className="grid gap-3"><h2 className="text-lg font-semibold">掌心麻将 · AI 接入预览</h2><p className="text-sm text-muted-foreground">完成后在「装扮」页安装 ZhangxinPlus，再从总览启动游戏。普通立直麻将通过本地消息提供 AI 建议，无需代理或证书。请先在「机器人」页确认 AI 配置；特殊玩法与自动操作暂不支持。</p></div>
+  if (draft.platform.kind === 'Zhangxin' || draft.platform.kind === 'Amatsuki') return <div className="grid gap-3"><h2 className="text-lg font-semibold">{t('platform.native_capture_title', { game: t(platformInfo(draft.platform.kind).labelKey) })}</h2><p className="text-sm text-muted-foreground">{t(draft.platform.kind === 'Amatsuki' ? 'platform.amatsuki_guide' : 'platform.zhangxin_guide')}</p><p className="text-sm text-muted-foreground">{t('platform.native_advice_only')}</p></div>
   return (
     <div className="grid gap-3">
       <h2 className="text-lg font-semibold">{t('setup.finish.title')}</h2>

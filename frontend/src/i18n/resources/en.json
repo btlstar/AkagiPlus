@@ -390,7 +390,7 @@
     "active_bot_3p": "Active bot (3p)",
     "platform_card_title": "Platform",
     "platform_game_label": "Game",
-    "platform_game_hint": "Selects which bridge parses the WebSocket protocol. Saving triggers a capture restart so the new bridge picks up the next session.",
+    "platform_game_hint": "Select the game to connect. Saving reconnects capture; start a new game to sync.",
     "capture_card_title": "Capture",
     "capture_mode_label": "Mode",
     "capture_mode_hint": "MITM proxy needs CA cert + system proxy. Chromium launches a controlled browser — no setup.",
@@ -499,15 +499,13 @@
     "loading": "Loading…",
     "welcome": {
       "title": "Welcome to Akagi",
-      "body1": "Akagi watches your mahjong game traffic and runs an mjai-protocol bot alongside it for realtime advice. Before the bot can do anything, Akagi needs a way to capture the game's WebSocket traffic.",
+      "body1": "AkagiPlus reads game events and provides live AI advice. Mahjong Soul and Tenhou connect through a browser or proxy, Riichi City through a proxy, and Zhangxin Mahjong and Amatsuki Mahjong through their local clients.",
       "body2": "On the next page you'll pick between the legacy MITM proxy (powerful but requires CA-cert trust) and a controlled Chromium browser (no proxy / certificate setup — Akagi launches its own browser window).",
       "links_label": "Project home and community:"
     },
     "platform": {
-    "amatsuki": "Amatsuki Mahjong",
-    "amatsuki_desc": "Native client · local AI capture, no proxy required",
       "title": "Pick your platform",
-      "desc": "Akagi listens for one game's WebSocket protocol at a time. You can change this later in Settings."
+      "desc": "AkagiPlus connects to one game platform at a time. Switch platforms in Overview or Settings."
     },
     "mode": {
       "title": "Pick a capture mode",
@@ -728,7 +726,7 @@
   },
   "overview": {
     "title": "Overview",
-    "description": "Live status of bot, capture, and the active log session.",
+    "description": "Shows the current status of AI, the game connection and logs.",
     "bot_card_title": "Bot",
     "capture_chromium": "Capture (Chromium)",
     "capture_mitm": "Capture (MITM)",
@@ -816,14 +814,34 @@
   },
   "platform": {
     "zhangxin": "Zhangxin Mahjong",
-    "zhangxin_desc": "Native client · ZhangxinPlus cosmetics and riichi AI preview",
+    "zhangxin_desc": "Native client · ZhangxinPlus cosmetics and riichi AI advice",
     "majsoul": "Mahjong Soul",
     "majsoul_desc": "game.maj-soul.com — yonma + sanma",
     "tenhou": "Tenhou",
     "tenhou_desc": "tenhou.net — yonma + sanma",
     "riichi_city": "Riichi City",
     "riichi_city_desc": "Native client — MITM only · yonma + sanma",
-    "mjai": "mjai"
+    "mjai": "mjai",
+    "amatsuki": "Amatsuki Mahjong",
+    "amatsuki_desc": "Native client · AmatsukiStyle cosmetics and riichi AI advice",
+    "native_capture_title": "{{game}} · Game connection",
+    "game_path_title": "{{game}} executable",
+    "plugin_title": "{{game}} · {{plugin}}",
+    "amatsuki_guide": "Launch Amatsuki Mahjong from Overview or Match, and select four-player / three-player AI in Bots. Connect before a new ordinary-riichi game starts; no proxy or certificate is required. AmatsukiStyle is enabled by default and restores local cosmetics after login. You can disable it in Cosmetics.",
+    "zhangxin_guide": "Run Zhangxin Mahjong to finish official updates, exit the game, then install / update ZhangxinPlus in Cosmetics. Launch the game from Overview or Match and select four-player / three-player AI in Bots. Connect before a new ordinary-riichi game starts; no proxy or certificate is required.",
+    "native_advice_only": "AI advice supports ordinary four-player and three-player riichi. Special modes, joining mid-game and autoplay are not supported yet.",
+    "amatsuki_path_hint": "Select mahjongP.exe in the Amatsuki Mahjong installation folder. Launching connects game capture and loads AmatsukiStyle when enabled; no proxy or certificate is required.",
+    "zhangxin_path_hint": "Select zhangxinmj.exe in the Zhangxin Mahjong installation folder. Install ZhangxinPlus in Cosmetics first; no proxy or certificate is required.",
+    "riichi_city_path_hint": "Select Mahjong-JP.exe in Riichi City’s Game folder. Keep your configured Proxifier running.",
+    "amatsuki_enabled": "Loads with the game connection and restores local cosmetics after login. Reconnects automatically after the game restarts.",
+    "amatsuki_disabled": "Local cosmetics are disabled. AI game capture remains available.",
+    "amatsuki_cosmetics": "Choose characters, outfits, cosmetics and sets in game. Choices are saved locally for each account.",
+    "amatsuki_status_hint": "Connection status and errors appear in notifications and logs.",
+    "amatsuki_reset_hint": "Changing this switch reconnects capture; start a new game to sync. Restart the game after disabling to restore official visuals.",
+    "reconnect": "Reconnect",
+    "zhangxin_cosmetics": "Choose characters, outfits, tables, tiles, riichi sticks, effects, emotes, music, titles, avatar frames and cosmetic sets in game. Choices are saved locally for each account.",
+    "zhangxin_install_hint": "Finish official updates and exit the game before installing. Original files are backed up; installation stops for unknown resource versions. Restore game files to disable the plugin.",
+    "zhangxin_limits": "No Proxifier required. AI advice supports ordinary four-player and three-player riichi friend games. Avatars and voices are not fully adapted yet."
   },
   "updates": {
     "toast": {
@@ -950,6 +968,15 @@
         "zero_setup_desc": "Download, unzip, run. The AI ships inside the binary.",
         "image_alt": "AkagiMS playing a ranked match by itself in full-auto mode",
         "link_label": "Download"
+      },
+      "plus_3_8_0_3": {
+        "title": "AkagiPlus 3.8.0 · Plus 3",
+        "amatsuki_title": "Amatsuki Mahjong AI and launcher",
+        "amatsuki_desc": "Read local ordinary-riichi game events, launch the native client and receive AI advice without a proxy or certificate.",
+        "cosmetics_title": "Amatsuki local cosmetics",
+        "cosmetics_desc": "Bundled AmatsukiStyle enables in-game character, outfit, cosmetic and set selection, with saved lobby choices restored after login.",
+        "connection_title": "Reconnect and clearer instructions",
+        "connection_desc": "Reconnect after client restarts and wait for login without stopping capture. Platform names and instructions are consistent, with Reconnect controls for native clients."
       }
     }
   },

@@ -149,3 +149,7 @@ RiichiCity integration (2026):
 Amatsuki native capture (2026):
 - plugins/amatsuki is an original read-only adapter. The IL2CPP reflection helper is shared from btlstar/AmatsukiStyle under Apache-2.0.
 - Frida Python bindings 17.26.2: https://github.com/frida/frida-python ; wxWindows Library Licence 3.1, see LICENSES/frida-COPYING.txt.
+
+AmatsukiStyle integration (2026):
+- plugins/amatsukistyle includes the original AmatsukiStyle local cosmetic adapter, Apache-2.0; see its LICENSE.txt and NOTICE.
+- Catalog parsing reads the user-installed game files; game assets and account profiles are not distributed.

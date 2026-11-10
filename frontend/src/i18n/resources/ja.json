@@ -390,7 +390,7 @@
     "active_bot_3p": "アクティブな Bot（三麻）",
     "platform_card_title": "プラットフォーム",
     "platform_game_label": "ゲーム",
-    "platform_game_hint": "どのゲームの WebSocket プロトコルを解析するか選択します。保存すると capture が再起動し、次のセッションから新しい bridge が引き継ぎます。",
+    "platform_game_hint": "接続するゲームを選択してください。保存後に再接続します。新しい対局から同期してください。",
     "capture_card_title": "キャプチャ",
     "capture_mode_label": "モード",
     "capture_mode_hint": "MITM プロキシは CA 証明書 + システムプロキシが必要です。Chromium モードは制御下のブラウザを起動するだけで、追加設定は不要です。",
@@ -499,15 +499,13 @@
     "loading": "読み込み中…",
     "welcome": {
       "title": "Akagi へようこそ",
-      "body1": "Akagi は麻雀ゲームのトラフィックを監視し、mjai プロトコル Bot と連携してリアルタイムにアドバイスを提供します。Bot が動き出す前に、Akagi はゲームの WebSocket を取得する手段を必要とします。",
+      "body1": "AkagiPlus は対局情報を読み取り、AI がリアルタイムでアドバイスします。雀魂と天鳳はブラウザーまたはプロキシ、麻雀一番街はプロキシ、掌心全民麻雀と天月麻雀はローカルのクライアント経由で接続します。",
       "body2": "次のページでは「従来型 MITM プロキシ（強力ですが CA 証明書の信頼が必要）」と「制御下の Chromium ブラウザ（プロキシ／証明書の設定不要 — Akagi が自前のブラウザを起動）」のどちらかを選択します。",
       "links_label": "プロジェクトホームと公式コミュニティ："
     },
     "platform": {
-    "amatsuki": "天月麻雀",
-    "amatsuki_desc": "ネイティブ版 · ローカル AI 解析、プロキシ不要",
       "title": "プラットフォームを選択",
-      "desc": "Akagi は同時に1つのゲームの WebSocket プロトコルしか監視できません。後から「設定」で変更できます。"
+      "desc": "AkagiPlus は一度に一つのゲームに接続します。「概要」または「設定」で切り替えられます。"
     },
     "mode": {
       "title": "キャプチャモードを選択",
@@ -728,7 +726,7 @@
   },
   "overview": {
     "title": "概要",
-    "description": "Bot、capture、現在のログセッションのライブ状態を表示します。",
+    "description": "AI、対局接続、現在のログの状態を表示します。",
     "bot_card_title": "Bot",
     "capture_chromium": "Capture（Chromium）",
     "capture_mitm": "Capture（MITM）",
@@ -815,15 +813,35 @@
     "bot_stopped": "Bot: 停止"
   },
   "platform": {
-    "zhangxin": "掌心麻雀",
-    "zhangxin_desc": "ネイティブ版 · ZhangxinPlus 装飾・リーチ麻雀 AI プレビュー",
+    "zhangxin": "掌心全民麻雀",
+    "zhangxin_desc": "ネイティブ版 · ZhangxinPlus 着せ替え・リーチ麻雀 AI アドバイス",
     "majsoul": "雀魂",
     "majsoul_desc": "game.maj-soul.com — 四麻 + 三麻",
     "tenhou": "天鳳",
     "tenhou_desc": "tenhou.net — 四麻 + 三麻",
     "riichi_city": "麻雀一番街",
     "riichi_city_desc": "ネイティブアプリ — MITM のみ · 四麻 + 三麻",
-    "mjai": "mjai"
+    "mjai": "mjai",
+    "amatsuki": "天月麻雀",
+    "amatsuki_desc": "ネイティブ版 · AmatsukiStyle 着せ替え・リーチ麻雀 AI アドバイス",
+    "native_capture_title": "{{game}} · 対局接続",
+    "game_path_title": "{{game}} の実行ファイル",
+    "plugin_title": "{{game}} · {{plugin}}",
+    "amatsuki_guide": "「概要」または「対局」から天月麻雀を起動し、「Bots」で四麻 / 三麻 AI を選択してください。通常のリーチ麻雀の開始前に接続します。プロキシや証明書は不要です。AmatsukiStyle は初期状態で有効で、ログイン後にローカルの着せ替えを復元します。「着せ替え」で無効にできます。",
+    "zhangxin_guide": "掌心全民麻雀の公式更新を完了してゲームを終了し、「着せ替え」で ZhangxinPlus をインストール / 更新してください。その後「概要」または「対局」から起動し、「Bots」で四麻 / 三麻 AI を選択します。通常のリーチ麻雀の開始前に接続してください。プロキシや証明書は不要です。",
+    "native_advice_only": "通常の四麻・三麻のリーチ麻雀で AI アドバイスを利用できます。特殊ルール、対局途中からの復帰、自動操作は未対応です。",
+    "amatsuki_path_hint": "天月麻雀のインストール先にある mahjongP.exe を選択してください。起動時に対局へ接続し、有効な AmatsukiStyle を読み込みます。プロキシや証明書は不要です。",
+    "zhangxin_path_hint": "掌心全民麻雀のインストール先にある zhangxinmj.exe を選択してください。先に「着せ替え」で ZhangxinPlus をインストールします。プロキシや証明書は不要です。",
+    "riichi_city_path_hint": "麻雀一番街の Game フォルダーにある Mahjong-JP.exe を選択し、設定済みの Proxifier を起動しておいてください。",
+    "amatsuki_enabled": "対局接続とともに読み込み、ログイン後にローカルの着せ替えを復元します。ゲーム再起動後も自動で再接続します。",
+    "amatsuki_disabled": "ローカルの着せ替えは無効です。AI の対局接続は利用できます。",
+    "amatsuki_cosmetics": "ゲーム内で雀士、衣装、装飾やセットを選択します。選択はアカウントごとにこの PC に保存されます。",
+    "amatsuki_status_hint": "接続状態やエラーは通知とログに表示されます。",
+    "amatsuki_reset_hint": "切り替えると再接続します。新しい対局から同期してください。無効化後にゲームを再起動すると公式の表示に戻ります。",
+    "reconnect": "再接続",
+    "zhangxin_cosmetics": "ゲーム内で雀士、衣装、卓、牌、立直棒、演出、スタンプ、音楽、称号、アイコン枠や装飾セットを選択します。選択はアカウントごとにこの PC に保存されます。",
+    "zhangxin_install_hint": "公式更新を完了し、ゲームを終了してからインストールしてください。原本をバックアップし、未知のバージョンでは停止します。無効化時はゲームファイルを復元します。",
+    "zhangxin_limits": "Proxifier は不要です。通常の四麻・三麻の友人戦で AI アドバイスに対応します。アイコンと音声は未完全対応です。"
   },
   "updates": {
     "toast": {
@@ -891,7 +909,7 @@
     "entries": {
       "plus_3_8_0_2": {
         "title": "AkagiPlus 3.8.0 · Plus 2",
-        "zhangxin_title": "掌心麻雀の AI",
+        "zhangxin_title": "掌心全民麻雀の AI",
         "zhangxin_desc": "通常ルールの三麻・四麻友人戦を実機確認。本機のメッセージで接続し、プロキシや証明書は不要です。",
         "cosmetics_title": "3 プラットフォームのローカル着せ替え",
         "cosmetics_desc": "MajsoulMax、一番街の着せ替え、ZhangxinPlus 0.1.5 を統合。導入・復元・ゲーム起動を GUI から操作できます。",
@@ -950,6 +968,15 @@
         "zero_setup_desc": "ダウンロードして解凍、実行するだけ。AI はバイナリに同梱。",
         "image_alt": "AkagiMS が全自動モードで段位戦をプレイ中",
         "link_label": "ダウンロード"
+      },
+      "plus_3_8_0_3": {
+        "title": "AkagiPlus 3.8.0 · Plus 3",
+        "amatsuki_title": "天月麻雀 AI と起動入口",
+        "amatsuki_desc": "通常のリーチ麻雀のローカル対局情報を取得し、統一入口から起動して AI アドバイスを表示します。プロキシや証明書は不要です。",
+        "cosmetics_title": "天月のローカル着せ替え",
+        "cosmetics_desc": "AmatsukiStyle を内蔵し、ゲーム内で雀士・衣装・装飾・セットを選択できます。ログイン後に保存したロビーの選択を復元します。",
+        "connection_title": "再接続と使用説明",
+        "connection_desc": "ゲーム再起動後は自動で再接続し、ログイン待機中もキャプチャーを維持します。名称と説明を統一し、ローカル接続に再接続ボタンを追加しました。"
       }
     }
   },

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { invoke } from '@/lib/tauri'
@@ -6,6 +7,7 @@ import { useLauncherStore } from '@/stores/launcherStore'
 
 type Status = { status: string; message: string; runtime?: { reads: number; writes: number; ai_frames?: number; ai_error?: string } }
 export function ZhangxinPlusCard() {
+  const { t } = useTranslation()
   const [result, setResult] = useState<Status | null>(null)
   const [busy, setBusy] = useState(true)
   const [error, setError] = useState('')
@@ -27,9 +29,9 @@ export function ZhangxinPlusCard() {
     return () => { active = false }
   }, [refresh])
   return <Card>
-    <CardHeader><CardTitle>掌心麻将 · ZhangxinPlus</CardTitle></CardHeader>
+    <CardHeader><CardTitle>{t('platform.plugin_title', { game: t('platform.zhangxin'), plugin: 'ZhangxinPlus' })}</CardTitle></CardHeader>
     <CardContent className="grid gap-4">
-      <p className="text-sm text-muted-foreground">掌心 Plus · 独立本地装扮插件。安装后在游戏原有界面选择角色、皮肤、桌布、牌背、立直棒、特效、表情包、音乐、称号与头像框，选择按账号保存在本机。</p>
+      <p className="text-sm text-muted-foreground">{t('platform.zhangxin_cosmetics')}</p>
       <p className="text-sm" role="status">{busy ? '正在处理…' : result?.message ?? '正在检查…'}</p>
       {result?.runtime && <p className="text-xs text-muted-foreground">上次游戏运行：已处理 {result.runtime.reads} 次读取、{result.runtime.writes} 次本地选择；AI 消息 {result.runtime.ai_frames ?? 0} 条。</p>}
       {result?.runtime?.ai_error && <p role="alert" className="text-sm text-destructive">本地 AI 消息写入失败：{result.runtime.ai_error}</p>}
@@ -40,8 +42,8 @@ export function ZhangxinPlusCard() {
       </div>
       {(running || launching) && <p className="text-xs text-muted-foreground">请先退出掌心，再安装或还原插件。</p>}
       {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
-      <p className="text-xs text-muted-foreground">首次使用请先正常启动掌心完成官方更新，再退出并安装插件。未知资源版本会停止安装；原文件自动备份，可还原。</p>
-      <p className="text-xs text-muted-foreground">本地装扮无需 Proxifier。头像和语音尚未完整适配；友人局普通立直三麻、四麻 AI 已实测，请在「机器人」页配置，结果显示在「对局」页。</p>
+      <p className="text-xs text-muted-foreground">{t('platform.zhangxin_install_hint')}</p>
+      <p className="text-xs text-muted-foreground">{t('platform.zhangxin_limits')}</p>
     </CardContent>
   </Card>
 }

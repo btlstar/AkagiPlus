@@ -35,14 +35,15 @@ pub fn client_path(configured: &Path) -> PathBuf {
 }
 pub struct AmatsukiBackend {
     exe: PathBuf,
+    cosmetics: bool,
 }
 impl AmatsukiBackend {
-    pub fn new(configured: &Path) -> Result<Self> {
+    pub fn new(configured: &Path, cosmetics: bool) -> Result<Self> {
         let exe = client_path(configured);
         if !exe.is_file() {
             bail!("请先设置天月客户端 mahjongP.exe 的路径。");
         }
-        Ok(Self { exe })
+        Ok(Self { exe, cosmetics })
     }
 }
 struct EndOnDrop(crate::event_bus::MjaiBus);
@@ -56,7 +57,7 @@ impl CaptureBackend for AmatsukiBackend {
     fn descriptor(&self) -> CaptureDescriptor {
         CaptureDescriptor {
             kind: CaptureKind::Native,
-            label: "天月本地消息 · 普通立直 AI".into(),
+            label: "天月麻雀 · 普通立直 AI 建议".into(),
         }
     }
     async fn run(self: Box<Self>, ctx: CaptureCtx, shutdown: ShutdownToken) -> Result<()> {
@@ -73,6 +74,9 @@ impl CaptureBackend for AmatsukiBackend {
             .kill_on_drop(true);
         #[cfg(windows)]
         cmd.creation_flags(0x08000000);
+        if self.cosmetics {
+            cmd.arg("--cosmetics");
+        }
         let mut child = cmd
             .spawn()
             .context("无法启动天月消息捕获，请检查完整运行依赖。")?;

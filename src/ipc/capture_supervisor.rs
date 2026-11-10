@@ -107,6 +107,7 @@ pub async fn spawn_capture_supervisor(state: AppState) -> Result<()> {
     let backend: Box<dyn CaptureBackend> = if platform == crate::config::Platform::Amatsuki {
         Box::new(crate::capture::amatsuki::AmatsukiBackend::new(
             &proxy_cfg.amatsuki.client_path,
+            proxy_cfg.amatsuki.cosmetics_enabled,
         )?)
     } else if platform == crate::config::Platform::Zhangxin {
         Box::new(crate::capture::zhangxin::ZhangxinBackend::new(

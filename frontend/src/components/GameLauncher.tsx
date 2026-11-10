@@ -48,7 +48,7 @@ export function GameLauncher({ compact = false }: { compact?: boolean }) {
     setChanging(true); setLocalError('')
     try {
       const previous = config.proxy.riichicity_unlock ?? { enabled: false, executable: '', ca_path: '', client_path: '', injector_path: '' }
-      const next = { ...config, proxy: { ...config.proxy, ...(amatsuki ? { amatsuki: { client_path: path } } : zhangxin ? { zhangxinplus: { client_path: path } } : { riichicity_unlock: { ...previous, client_path: path } }) } }
+      const next = { ...config, proxy: { ...config.proxy, ...(amatsuki ? { amatsuki: { ...config.proxy.amatsuki, client_path: path } } : zhangxin ? { zhangxinplus: { client_path: path } } : { riichicity_unlock: { ...previous, client_path: path } }) } }
       await invoke('update_config', { newConfig: next }); setConfig(next); setPathOpen(false); await launch()
     } catch (e) { setLocalError(String(e)) } finally { setChanging(false) }
   }
@@ -72,7 +72,7 @@ export function GameLauncher({ compact = false }: { compact?: boolean }) {
     </div>
     {(error || localError) && <div className="max-w-md text-xs text-destructive" role="alert">{localError || error} <button className="underline" onClick={() => void configure()}>配置路径</button></div>}
     <Dialog open={pathOpen} onOpenChange={setPathOpen}><DialogContent>
-      <DialogHeader><DialogTitle>{amatsuki ? '天月麻将游戏路径' : zhangxin ? '掌心麻将游戏路径' : '一番街游戏路径'}</DialogTitle><DialogDescription>{amatsuki ? '选择天月安装目录中的 mahjongP.exe。AI 接入无需设置代理或安装装扮插件。' : zhangxin ? '选择安装目录中的 zhangxinmj.exe。本地装扮无需设置代理。' : '选择 Game 文件夹中的 Mahjong-JP.exe。启动游戏时请保持 Proxifier 运行。'}</DialogDescription></DialogHeader>
+      <DialogHeader><DialogTitle>{t('platform.game_path_title', { game: t(platformInfo(config.platform.kind).labelKey) })}</DialogTitle><DialogDescription>{t(amatsuki ? 'platform.amatsuki_path_hint' : zhangxin ? 'platform.zhangxin_path_hint' : 'platform.riichi_city_path_hint')}</DialogDescription></DialogHeader>
       <Label htmlFor="game-client-path">游戏程序</Label>
       <div className="flex gap-2"><Input id="game-client-path" value={path} onChange={e => setPath(e.target.value)} /><Button variant="outline" onClick={async () => { const p = await open({ multiple: false, filters: [{ name: '游戏程序', extensions: ['exe'] }] }); if (typeof p === 'string') setPath(p) }}>浏览</Button></div>
       <Button onClick={() => void savePath()} disabled={changing || !path.trim()}>保存并启动</Button>

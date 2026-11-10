@@ -55,7 +55,8 @@ describe('GUI game launch', () => {
     await waitFor(() => expect(useConfigStore.getState().config?.platform.kind).toBe(kind))
     expect(useConfigStore.getState().config?.autoplay.enabled).toBe(false)
     fireEvent.click(screen.getByRole('button', { name: '配置游戏路径' }))
-    expect(await screen.findByText(kind === 'Amatsuki' ? '天月麻将游戏路径' : '掌心麻将游戏路径')).toBeTruthy()
+    expect(await screen.findByRole('dialog')).toBeTruthy()
+    expect(screen.getByLabelText('游戏程序')).toBeTruthy()
   })
 
 })

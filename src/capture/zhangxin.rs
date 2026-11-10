@@ -78,7 +78,7 @@ impl CaptureBackend for ZhangxinBackend {
     fn descriptor(&self) -> CaptureDescriptor {
         CaptureDescriptor {
             kind: CaptureKind::Native,
-            label: "掌心本地消息 · 普通立直 AI 预览".into(),
+            label: "掌心全民麻将 · 普通立直 AI 建议".into(),
         }
     }
     async fn run(self: Box<Self>, ctx: CaptureCtx, shutdown: ShutdownToken) -> Result<()> {

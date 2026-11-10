@@ -10,6 +10,7 @@ import { useConfigStore } from '@/stores/configStore'
 import { useAnalysisStore } from '@/stores/analysisStore'
 import { useUiPrefsStore } from '@/stores/uiPrefsStore'
 import { fmtTime } from '@/lib/format'
+import { platformInfo } from '@/lib/platforms'
 import { AkagiWordmark } from '@/components/BrandLogo'
 import { AKAGIMS_DOWNLOAD_URL, AKAGIMS_GITHUB_URL, openExternal } from '@/lib/external'
 import akagimsScreenshot from '@/assets/akagims-fullauto.jpg'
@@ -29,9 +30,10 @@ export function Overview() {
   const bot = useBotStore((s) => s.status)
   const capture = useCaptureStore((s) => s.status)
   const logDir = useConfigStore((s) => s.logDir)
+  const platform = useConfigStore((s) => s.config?.platform.kind)
   const lastAnalysis = useAnalysisStore((s) => s.updatedAt)
 
-  const captureTitle = 'kind' in capture && capture.kind === 'native' ? '掌心本地消息' : 'kind' in capture && capture.kind === 'chromium' ? t('overview.capture_chromium') : t('overview.capture_mitm')
+  const captureTitle = 'kind' in capture && capture.kind === 'native' ? t('platform.native_capture_title', { game: platform ? t(platformInfo(platform).labelKey) : 'AkagiPlus' }) : 'kind' in capture && capture.kind === 'chromium' ? t('overview.capture_chromium') : t('overview.capture_mitm')
   const captureDetail = 'descriptor' in capture && capture.descriptor ? capture.descriptor : '—'
 
   return (

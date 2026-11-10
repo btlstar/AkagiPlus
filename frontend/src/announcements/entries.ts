@@ -59,6 +59,16 @@ export type AnnouncementEntry = {
  */
 export const ANNOUNCEMENTS: AnnouncementEntry[] = [
   {
+    id: 'plus_3_8_0_3',
+    date: '2026-11-10',
+    version: '3.8.0-plus.3',
+    features: [
+      { icon: Gamepad2, key: 'amatsuki' },
+      { icon: AppWindow, key: 'cosmetics' },
+      { icon: RefreshCw, key: 'connection' },
+    ],
+  },
+  {
     id: 'plus_3_8_0_2',
     date: '2026-11-09',
     version: '3.8.0-plus.2',

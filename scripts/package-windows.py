@@ -27,6 +27,8 @@ def main():
         dst=stage/'plugins/zhangxinplus'/file; dst.parent.mkdir(parents=True,exist_ok=True); shutil.copy2(ROOT/'plugins/zhangxinplus'/file,dst)
     for file in ['host.py','capture.js','il2cpp.js','protocol.py','README.md','requirements.txt']:
         dst=stage/'plugins/amatsuki'/file; dst.parent.mkdir(parents=True,exist_ok=True); shutil.copy2(ROOT/'plugins/amatsuki'/file,dst)
+    for file in ['catalog.py','runtime.py','session_lock.py','plugin.toml','il2cpp.js','cosmetics.js','agent.js','LICENSE.txt','NOTICE']:
+        dst=stage/'plugins/amatsukistyle'/file; dst.parent.mkdir(parents=True,exist_ok=True); shutil.copy2(ROOT/'plugins/amatsukistyle'/file,dst)
     (stage/'scripts').mkdir()
     shutil.copy2(ROOT/'scripts/riichicity-local.py', stage/'scripts/riichicity-local.py')
     copy_tree(runtime, stage/'runtime/python'/TRIPLE)
@@ -67,7 +69,7 @@ model_3p = ""
 [autoplay]
 enabled = false
 ''',encoding='utf8')
-    shutil.copy2(ROOT/'packaging/README.txt',stage/'README.txt')
+    (stage/'README.txt').write_text((ROOT/'packaging/README.txt').read_text('utf8').replace('@VERSION@',version),encoding='utf8')
     # Hash every shipped file before any local smoke-test creates profiles/logs.
     files={str(f.relative_to(stage)).replace('\\','/'):digest(f) for f in sorted(stage.rglob('*')) if f.is_file()}
     forbidden = [s for s in files if any(x in Path(s).parts for x in ['.local','.git','logs','ca','history']) or s.endswith(('.key','.pyc')) or (s.endswith('.bat') and not s.startswith('runtime/'))]
@@ -76,7 +78,7 @@ enabled = false
     assert not forbidden, forbidden
     commit=subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip()
     plugin_version=tomllib.loads((ROOT/'plugins/zhangxinplus/plugin.toml').read_text('utf8'))['version']
-    manifest={'version':version,'source_commit':commit,'upstream':'shinkuan/Akagi@63cea4b5d23d83bbee8d56bc3b9d547cca2046c3','plugins':{'ZhangxinPlus':plugin_version},'files':files}
+    manifest={'version':version,'source_commit':commit,'upstream':'shinkuan/Akagi@63cea4b5d23d83bbee8d56bc3b9d547cca2046c3','plugins':{'ZhangxinPlus':plugin_version,'AmatsukiStyle':tomllib.loads((ROOT/'plugins/amatsukistyle/plugin.toml').read_text('utf8'))['version']},'files':files}
     (stage/'MANIFEST.json').write_text(json.dumps(manifest,indent=2),encoding='utf8')
     archive=ROOT/'dist'/f'{name}.zip'
     with zipfile.ZipFile(archive,'w',zipfile.ZIP_DEFLATED,compresslevel=6) as z:

@@ -152,10 +152,27 @@ describe('ZhangxinPlus cosmetics settings', () => {
     })
     useConfigStore.setState({ config: { ...fixture, platform: { kind: 'Zhangxin' } } })
     render(<MemoryRouter><Cosmetics /></MemoryRouter>)
-    expect(await screen.findByText('掌心麻将 · ZhangxinPlus')).toBeTruthy()
+    expect(await screen.findByRole('button', { name: '安装 / 更新 ZhangxinPlus' })).toBeTruthy()
     expect(screen.queryByRole('switch', { name: '启用 MajsoulMax' })).toBeNull()
     await waitFor(() => expect((screen.getByRole('button', { name: '安装 / 更新 ZhangxinPlus' }) as HTMLButtonElement).disabled).toBe(false))
     fireEvent.click(screen.getByRole('button', { name: '安装 / 更新 ZhangxinPlus' }))
     await waitFor(() => expect(invoke).toHaveBeenCalledWith('zhangxinplus', { action: 'install' }))
+  })
+})
+
+
+describe('AmatsukiStyle cosmetics settings', () => {
+  it('can disable cosmetics without changing AI or game path', async () => {
+    vi.mocked(invoke).mockReset()
+    vi.mocked(invoke).mockResolvedValue(undefined)
+    const previous: AppConfig = { ...fixture, platform: { kind: 'Amatsuki' },
+      proxy: { ...fixture.proxy, amatsuki: { client_path: 'D:/game/mahjongP.exe', cosmetics_enabled: true } } }
+    useConfigStore.setState({ config: structuredClone(previous) })
+    render(<MemoryRouter><Cosmetics /></MemoryRouter>)
+    fireEvent.click(screen.getByRole('switch', { name: '启用 AmatsukiStyle' }))
+    await waitFor(() => expect(invoke).toHaveBeenCalledWith('update_config', { newConfig: {
+      ...previous, proxy: { ...previous.proxy, amatsuki: { ...previous.proxy.amatsuki, cosmetics_enabled: false } },
+    } }))
+    expect(useConfigStore.getState().config?.proxy.amatsuki?.cosmetics_enabled).toBe(false)
   })
 })

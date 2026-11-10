@@ -6,7 +6,7 @@ use std::path::PathBuf;
 pub struct ProxyConfig {
     pub enabled: bool,
     pub zhangxinplus: NativeClientConfig,
-    pub amatsuki: NativeClientConfig,
+    pub amatsuki: AmatsukiConfig,
     pub riichicity_unlock: crate::proxy::riichicity_unlock::RiichiCityUnlockConfig,
     pub majsoulmax: crate::proxy::majsoulmax::MajsoulMaxConfig,
     pub addr: String,
@@ -99,4 +99,19 @@ mod tests {
 #[serde(default)]
 pub struct NativeClientConfig {
     pub client_path: PathBuf,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(default)]
+pub struct AmatsukiConfig {
+    pub client_path: PathBuf,
+    pub cosmetics_enabled: bool,
+}
+impl Default for AmatsukiConfig {
+    fn default() -> Self {
+        Self {
+            client_path: PathBuf::new(),
+            cosmetics_enabled: true,
+        }
+    }
 }

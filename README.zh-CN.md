@@ -1,8 +1,8 @@
 # AkagiPlus
 
-基于 [Akagi 3.8.0](https://github.com/shinkuan/Akagi) 的麻将 AI 与本地装扮扩展。提供统一游戏启动入口，集成雀魂 MajsoulMax、一番街本地装扮和掌心 ZhangxinPlus。
+基于 [Akagi 3.8.0](https://github.com/shinkuan/Akagi) 的麻将 AI 与本地装扮扩展。提供统一游戏启动入口，集成雀魂 MajsoulMax、一番街本地装扮、掌心 ZhangxinPlus 和天月 AmatsukiStyle。
 
-[English](README.md) · [繁體中文](README.zh-TW.md) · [下载预发布版](https://github.com/btlstar/AkagiPlus/releases/tag/v3.8.0-plus.2)
+[English](README.md) · [繁體中文](README.zh-TW.md) · [下载 Windows 版](https://github.com/btlstar/AkagiPlus/releases/tag/v3.8.0-plus.3)
 
 ## 界面预览
 
@@ -15,9 +15,9 @@ AkagiPlus 截图使用当前界面与演示配置，不含账号或密钥。掌�
 
 ## 下载与启动
 
-从 [Releases](https://github.com/btlstar/AkagiPlus/releases/tag/v3.8.0-plus.2) 下载 `AkagiPlus-3.8.0-plus.2-windows-x64.zip`，完整解压后双击 `AkagiPlus.exe`。保留旁边的 `runtime`、`plugins` 等目录。
+从 [Releases](https://github.com/btlstar/AkagiPlus/releases/tag/v3.8.0-plus.3) 下载 `AkagiPlus-3.8.0-plus.3-windows-x64.zip`，完整解压后双击 `AkagiPlus.exe`。保留旁边的 `runtime`、`plugins` 等目录。
 
-本版为 Windows x64 便携预发布包，需要 WebView2；无需另外安装 Python 或 Node。AI 服务密钥和模型由用户配置，发布包使用空白默认配置。
+本版为 Windows x64 便携包，需要 WebView2；无需另外安装 Python 或 Node。AI 服务密钥和模型由用户配置，发布包使用空白默认配置。
 
 1. 在「总览」选择游戏，点击「启动游戏」；运行后可点击「返回游戏」。
 2. 在「装扮」中启用或安装对应插件；安装、更新及还原前先退出游戏。
@@ -30,10 +30,11 @@ AkagiPlus 截图使用当前界面与演示配置，不含账号或密钥。掌�
 |---|---|---|
 | 雀魂 | 专用浏览器，保留上游捕获与 AI | MajsoulMax，在游戏原有界面换装；启用时使用 MITM |
 | 麻雀一番街 | Windows 独立客户端与 MITM，需自行配置 Proxifier | 角色、皮肤、头像、称号、星标、装扮方案 |
-| 掌心麻将 | Windows 客户端，本地消息通道；支持友人局普通立直三麻、四麻 | ZhangxinPlus 0.1.5；角色、皮肤、特效、桌布、牌背、麻将牌、立直棒、表情、音乐、称号、头像框与方案 |
+| 掌心全民麻将 | Windows 客户端，本地消息通道；支持友人局普通立直三麻、四麻 | ZhangxinPlus 0.1.5；角色、皮肤、特效、桌布、牌背、麻将牌、立直棒、表情、音乐、称号、头像框与方案 |
+| 天月麻雀 | Windows 客户端，本地消息通道；普通立直麻将 AI 建议 | AmatsukiStyle 0.1.0；雀士、造型、装扮、套组与本地语音预览，登录后自动恢复大厅 |
 | 天凤 | 保留上游启动、捕获和 AI | 本版没有新增装扮插件 |
 
-开发分支已加入天月麻将本地消息 AI 接入原型（既有发布包尚未包含）：在平台选择中选「天月麻将」，配置 `mahjongP.exe`，在新对局开始前连接。无需代理、证书或装扮插件；目前仅面向普通立直麻将，暂不支持对局中途恢复和自动操作。
+天月麻雀已包含在本版中：选择「天月麻雀」并配置 `mahjongP.exe`，在普通立直麻将的新对局开局前连接，无需代理或证书。AmatsukiStyle 默认启用，登录后自动恢复本地大厅选择，可在「装扮」页关闭。客户端重启后自动重新连接；对局中途恢复与自动操作暂不支持。
 
 掌心无需代理或证书，目前适配资源 **92217**。特殊玩法、中途恢复和自动操作尚未支持；头像与语音未完整适配。详见 [ZhangxinPlus](plugins/zhangxinplus/README.md)。
 
@@ -46,7 +47,7 @@ AkagiPlus 截图使用当前界面与演示配置，不含账号或密钥。掌�
 - 更新请下载完整包，先退出游戏和 AkagiPlus，并备份个人配置。
 - 发布包不含密钥、个人设置、登录资料、日志、证书或游戏资源；首次使用后在本机生成资料。
 - 恢复记录位于用户配置目录的 `riichicity-local` / `zhangxinplus`，请保留原始资源备份。
-- 版本按实际合入的上游基线加 Plus 修订号：`v3.8.0-plus.2`；同步新上游后再更新基线版本。
+- 版本按实际合入的上游基线加 Plus 修订号：`v3.8.0-plus.3`；同步新上游后再更新基线版本。
 - 更新检查仅访问本分支。预发布版也可在 Releases 页面手动下载。
 
 ## 开发与许可

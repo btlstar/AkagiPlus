@@ -1,0 +1,6 @@
+id = "amatsukistyle"
+name = "AmatsukiStyle"
+version = "0.1.0"
+platform = "Amatsuki"
+entry = "runtime.py"
+license = "Apache-2.0"

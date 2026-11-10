@@ -2,6 +2,8 @@ import { useTranslation } from 'react-i18next'
 import { TileFrame } from '@/components/TileFrame'
 import { Button } from '@/components/ui/button'
 import { useCaptureStore } from '@/stores/captureStore'
+import { useConfigStore } from '@/stores/configStore'
+import { platformInfo } from '@/lib/platforms'
 import { invoke } from '@/lib/tauri'
 import { Play, Square, RotateCw } from 'lucide-react'
 import type { Breakpoint } from '@/tiles/defaults'
@@ -18,11 +20,12 @@ export function ProxyControlTile({ bp }: { bp: Breakpoint }) {
   const { t } = useTranslation()
   const status = useCaptureStore((s) => s.status)
   const [busy, setBusy] = useState(false)
+  const platform = useConfigStore(s => s.config?.platform.kind)
 
   const dot = STATE_COLOR[status.state] ?? 'bg-zinc-500'
   const descriptor = 'descriptor' in status && status.descriptor ? status.descriptor : '—'
   const kind = 'kind' in status ? status.kind : null
-  const title = kind === 'native' ? '掌心本地消息' : kind === 'chromium' ? t('overview.capture_chromium') : t('overview.capture_mitm')
+  const title = kind === 'native' ? t('platform.native_capture_title', { game: platform ? t(platformInfo(platform).labelKey) : 'AkagiPlus' }) : kind === 'chromium' ? t('overview.capture_chromium') : t('overview.capture_mitm')
 
   const call = async (cmd: 'start_capture' | 'stop_capture' | 'restart_capture') => {
     setBusy(true)
