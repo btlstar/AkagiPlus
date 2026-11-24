@@ -160,6 +160,6 @@ RiichiCityStyle integration (2026):
 
 MajsoulMax-rs worker integration (2026-11-23):
 - plugins/majsoulmax-rs contains the user-updated MajsoulMax-rs 0.7.0 core,
-  adapted for AP JSONL process isolation, GPL-3.0. The corresponding source,
+  adapted for AkagiPlus JSONL process isolation, GPL-3.0. The corresponding source,
   source snapshot hashes and license are shipped alongside the executable.
 - See plugins/majsoulmax-rs/SOURCE.json and LICENSE.

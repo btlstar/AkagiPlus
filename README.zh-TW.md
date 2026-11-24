@@ -12,17 +12,17 @@
 2. 在「裝扮」啟用或安裝對應外掛；安裝、更新與還原前請先退出遊戲。
 3. 在「機器人」選擇四麻、三麻 AI，再點擊「啟動遊戲」，並在新對局開始前連線。建議顯示於「對局」頁或懸浮窗。
 
-更新前退出遊戲與 AP，並備份個人設定。啟動與更新方法見[使用說明](packaging/README.txt)。
+更新前退出遊戲與 AkagiPlus，並備份個人設定。啟動與更新方法見[使用說明](packaging/README.txt)。
 
 ## 平台與裝扮
 
 | 平台 | 裝扮外掛 | 使用條件 |
 |---|---|---|
 | [雀魂](plugins/majsoulmax-rs/README.md) | [MajsoulMax-rs](https://github.com/Xerxes-2/MajsoulMax-rs) 0.7.0 | 專用瀏覽器；裝扮使用 MITM 擷取 |
+| 天鳳 | — | 瀏覽器擷取與 AI 建議 |
 | [麻雀一番街](docs/RIICHICITY.md) | [RiichiCityStyle](https://github.com/btlstar/RiichiCityStyle) | Windows 用戶端；AI 需要 Proxifier，裝扮無須代理 |
 | [掌心全民麻將](plugins/zhangxinplus/README.md) | [ZhangxinPlus](https://github.com/btlstar/ZhangxinPlus) | 一般立直友人局三麻 / 四麻；無須代理 |
 | [天月麻雀](plugins/amatsuki/README.md) | [AmatsukiStyle](https://github.com/btlstar/AmatsukiStyle) | 一般立直三麻 / 四麻；無須代理 |
-| 天鳳 | — | 瀏覽器擷取與 AI 建議 |
 
 掌心與天月暫不支援特殊玩法、中途恢復及自動操作。本機裝扮不改變伺服器上的實際擁有物與養成進度。
 
@@ -42,11 +42,31 @@
 <details>
 <summary>各平台裝扮</summary>
 
+**雀魂 · MajsoulMax-rs**
+
+![雀魂 · MajsoulMax-rs](docs/images/majsoul-characters.svg)
+
+**一番街 · RiichiCityStyle**
+
+![一番街 · RiichiCityStyle](docs/images/riichicity-characters.svg)
+
+**掌心 · ZhangxinPlus**
+
+![掌心 · ZhangxinPlus](docs/images/zhangxin-characters.svg)
+
+**天月 · AmatsukiStyle**
+
+![天月 · AmatsukiStyle](docs/images/amatsuki-characters.svg)
+
+</details>
+
+<details>
+<summary>裝扮管理</summary>
+
 ![雀魂：MajsoulMax-rs](docs/images/cosmetics.png)
-![天月：AmatsukiStyle](docs/images/amatsuki-style.png)
-![掌心：安裝、更新與還原](docs/images/zhangxin-style.png)
 ![一番街：裝扮管理入口](docs/images/riichicity-style.png)
-![掌心：遊戲內裝扮方案](docs/images/zhangxin-cosmetics.png)
+![掌心：安裝、更新與還原](docs/images/zhangxin-style.png)
+![天月：AmatsukiStyle](docs/images/amatsuki-style.png)
 
 </details>
 

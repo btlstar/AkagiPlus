@@ -12,17 +12,17 @@ Download [AkagiPlus-3.8.0-plus.4-windows-x64.zip](https://github.com/btlstar/Aka
 2. Enable or install its plugin under Cosmetics. Close the game before installing, updating or restoring a patch.
 3. Select your 4p and 3p AI under Bots, click Start Game and connect before a new match. Advice appears on the dashboard or overlay.
 
-Close AP and the game, then back up your settings before updating. See the [usage instructions](packaging/README.txt) for startup and migration details.
+Close AkagiPlus and the game, then back up your settings before updating. See the [usage instructions](packaging/README.txt) for startup and migration details.
 
 ## Platforms and cosmetics
 
 | Platform | Cosmetic plugin | Requirements |
 |---|---|---|
 | [Mahjong Soul](plugins/majsoulmax-rs/README.md) | [MajsoulMax-rs](https://github.com/Xerxes-2/MajsoulMax-rs) 0.7.0 | Dedicated browser; cosmetics use MITM capture |
+| Tenhou | — | Browser capture and AI advice |
 | [RiichiCity](docs/RIICHICITY.md) | [RiichiCityStyle](https://github.com/btlstar/RiichiCityStyle) | Windows client; AI requires Proxifier, cosmetics work without it |
 | [Zhangxin](plugins/zhangxinplus/README.md) | [ZhangxinPlus](https://github.com/btlstar/ZhangxinPlus) | Ordinary riichi 3p/4p friend matches; no proxy |
 | [Amatsuki Mahjong](plugins/amatsuki/README.md) | [AmatsukiStyle](https://github.com/btlstar/AmatsukiStyle) | Ordinary riichi 3p/4p; no proxy |
-| Tenhou | — | Browser capture and AI advice |
 
 Zhangxin and Amatsuki do not support special modes, mid-game recovery or autoplay. Local cosmetics do not change server ownership or progression.
 
@@ -42,11 +42,31 @@ The full package includes Archer; a standalone plugin ZIP is also available on t
 <details>
 <summary>Integrated cosmetics</summary>
 
+**Mahjong Soul · MajsoulMax-rs**
+
+![Mahjong Soul · MajsoulMax-rs](docs/images/majsoul-characters.svg)
+
+**RiichiCity · RiichiCityStyle**
+
+![RiichiCity · RiichiCityStyle](docs/images/riichicity-characters.svg)
+
+**Zhangxin · ZhangxinPlus**
+
+![Zhangxin · ZhangxinPlus](docs/images/zhangxin-characters.svg)
+
+**Amatsuki · AmatsukiStyle**
+
+![Amatsuki · AmatsukiStyle](docs/images/amatsuki-characters.svg)
+
+</details>
+
+<details>
+<summary>Cosmetic management</summary>
+
 ![Mahjong Soul: MajsoulMax-rs](docs/images/cosmetics.png)
-![Amatsuki: AmatsukiStyle](docs/images/amatsuki-style.png)
-![Zhangxin: install, update and restore](docs/images/zhangxin-style.png)
 ![RiichiCity: cosmetic management](docs/images/riichicity-style.png)
-![Zhangxin in-game cosmetic schemes](docs/images/zhangxin-cosmetics.png)
+![Zhangxin: install, update and restore](docs/images/zhangxin-style.png)
+![Amatsuki: AmatsukiStyle](docs/images/amatsuki-style.png)
 
 </details>
 
