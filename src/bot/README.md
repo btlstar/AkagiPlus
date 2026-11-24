@@ -296,11 +296,10 @@ Bots that don't read the env var simply ignore it.
 
 ### Secrets caveat
 
-For v1, `secret = true` only changes the *rendering* and *log
+The `secret = true` setting only changes the *rendering* and *log
 substitution* — the value is still stored in `settings.toml`. We
 `.gitignore` `settings.toml` so it doesn't end up in source control.
-OS keychain integration is on the roadmap; until then, treat
-`settings.toml` as a credential file.
+Treat `settings.toml` as a credential file.
 
 ### When changes take effect
 

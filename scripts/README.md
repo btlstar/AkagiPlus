@@ -10,4 +10,4 @@ Run scripts from the repository root.
 
 Runtime versions and hashes are in `packaging/runtime-lock.json`. Python package versions are in `release-requirements.txt`. Store local runtime files under the ignored `runtime` directory.
 
-Protocol extraction and code-generation helpers maintain the supported protocol files; their command-line help describes required inputs. Game assets and generated local inspection output do not belong in published source.
+Protocol extraction and code-generation helpers maintain the supported protocol files; their command-line help describes required inputs.

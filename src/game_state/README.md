@@ -120,11 +120,3 @@ The hand string is `riichienv`'s MPSZ notation, not mjai. Use
   the UI needs but we're not surfacing yet (e.g. `last_win_results`).
 - A patch in `convert.rs` if a new mjai event variant has a shape
   mismatch between Akagi and riichienv.
-
-## Future: GameStateBus
-
-When the IPC layer needs live state push (toast-style or reactive UI),
-add a `GameStateBus` to `crate::event_bus` and have `tracker::run`
-publish a snapshot on every event (or every N events). The current
-design intentionally stops one step short of that — snapshot-on-pull
-is enough for the read-only commands we need first.

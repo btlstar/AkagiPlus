@@ -35,9 +35,11 @@ A fork of [Akagi 3.8.0](https://github.com/shinkuan/Akagi) with a shared GUI gam
 
 The Windows package includes the Archer API 0.4.4 adapter; its standalone ZIP is also available on this release. In Bots, open the Archer configuration entry (or run mjai_bot/archer-api/configure.cmd). Enter your own Archer API key, query models and balance, select separate 4p and 3p models, then save. If the bot environment is not ready, use Install Environment in Bots first. Enable Archer for both modes to choose the model automatically at the start of each match. API Tokens are billed separately by Archer; no key or credit is included.
 
-AP integration has been exercised on Mahjong Soul, Tenhou, RiichiCity, Zhangxin and Amatsuki ordinary-riichi games. Platform capture requirements still apply. Advice displays candidate weights summing to 100%; these weights are not win probabilities. Token usage is hidden during games and remains available in local metadata. The idle overlay checks model/account connectivity without paid inference. See the [adapter instructions](mjai_bot/archer-api/README.md).
+Archer supports ordinary-riichi games through AP on Mahjong Soul, Tenhou, RiichiCity, Zhangxin and Amatsuki. Platform capture requirements still apply. Advice displays candidate weights summing to 100%; these weights are not win probabilities. Token usage is hidden during games and remains available in local metadata. The idle overlay checks model/account connectivity without paid inference. See the [adapter instructions](mjai_bot/archer-api/README.md).
 
-MajsoulMax-rs now uses the bundled Rust 0.7.0 worker. Local cosmetic selections are saved to .local/majsoulmax/rust/settings.mod.json and restored after restart. This personal file is not included in downloads.
+## Mahjong Soul cosmetics (MajsoulMax-rs)
+
+[MajsoulMax-rs](https://github.com/Xerxes-2/MajsoulMax-rs) 0.7.0 provides Mahjong Soul cosmetics. Character and skin choices are saved locally and restored after restart. See the [component instructions](plugins/majsoulmax-rs/README.md) for setup and configuration migration.
 
 
 ## Download and use

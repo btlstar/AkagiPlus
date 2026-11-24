@@ -35,9 +35,11 @@
 
 Windows 完整包内置 Archer API 0.4.4，同一发布页也提供独立插件 ZIP。在“机器人”中打开 Archer 配置入口，或运行 mjai_bot/archer-api/configure.cmd；填写自己的 Archer API 密钥，查询模型与余额，分别选择四麻、三麻模型并保存。若显示环境未安装，先在机器人列表安装环境。为两个模式启用 Archer 后，新对局按人数自动选择模型。API Token 由 Archer 单独计费，发布包不含密钥或额度。
 
-已在雀魂、天凤、一番街、掌心和天月的普通立直对局中进行联调，各平台仍需满足捕获条件。候选百分比合计 100%，表示相对权重，不是胜率；局中隐藏 Token，用量保留在本机元数据。局前悬浮窗通过免费账号接口检查连接，不发送付费推理。详见[插件说明](mjai_bot/archer-api/README.md)。
+支持 AP 下雀魂、天凤、一番街、掌心和天月的普通立直对局，各平台仍需满足捕获条件。候选百分比合计 100%，表示相对权重，不是胜率；局中隐藏 Token，用量保留在本机元数据。局前悬浮窗通过免费账号接口检查连接，不发送付费推理。详见[插件说明](mjai_bot/archer-api/README.md)。
 
-MajsoulMax-rs 使用内置 Rust 0.7.0 工作进程，个人装扮选择保存至 .local/majsoulmax/rust/settings.mod.json，重启后恢复。下载包不含个人装扮设置。
+## 雀魂装扮（MajsoulMax-rs）
+
+雀魂装扮由 [MajsoulMax-rs](https://github.com/Xerxes-2/MajsoulMax-rs) 0.7.0 提供。角色、皮肤等选择保存在本机，重启后恢复。启用方法与个人配置迁移见[组件说明](plugins/majsoulmax-rs/README.md)。
 
 
 ## 下载与启动

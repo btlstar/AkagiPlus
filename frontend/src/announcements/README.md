@@ -18,7 +18,7 @@ the newest few. Any close records the newest shown entry as seen.
 Settings → Updates → "Announcements" reopens the full history at any
 time.
 
-## Adding an announcement for a release (pre-release checklist)
+## Adding a release announcement
 
 Update the bundled announcement and all four locale resources before building a new application release.
 
