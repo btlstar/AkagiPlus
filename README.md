@@ -1,75 +1,68 @@
 # AkagiPlus
 
-A fork of [Akagi 3.8.0](https://github.com/shinkuan/Akagi) with a shared GUI game launcher, [MajsoulMax-rs](https://github.com/Xerxes-2/MajsoulMax-rs), [RiichiCityStyle](https://github.com/btlstar/RiichiCityStyle), [ZhangxinPlus](https://github.com/btlstar/ZhangxinPlus) and [AmatsukiStyle](https://github.com/btlstar/AmatsukiStyle).
+A fork of [Akagi 3.8.0](https://github.com/shinkuan/Akagi) with a shared game launcher, integrated local cosmetics and Archer API support for three- and four-player mahjong.
 
 [简体中文](README.zh-CN.md) · [繁體中文](README.zh-TW.md) · [Download for Windows](https://github.com/btlstar/AkagiPlus/releases/tag/v3.8.0-plus.4)
+
+## Download and use
+
+Download [AkagiPlus-3.8.0-plus.4-windows-x64.zip](https://github.com/btlstar/AkagiPlus/releases/download/v3.8.0-plus.4/AkagiPlus-3.8.0-plus.4-windows-x64.zip), extract the complete archive and run `AkagiPlus.exe`. Keep the adjacent folders. Windows x64 and WebView2 are required; Python and Node are bundled.
+
+1. Select a platform on Overview, configure the game path and click Start Game.
+2. Enable or install its plugin under Cosmetics. Close the game before installing, updating or restoring a patch.
+3. Select your 4p and 3p AI under Bots and connect before a new match. Advice appears on the dashboard or overlay.
+
+Close AP and the game, then back up your settings before updating. See the [usage instructions](packaging/README.txt) for startup and migration details.
+
+## Platforms and cosmetics
+
+Platform links open usage instructions; plugin links open their standalone projects.
+
+| Platform | Cosmetic plugin | Requirements |
+|---|---|---|
+| [Mahjong Soul](plugins/majsoulmax-rs/README.md) | [MajsoulMax-rs](https://github.com/Xerxes-2/MajsoulMax-rs) 0.7.0 | Dedicated browser; cosmetics use MITM capture |
+| [RiichiCity](docs/RIICHICITY.md) | [RiichiCityStyle](https://github.com/btlstar/RiichiCityStyle) | Windows client; AI requires Proxifier, cosmetics work without it |
+| [Zhangxin](plugins/zhangxinplus/README.md) | [ZhangxinPlus](https://github.com/btlstar/ZhangxinPlus) | Ordinary riichi 3p/4p friend matches; no proxy |
+| [Amatsuki Mahjong](plugins/amatsuki/README.md) | [AmatsukiStyle](https://github.com/btlstar/AmatsukiStyle) | Ordinary riichi 3p/4p; no proxy |
+| Tenhou | — | Browser capture and AI advice |
+
+Zhangxin and Amatsuki do not support special modes, mid-game recovery or autoplay. Local cosmetics do not change server ownership or progression.
+
+## Archer API
+
+Archer API 0.4.4 is included. Configure separate 3p and 4p models; each new match selects the appropriate model automatically. The overlay checks connectivity before a match and displays actions, tile images and candidate weights. Visible weights sum to 100%; they are not win probabilities.
+
+Open Archer settings under Bots, or run `mjai_bot/archer-api/configure.cmd` for the independent configuration page. You need your own Archer API key and Token balance. If the environment is not ready, install it in Bots before enabling both modes. See the [Archer setup guide](mjai_bot/archer-api/README.md).
+
+The full package includes Archer; a standalone plugin ZIP is also available on the same [release page](https://github.com/btlstar/AkagiPlus/releases/tag/v3.8.0-plus.4).
 
 ## Screenshots
 
 ![Platform selection, including Amatsuki and Zhangxin](docs/images/platforms.png)
-![Unified launcher and local Amatsuki capture](docs/images/overview.png)
+![Shared launcher and Amatsuki capture](docs/images/overview.png)
 
 <details>
-<summary>Integrated cosmetics: Mahjong Soul, Amatsuki, Zhangxin and RiichiCity</summary>
+<summary>Integrated cosmetics</summary>
 
 ![Mahjong Soul: MajsoulMax-rs](docs/images/cosmetics.png)
 ![Amatsuki: AmatsukiStyle](docs/images/amatsuki-style.png)
 ![Zhangxin: install, update and restore](docs/images/zhangxin-style.png)
-![RiichiCity: local cosmetic management](docs/images/riichicity-style.png)
+![RiichiCity: cosmetic management](docs/images/riichicity-style.png)
 ![Zhangxin in-game cosmetic schemes](docs/images/zhangxin-cosmetics.png)
 
 </details>
 
 <details>
-<summary>Archer: separate 3p/4p models, connection check and weighted advice</summary>
+<summary>Archer configuration and advice</summary>
 
 ![Enable Archer for both modes](docs/images/bots.png)
-![Independent Archer configuration](docs/images/archer-config.png)
-![Archer connection check](docs/images/archer-ready.png)
-![Archer candidate weights](docs/images/archer-advice.png)
-![Dashboard with Archer advice](docs/images/game.png)
+![Separate 3p and 4p model configuration](docs/images/archer-config.png)
+![Example connectivity check](docs/images/archer-ready.png)
+![Example candidate weights](docs/images/archer-advice.png)
+![Example dashboard advice](docs/images/game.png)
 
 </details>
 
-## Archer API
+## Development and licenses
 
-The Windows package includes the Archer API 0.4.4 adapter; its standalone ZIP is also available on this release. In Bots, open the Archer configuration entry (or run mjai_bot/archer-api/configure.cmd). Enter your own Archer API key, query models and balance, select separate 4p and 3p models, then save. If the bot environment is not ready, use Install Environment in Bots first. Enable Archer for both modes to choose the model automatically at the start of each match. API Tokens are billed separately by Archer; no key or credit is included.
-
-Archer supports ordinary-riichi games through AP on Mahjong Soul, Tenhou, RiichiCity, Zhangxin and Amatsuki. Platform capture requirements still apply. Advice displays candidate weights summing to 100%; these weights are not win probabilities. Token usage is hidden during games and remains available in local metadata. The idle overlay checks model/account connectivity without paid inference. See the [adapter instructions](mjai_bot/archer-api/README.md).
-
-## Mahjong Soul cosmetics (MajsoulMax-rs)
-
-[MajsoulMax-rs](https://github.com/Xerxes-2/MajsoulMax-rs) 0.7.0 provides Mahjong Soul cosmetics. Character and skin choices are saved locally and restored after restart. See the [component instructions](plugins/majsoulmax-rs/README.md) for setup and configuration migration.
-
-
-## Download and use
-
-Download `AkagiPlus-3.8.0-plus.4-windows-x64.zip` from [Releases](https://github.com/btlstar/AkagiPlus/releases/tag/v3.8.0-plus.4), extract the complete archive and run `AkagiPlus.exe`. Keep the adjacent `plugins` and `runtime` folders. Windows x64 and WebView2 are required; Python and Node do not need to be installed separately.
-
-Select a game on Overview and use Start Game / Return to Game. Install or enable cosmetics on the Cosmetics page while the game is closed. Configure your own AI provider and models under Bots before starting a new match; advice appears on the dashboard and overlay.
-
-| Platform | Capture / AI | Local cosmetics |
-|---|---|---|
-| Mahjong Soul | Dedicated browser; upstream capture and AI retained | MajsoulMax-rs, using MITM capture |
-| RiichiCity | Windows standalone client; configure and run Proxifier | RiichiCityStyle; characters, skins, avatars, titles, favorites and schemes |
-| Zhangxin | Local decoded messages; ordinary riichi 3p/4p friend matches | ZhangxinPlus; characters, outfits, cosmetics and local schemes |
-| Amatsuki Mahjong | Native Windows client and local ordinary-riichi AI capture | AmatsukiStyle; in-game cosmetics and sets, local voice previews, automatic lobby restoration |
-| Tenhou | Upstream capture and AI retained | No additional cosmetic plugin |
-
-Zhangxin requires no proxy or CA certificate. Special modes, joining an existing match and autoplay are unsupported. Avatar and voice coverage is incomplete. See [ZhangxinPlus](plugins/zhangxinplus/README.md). RiichiCity uses `Game/Mahjong-JP.exe`; its safety-mode self filter can replace selected skins during matches.
-
-RiichiCityStyle cosmetics work without a proxy; Proxifier is required for RiichiCity AI capture. The integrated installer and standalone manager use the same cosmetic core.
-
-RiichiCity AI reads WebSocket traffic through AkagiPlus's local proxy; Proxifier routes the game process to it. Zhangxin reads a local decoded-message queue, while Amatsuki reads decoded client messages through its local worker. Neither needs game traffic routed through a proxy. Plugin versions and compatibility details belong to each plugin's metadata and installer checks.
-
-Resource-patch installers verify supported files and preserve originals for restoration. Local cosmetics do not change server ownership, currency, rewards or progression; other players may not see them.
-
-Amatsuki Mahjong is included in this release: select Amatsuki, configure `mahjongP.exe`, and connect before a new ordinary-riichi game. No proxy or certificate is required. AmatsukiStyle is enabled by default, restores local lobby choices after login, and can be disabled in Cosmetics. Mid-game recovery and autoplay are not supported.
-
-## Updates and development
-
-Release archives contain fresh defaults, not developer profiles, keys, certificates, logs or game assets. Back up your settings and preserve restoration backups before updating the complete package. Version `v3.8.0-plus.4` identifies the integrated upstream base plus this fork's revision. Update checks target this fork; preview downloads are available on Releases.
-
-Source builds require Rust/MSVC, the Windows SDK, Node.js 24, protoc and CMake. Install frontend dependencies, then use `start.bat`. Build the Windows portable package with `scripts/build-release.ps1`; runtime versions and hashes are in `packaging/runtime-lock.json`. Game launching is in the GUI.
-
-Akagi, RiichiCityStyle, ZhangxinPlus and AmatsukiStyle use Apache-2.0. Adapted MajsoulMax-rs components retain GPL-3.0 with corresponding sources, license and [provenance](plugins/majsoulmax/PROVENANCE.md). See LICENSE.txt, NOTICE and LICENSES. Game clients, Proxifier and external RiichiCityUnlock binaries are not distributed.
+See the [build instructions](scripts/README.md). Licenses and third-party attribution are in [LICENSE.txt](LICENSE.txt) and [NOTICE](NOTICE). MajsoulMax-rs corresponding source and GPL-3.0 license are included.

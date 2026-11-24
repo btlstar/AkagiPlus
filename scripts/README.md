@@ -1,6 +1,6 @@
 # Build tools
 
-Run scripts from the repository root.
+Run scripts from the repository root. Windows source builds require Rust/MSVC, the Windows SDK, Node.js 24, protoc and CMake. Install frontend dependencies with npm ci in frontend/ and prepare the pinned runtime before packaging.
 
 - `dev.ps1`: starts the source application and frontend; used by `start.bat`.
 - `build-release.ps1`: builds the embedded frontend and Windows executable, then creates a portable archive.
