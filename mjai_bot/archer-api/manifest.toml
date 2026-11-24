@@ -3,7 +3,7 @@ manifest_version = 1
 [bot]
 name = "archer-api"
 display = "Archer API · 三麻 / 四麻"
-description = "鸭鸭引擎独立 API 通道：普通三麻、四麻建议及候选权重；局前连接检查，局中隐藏用量。请先配置密钥和模型。"
+description = "通过 Archer API 获取三麻、四麻建议和候选权重。请先配置密钥和模型。"
 version = "0.4.4"
 supported_modes = ["4p", "3p"]
 
