@@ -8,15 +8,13 @@
 
 下載 [AkagiPlus-3.8.0-plus.4-windows-x64.zip](https://github.com/btlstar/AkagiPlus/releases/download/v3.8.0-plus.4/AkagiPlus-3.8.0-plus.4-windows-x64.zip)，完整解壓後執行 `AkagiPlus.exe`，保留相鄰目錄。需要 Windows x64 與 WebView2；無須另裝 Python 或 Node。
 
-1. 在「總覽」選擇平台，設定遊戲路徑並點擊「啟動遊戲」。
+1. 在「總覽」選擇平台並設定遊戲路徑。
 2. 在「裝扮」啟用或安裝對應外掛；安裝、更新與還原前請先退出遊戲。
-3. 在「機器人」選擇四麻、三麻 AI，並在新對局開始前連線。建議顯示於「對局」頁或懸浮窗。
+3. 在「機器人」選擇四麻、三麻 AI，再點擊「啟動遊戲」，並在新對局開始前連線。建議顯示於「對局」頁或懸浮窗。
 
 更新前退出遊戲與 AP，並備份個人設定。啟動與更新方法見[使用說明](packaging/README.txt)。
 
 ## 平台與裝扮
-
-平台名稱連結至使用說明，外掛名稱連結至獨立專案。
 
 | 平台 | 裝扮外掛 | 使用條件 |
 |---|---|---|

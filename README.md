@@ -8,15 +8,13 @@ A fork of [Akagi 3.8.0](https://github.com/shinkuan/Akagi) with a shared game la
 
 Download [AkagiPlus-3.8.0-plus.4-windows-x64.zip](https://github.com/btlstar/AkagiPlus/releases/download/v3.8.0-plus.4/AkagiPlus-3.8.0-plus.4-windows-x64.zip), extract the complete archive and run `AkagiPlus.exe`. Keep the adjacent folders. Windows x64 and WebView2 are required; Python and Node are bundled.
 
-1. Select a platform on Overview, configure the game path and click Start Game.
+1. Select a platform on Overview and configure the game path.
 2. Enable or install its plugin under Cosmetics. Close the game before installing, updating or restoring a patch.
-3. Select your 4p and 3p AI under Bots and connect before a new match. Advice appears on the dashboard or overlay.
+3. Select your 4p and 3p AI under Bots, click Start Game and connect before a new match. Advice appears on the dashboard or overlay.
 
 Close AP and the game, then back up your settings before updating. See the [usage instructions](packaging/README.txt) for startup and migration details.
 
 ## Platforms and cosmetics
-
-Platform links open usage instructions; plugin links open their standalone projects.
 
 | Platform | Cosmetic plugin | Requirements |
 |---|---|---|
