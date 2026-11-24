@@ -6,8 +6,6 @@ A fork of [Akagi 3.8.0](https://github.com/shinkuan/Akagi) with a shared GUI gam
 
 ## Screenshots
 
-Current Plus 4 UI with demonstration settings; no personal account or API credentials. The gallery focuses on AP's platform launcher, additional platforms and integrated cosmetics.
-
 ![Platform selection, including Amatsuki and Zhangxin](docs/images/platforms.png)
 ![Unified launcher and local Amatsuki capture](docs/images/overview.png)
 
