@@ -46,6 +46,12 @@ impl AmatsukiBackend {
         Ok(Self { exe, cosmetics })
     }
 }
+struct AbortOnDrop(tokio::task::AbortHandle);
+impl Drop for AbortOnDrop {
+    fn drop(&mut self) {
+        self.0.abort();
+    }
+}
 struct EndOnDrop(crate::event_bus::MjaiBus);
 impl Drop for EndOnDrop {
     fn drop(&mut self) {
@@ -88,6 +94,7 @@ impl CaptureBackend for AmatsukiBackend {
                 tracing::warn!(target:"akagi::capture::amatsuki","{line}");
             }
         });
+        let _errors_guard = AbortOnDrop(errors.abort_handle());
         let _end = EndOnDrop(ctx.mjai_bus.clone());
         let mut lines = BufReader::new(stdout).lines();
         let mut bridge = AmatsukiBridge::default();
@@ -130,6 +137,8 @@ impl CaptureBackend for AmatsukiBackend {
         .await;
         let _ = child.kill().await;
         let _ = child.wait().await;
+        // Frida helpers may retain stderr; logging must not delay shutdown.
+        errors.abort();
         let _ = errors.await;
         result
     }

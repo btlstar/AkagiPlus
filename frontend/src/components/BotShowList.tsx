@@ -38,11 +38,12 @@ export function BotShowList({ items, containerRef, variant = 'tile', className }
     >
       {items.map((it, i) => {
         const seq = it.tiles ?? (it.pais ? mjaiToMahgen(it.pais) : '')
+        const weighted = typeof it.weight_percent === 'number' && Number.isFinite(it.weight_percent)
         return (
           <li
             key={i}
             className={cn(
-              'flex items-center gap-2 overflow-hidden rounded-md border border-border px-2',
+              'relative flex items-center gap-2 overflow-hidden rounded-md border border-border px-2',
               // flex-1 + min-h-0: the row's height comes from the window, not
               // from the tile inside it — which is what stops the tile's own
               // growth from feeding back into the measurement.
@@ -54,6 +55,13 @@ export function BotShowList({ items, containerRef, variant = 'tile', className }
               borderLeftWidth: it.color ? 3 : undefined,
             }}
           >
+            {weighted && (
+              <>
+                <span className="text-[10px] font-medium tabular-nums text-muted-foreground">{i + 1}</span>
+                <span aria-hidden="true" data-weight-bar className="absolute bottom-0 left-0 h-0.5 rounded-full"
+                  style={{ width: `${Math.max(0, Math.min(100, it.weight_percent!))}%`, backgroundColor: it.color ?? '#93c5fd' }} />
+              </>
+            )}
             {seq && (
               <Mahgen
                 seq={seq}
@@ -75,7 +83,7 @@ export function BotShowList({ items, containerRef, variant = 'tile', className }
               <span
                 className={cn(
                   'font-mono tabular-nums text-foreground/90',
-                  overlay ? 'text-sm' : 'text-xs',
+                  weighted ? 'text-lg font-semibold' : overlay ? 'text-sm' : 'text-xs',
                 )}
               >
                 {it.value}

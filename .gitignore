@@ -87,3 +87,8 @@ plugins/majsoulmax/**/settings*.yaml
 /docs/*FEASIBILITY*
 /docs/COMMIT_MESSAGE*
 /docs/VALIDATION*
+
+# Locally built native cosmetic worker
+plugins/majsoulmax-rs/majsoulmax-worker.exe
+
+!plugins/majsoulmax-rs/liqi_config/max_data.local.json

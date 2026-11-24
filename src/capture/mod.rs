@@ -28,7 +28,7 @@ use async_trait::async_trait;
 use std::future::Future;
 use std::pin::Pin;
 use std::sync::Arc;
-use tokio::sync::Notify;
+use tokio::sync::watch;
 
 /// Discriminant exposed in [`CaptureStatus`] / IPC payloads.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
@@ -60,24 +60,53 @@ pub struct CaptureDescriptor {
     pub label: String,
 }
 
-/// Long-lived shutdown signal. The supervisor holds the `Notify` and
-/// fires it when the user (or a config swap) wants the backend gone.
-/// Backends should treat the future returned by [`ShutdownToken::wait`]
-/// as a cooperative cancellation point.
+/// Durable shutdown signal: cancellation is remembered even during startup.
 #[derive(Clone)]
-pub struct ShutdownToken(Arc<Notify>);
-
+pub struct ShutdownToken(watch::Receiver<bool>);
 impl ShutdownToken {
-    pub fn new() -> (Self, Arc<Notify>) {
-        let n = Arc::new(Notify::new());
-        (Self(n.clone()), n)
+    pub fn new() -> (Self, watch::Sender<bool>) {
+        let (tx, rx) = watch::channel(false);
+        (Self(rx), tx)
     }
-
-    /// Resolves once shutdown has been requested.
+    /// Resolves for existing and future waiters once shutdown is requested.
     pub fn wait(&self) -> Pin<Box<dyn Future<Output = ()> + Send + '_>> {
         Box::pin(async move {
-            self.0.notified().await;
+            let mut rx = self.0.clone();
+            let _ = rx.wait_for(|cancelled| *cancelled).await;
         })
+    }
+}
+#[cfg(test)]
+mod shutdown_tests {
+    use super::*;
+    use std::time::Duration;
+    #[tokio::test]
+    async fn shutdown_before_startup_is_remembered() {
+        let (token, signal) = ShutdownToken::new();
+        signal.send_replace(true);
+        tokio::time::timeout(Duration::from_millis(100), token.wait())
+            .await
+            .unwrap();
+        tokio::time::timeout(Duration::from_millis(100), token.clone().wait())
+            .await
+            .unwrap();
+    }
+    #[tokio::test]
+    async fn shutdown_wakes_all_waiters_and_later_clones() {
+        let (token, signal) = ShutdownToken::new();
+        let other = token.clone();
+        let a = tokio::spawn(async move { other.wait().await });
+        let other = token.clone();
+        let b = tokio::spawn(async move { other.wait().await });
+        tokio::task::yield_now().await;
+        signal.send_replace(true);
+        tokio::time::timeout(Duration::from_millis(100), async {
+            a.await.unwrap();
+            b.await.unwrap();
+            token.wait().await;
+        })
+        .await
+        .unwrap();
     }
 }
 

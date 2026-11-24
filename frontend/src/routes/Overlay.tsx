@@ -1,10 +1,12 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { X } from 'lucide-react'
 import { BotShowList } from '@/components/BotShowList'
-import { pickShow, visibleItems } from '@/lib/botShow'
-import { invoke, listen } from '@/lib/tauri'
-import type { AppConfig, BotResponse, OverlayConfig, ShowMeta } from '@/types'
+import { ArcherReadinessCard } from '@/components/ArcherReadinessCard'
+import { useOverlayShow } from '@/hooks/useOverlayShow'
+import { visibleItems } from '@/lib/botShow'
+import { invoke } from '@/lib/tauri'
+import type { OverlayConfig } from '@/types'
 
 // The always-on-top overlay window's entire UI. Mounted by main.tsx instead of
 // the router when the window label is `overlay` — no sidebar, no statusbar, no
@@ -27,37 +29,9 @@ const FALLBACK: OverlayConfig = {
 
 export function Overlay() {
   const { t } = useTranslation()
-  const [show, setShow] = useState<ShowMeta | null>(null)
   const [cfg, setCfg] = useState<OverlayConfig>(FALLBACK)
 
-  useEffect(() => {
-    const unlistens: Array<() => void> = []
-    let cancelled = false
-
-    // The window is opened by the backend, so config is already on disk;
-    // `overlay-config` keeps us in step with later edits in Settings.
-    invoke<AppConfig>('get_config')
-      .then((c) => {
-        if (!cancelled) setCfg(c.overlay)
-      })
-      .catch(() => {
-        /* keep the fallback — a blank overlay would be worse than a default one */
-      })
-
-    listen<BotResponse>('bot-response', (r) => {
-      const s = pickShow(r.meta)
-      // Responses without a `show` block (e.g. a bare `none`) must not wipe
-      // the last real suggestion off the screen.
-      if (s) setShow(s)
-    }).then((u) => unlistens.push(u))
-
-    listen<OverlayConfig>('overlay-config', (c) => setCfg(c)).then((u) => unlistens.push(u))
-
-    return () => {
-      cancelled = true
-      unlistens.forEach((u) => u())
-    }
-  }, [])
+  const { show, readiness, recheck } = useOverlayShow(setCfg)
 
   const items = visibleItems(show, cfg.top_n)
 
@@ -82,7 +56,7 @@ export function Overlay() {
           className="flex shrink-0 items-center gap-1 px-2 pt-1.5 pb-1"
         >
           <span className="flex-1 truncate text-[11px] font-medium text-muted-foreground">
-            {show?.title ?? t('tile.bot_show_default_title')}
+            {show?.title ?? (readiness ? 'Archer' : t('tile.bot_show_default_title'))}
           </span>
           <button
             type="button"
@@ -100,7 +74,9 @@ export function Overlay() {
             a flex child refuses to shrink below its content, the rows never get
             a height to split, and the list collapses to hugging its content. */}
         <div className="min-h-0 flex-1 overflow-hidden px-1.5 pb-1.5">
-          {items.length === 0 ? (
+          {!show && readiness ? (
+            <ArcherReadinessCard status={readiness} recheck={recheck} />
+          ) : items.length === 0 ? (
             <span className="px-1 text-xs text-muted-foreground">{t('overlay.empty')}</span>
           ) : (
             <BotShowList items={items} variant="overlay" />

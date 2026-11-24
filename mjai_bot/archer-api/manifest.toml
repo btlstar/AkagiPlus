@@ -1,0 +1,64 @@
+manifest_version = 1
+
+[bot]
+name = "archer-api"
+display = "Archer API · 三麻 / 四麻"
+description = "鸭鸭引擎独立 API 通道：普通三麻、四麻建议及候选权重；局前连接检查，局中隐藏用量。请先配置密钥和模型。"
+version = "0.4.4"
+supported_modes = ["4p", "3p"]
+
+[settings.api_url]
+type = "string"
+label = "接口根地址"
+default = "https://la.moxcomic.com"
+help = "填写服务器根地址，不含 /v1/decide。"
+
+[settings.api_key]
+type = "string"
+label = "Archer API 密钥"
+default = ""
+secret = true
+help = "使用 Archer 账号信息中生成的开放接口密钥，与 MJOT 密钥不同。"
+
+[settings.model]
+type = "string"
+label = "四麻模型名称"
+default = ""
+help = "双击插件目录的 configure.cmd，可查询三麻、四麻模型和余额。填写完整模型名。"
+
+[settings.timeout_ms]
+type = "int"
+label = "请求超时（毫秒）"
+default = 4000
+min = 500
+max = 4000
+step = 100
+help = "超时后显示暂无建议；不自动重发同一次请求。"
+
+[settings.proxy_url]
+type = "string"
+label = "HTTP 代理（可留空）"
+default = ""
+help = "留空为直连。仅支持 HTTP/HTTPS 代理，不支持 SOCKS 地址。"
+
+[settings.top_n]
+type = "int"
+label = "显示候选数量"
+default = 5
+min = 1
+max = 10
+step = 1
+
+
+[settings.model_3p]
+type = "string"
+label = "三麻模型名称"
+default = ""
+help = "与四麻模型分开配置，新对局会自动按人数选择。"
+
+[settings.score_mode]
+type = "enum"
+label = "候选评分显示"
+default = "weights"
+choices = ["weights", "relative", "raw"]
+help = "weights 显示合计 100% 的候选权重；relative 显示差值；raw 显示原始 q。"

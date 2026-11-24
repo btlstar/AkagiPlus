@@ -2,6 +2,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { createHashRouter, redirect, RouterProvider } from 'react-router-dom'
 import 'mahgen'
+import { warmSuggestionTiles } from '@/lib/cachedMahgen'
 import './index.css'
 import './i18n'
 import './stores/themeStore'
@@ -57,6 +58,7 @@ const router = createHashRouter([
 // Both windows load this same bundle; the window label decides which root gets
 // mounted. The overlay skips the router entirely — it has exactly one screen,
 // and a hash route would only invite the sidebar/statusbar layout to tag along.
+warmSuggestionTiles()
 const root = createRoot(document.getElementById('root')!)
 
 if (isOverlayWindow()) {

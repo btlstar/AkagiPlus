@@ -1,8 +1,8 @@
 id = "zhangxinplus"
 name = "ZhangxinPlus"
 display_name = "掌心 Plus"
-version = "0.1.5"
+version = "0.1.6"
 platform = "Zhangxin"
-resource_versions = ["92217"]
+resource_versions = ["92217", "92318"]
 entry = "manage.py"
 license = "Apache-2.0"

@@ -144,9 +144,21 @@ describe('RiichiCityUnlock cosmetics settings', () => {
 
 
 describe('ZhangxinPlus cosmetics settings', () => {
+  it('ends checking after an unsupported resource error and permits refresh', async () => {
+    vi.mocked(invoke).mockImplementation(async command => {
+      if (command === 'zhangxinplus') throw '掌心资源 99999 未适配'
+      if (command === 'get_game_launch_status') return { running: false, client_path: '' }
+    })
+    useConfigStore.setState({ config: { ...fixture, platform: { kind: 'Zhangxin' } } })
+    render(<MemoryRouter><Cosmetics /></MemoryRouter>)
+    await waitFor(() => expect(screen.getByRole('status').textContent).toContain('检查失败'))
+    expect(screen.getByRole('alert').textContent).toContain('99999')
+    expect((screen.getByRole('button', { name: '刷新状态' }) as HTMLButtonElement).disabled).toBe(false)
+  })
+
   it('shows the standalone plugin and calls its installer', async () => {
     vi.mocked(invoke).mockImplementation(async (command) => {
-      if (command === 'zhangxinplus') return JSON.stringify({ status: 'installed', message: 'ZhangxinPlus 已安装 · 资源 92217' })
+      if (command === 'zhangxinplus') return JSON.stringify({ status: 'installed', message: 'ZhangxinPlus 已安装 · 资源 92318' })
       if (command === 'get_game_launch_status') return { running: false, client_path: '' }
       if (command === 'get_majsoulmax_status') return { phase: 'disabled', modified: 0, snapshot: '' }
     })

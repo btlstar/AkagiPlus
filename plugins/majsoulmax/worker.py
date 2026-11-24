@@ -7,6 +7,16 @@ import logging
 import sys
 from struct import unpack
 from types import SimpleNamespace
+# Select the native core before loading any legacy Python dependencies.
+if __name__ == "__main__":
+    from pathlib import Path
+    import subprocess
+    native = Path(__file__).resolve().parent.parent / "majsoulmax-rs/majsoulmax-worker.exe"
+    if native.is_file():
+        raise SystemExit(subprocess.call([str(native)], stdin=sys.stdin.buffer,
+            stdout=sys.stdout.buffer, stderr=sys.stderr.buffer, close_fds=True,
+            creationflags=subprocess.CREATE_NO_WINDOW if sys.platform=="win32" else 0))
+
 from majsoulmax.paths import DATA, PROTO
 from majsoulmax.wire import LiqiProto
 from majsoulmax.plugin.mod import mod

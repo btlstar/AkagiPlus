@@ -59,4 +59,26 @@ describe('GUI game launch', () => {
     expect(screen.getByLabelText('游戏程序')).toBeTruthy()
   })
 
+  it('waits for the Amatsuki to Zhangxin capture handoff before changing saved UI state', async () => {
+    useConfigStore.setState({ config: { ...config, platform: { kind: 'Amatsuki' }, autoplay: { enabled: false } } as AppConfig })
+    let finish!: (value: unknown) => void
+    vi.mocked(invoke).mockImplementation(cmd => cmd === 'update_config' ? new Promise(resolve => { finish = resolve }) : Promise.resolve({ running: false, client_path: '' }))
+    render(<GameLauncher />)
+    fireEvent.change(screen.getByRole('combobox'), { target: { value: 'Zhangxin' } })
+    expect(useConfigStore.getState().config?.platform.kind).toBe('Amatsuki')
+    expect((screen.getByRole('combobox') as HTMLSelectElement).disabled).toBe(true)
+    expect(screen.getByRole('button', { name: '正在切换…' })).toBeTruthy()
+    finish(undefined)
+    await waitFor(() => expect(useConfigStore.getState().config?.platform.kind).toBe('Zhangxin'))
+    expect((screen.getByRole('combobox') as HTMLSelectElement).disabled).toBe(false)
+  })
+  it('refreshes the persisted platform if saving succeeds but capture startup fails', async () => {
+    const saved = { ...config, platform: { kind: 'Zhangxin' }, autoplay: { enabled: false } } as AppConfig
+    vi.mocked(invoke).mockImplementation(cmd => cmd === 'update_config' ? Promise.reject('捕获启动失败') : cmd === 'get_config' ? Promise.resolve(saved) : Promise.resolve({ running: false, client_path: '' }))
+    render(<GameLauncher />)
+    fireEvent.change(screen.getByRole('combobox'), { target: { value: 'Zhangxin' } })
+    await waitFor(() => expect(useConfigStore.getState().config?.platform.kind).toBe('Zhangxin'))
+    expect(screen.getByRole('alert').textContent).toContain('捕获启动失败')
+  })
+
 })

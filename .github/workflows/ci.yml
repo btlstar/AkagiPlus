@@ -57,6 +57,13 @@ jobs:
       - name: clippy
         run: cargo clippy --all-targets -- -D warnings
 
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Archer subprocess integration
+        run: ARCHER_TEST_PYTHON="$(command -v python)" cargo test --test archer_bot --locked
+
       - name: test (lib)
         run: cargo test --lib
 
@@ -119,6 +126,9 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      - name: Test
+        run: npm test
+
       # `npm run build` is `tsc -b && vite build` — type-checks too.
       - name: Build
         run: npm run build
@@ -143,3 +153,14 @@ jobs:
           workspaces: tests/majsoulmax_bridge
       - name: Real Rust and Python message bridge
         run: cargo test --manifest-path tests/majsoulmax_bridge/Cargo.toml --locked
+
+  archer-adapter:
+    name: Archer API adapter
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Adapter regression
+        run: python tests/test_archer_api.py

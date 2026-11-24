@@ -20,7 +20,17 @@ def main():
     for file in ['LICENSE.txt', 'NOTICE']:
         shutil.copy2(ROOT/file, stage/file)
     copy_tree(ROOT/'LICENSES', stage/'LICENSES')
+    from importlib.util import spec_from_file_location, module_from_spec
+    spec = spec_from_file_location('package_archer', ROOT/'scripts/package-archer.py')
+    archer = module_from_spec(spec)
+    spec.loader.exec_module(archer)
+    for file in archer.FILES:
+        dst = stage/'mjai_bot/archer-api'/file
+        dst.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(ROOT/'mjai_bot/archer-api'/file, dst)
     copy_tree(ROOT/'plugins/majsoulmax', stage/'plugins/majsoulmax')
+    from package_majsoulmax import copy_native
+    copy_native(ROOT/'plugins/majsoulmax-rs', stage/'plugins/majsoulmax-rs')
     for file in ['local_cosmetics.lua', 'build.py', 'install.py', 'README.md', 'requirements.txt']:
         dst=stage/'plugins/riichicity_local'/file; dst.parent.mkdir(parents=True,exist_ok=True); shutil.copy2(ROOT/'plugins/riichicity_local'/file,dst)
     for file in ['local_cosmetics.lua', 'build.py', 'manage.py', 'README.md', 'requirements.txt', 'plugin.toml', 'LICENSE.txt']:
@@ -78,7 +88,7 @@ enabled = false
     assert not forbidden, forbidden
     commit=subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip()
     plugin_version=tomllib.loads((ROOT/'plugins/zhangxinplus/plugin.toml').read_text('utf8'))['version']
-    manifest={'version':version,'source_commit':commit,'upstream':'shinkuan/Akagi@63cea4b5d23d83bbee8d56bc3b9d547cca2046c3','plugins':{'ZhangxinPlus':plugin_version,'AmatsukiStyle':tomllib.loads((ROOT/'plugins/amatsukistyle/plugin.toml').read_text('utf8'))['version']},'files':files}
+    manifest={'version':version,'source_commit':commit,'upstream':'shinkuan/Akagi@63cea4b5d23d83bbee8d56bc3b9d547cca2046c3','plugins':{'ArcherAPI':tomllib.loads((ROOT/'mjai_bot/archer-api/manifest.toml').read_text('utf8'))['bot']['version'],'MajsoulMax-rs':'0.7.0','ZhangxinPlus':plugin_version,'AmatsukiStyle':tomllib.loads((ROOT/'plugins/amatsukistyle/plugin.toml').read_text('utf8'))['version']},'files':files}
     (stage/'MANIFEST.json').write_text(json.dumps(manifest,indent=2),encoding='utf8')
     archive=ROOT/'dist'/f'{name}.zip'
     with zipfile.ZipFile(archive,'w',zipfile.ZIP_DEFLATED,compresslevel=6) as z:

@@ -1,26 +1,17 @@
-//! Lifecycle supervisor for the active capture backend.
-//!
-//! One supervisor instance multiplexes the two backends
-//! (`HudsuckerBackend`, `ChromiumBackend`) — the one that runs is
-//! determined by `cfg.capture.mode`. Owns `state.capture_control`
-//! (start/stop oneshot + force-close `Notify`) and emits onto
-//! `state.capture_status_bus`.
-//!
-//! `CaptureStatus::Starting` is reserved for future use but not emitted
-//! today — both backends do their startup work synchronously inside
-//! `spawn_capture_supervisor` before returning, so we transition
-//! straight to `Running`.
+//! Serialised capture lifecycle. A replacement starts only after its predecessor exits.
 
 use crate::capture::{
     chromium::ChromiumBackend, hudsucker_backend::HudsuckerBackend, CaptureBackend, CaptureCtx,
     CaptureKind as RtCaptureKind, ShutdownToken,
 };
 use crate::config::CaptureMode;
-use crate::ipc::state::AppState;
+use crate::event_bus::{CaptureStatusBus, NotifyBus};
+use crate::ipc::state::{AppState, CaptureControl};
 use crate::schema::{CaptureKind, CaptureStatus, Notification};
 use anyhow::Result;
 use std::time::Duration;
-use tokio::sync::broadcast;
+use std::{future::Future, sync::Arc};
+use tokio::sync::{watch, Mutex};
 use tracing::{error, info, warn};
 
 fn schema_kind(k: RtCaptureKind) -> CaptureKind {
@@ -31,61 +22,123 @@ fn schema_kind(k: RtCaptureKind) -> CaptureKind {
     }
 }
 
-/// Stop the running backend (if any) and wait briefly for the
-/// supervisor task to flip status to `Stopped` before returning. Used by
-/// `restart_capture` so the spawn that follows starts on a clean slate.
-async fn stop_and_wait(state: &AppState, max_wait: Duration) {
-    // Subscribe *before* signalling shutdown so we can't lose the
-    // resulting status emission to a race.
-    let mut rx = state.capture_status_bus.subscribe();
-
-    let (stop, force_close) = {
-        let mut ctl = state.capture_control.lock().await;
-        (ctl.stop.take(), ctl.force_close.clone())
+/// The lifecycle lock must be held until the old task has actually exited.
+async fn stop_and_wait(
+    control: &Arc<Mutex<CaptureControl>>,
+    status_bus: &CaptureStatusBus,
+    max_wait: Duration,
+) -> bool {
+    let (stop, task, force_close, generation) = {
+        let mut ctl = control.lock().await;
+        (
+            ctl.stop.take(),
+            ctl.task.take(),
+            ctl.force_close.clone(),
+            ctl.generation,
+        )
     };
-    let Some(tx) = stop else {
-        return; // not running
-    };
-    // Kick in-flight WS flows so existing connections actually disconnect
-    // (mirrors stop_capture semantics).
+    let was_running = stop.is_some();
     force_close.notify_waiters();
-    let _ = tx.send(());
-
-    let _ = tokio::time::timeout(max_wait, async {
-        loop {
-            match rx.recv().await {
-                Ok(CaptureStatus::Stopped) | Ok(CaptureStatus::Error { .. }) => break,
-                Ok(_) => continue,
-                Err(broadcast::error::RecvError::Closed) => break,
-                Err(broadcast::error::RecvError::Lagged(_)) => continue,
-            }
-        }
-    })
-    .await;
-}
-
-/// Stop the running backend (if any) and start a fresh one based on the
-/// current `cfg.capture.mode`. Idempotent: safe to call when nothing is
-/// running (becomes a plain `spawn`).
-pub async fn restart_capture(state: AppState) -> Result<()> {
-    stop_and_wait(&state, Duration::from_secs(2)).await;
-    spawn_capture_supervisor(state).await
-}
-
-/// Spawn the capture supervisor task and wire it into
-/// `state.capture_control`. Returns once the task has been spawned (not
-/// when the backend is actually live).
-pub async fn spawn_capture_supervisor(state: AppState) -> Result<()> {
-    // Defensive: if a previous task is still alive, refuse rather than
-    // race two oneshots into the same control slot.
-    {
-        let ctl = state.capture_control.lock().await;
-        if ctl.stop.is_some() {
-            warn!("capture supervisor: backend already running, ignoring spawn");
-            return Ok(());
+    if let Some(tx) = stop {
+        let _ = tx.send(());
+    }
+    if let Some(mut task) = task {
+        if tokio::time::timeout(max_wait, &mut task).await.is_err() {
+            warn!("capture supervisor: shutdown deadline reached; cancelling old task");
+            task.abort();
+            let _ = task.await;
         }
     }
+    finish_run(control, status_bus, generation, CaptureStatus::Stopped).await;
+    was_running
+}
 
+async fn finish_run(
+    control: &Arc<Mutex<CaptureControl>>,
+    status_bus: &CaptureStatusBus,
+    generation: u64,
+    next: CaptureStatus,
+) {
+    let mut ctl = control.lock().await;
+    if ctl.generation != generation {
+        return;
+    }
+    ctl.stop = None;
+    ctl.status = next.clone();
+    // Publish under the snapshot lock so a newer run cannot overtake this event.
+    let _ = status_bus.send(next);
+}
+
+pub async fn stop_capture_inner(state: AppState) -> bool {
+    let lifecycle = state.capture_control.lock().await.lifecycle.clone();
+    let _guard = lifecycle.lock().await;
+    stop_and_wait(
+        &state.capture_control,
+        &state.capture_status_bus,
+        Duration::from_secs(2),
+    )
+    .await
+}
+
+pub async fn restart_capture(state: AppState) -> Result<()> {
+    let lifecycle = state.capture_control.lock().await.lifecycle.clone();
+    let _guard = lifecycle.lock().await;
+    stop_and_wait(
+        &state.capture_control,
+        &state.capture_status_bus,
+        Duration::from_secs(2),
+    )
+    .await;
+    spawn_locked(state).await
+}
+
+pub async fn spawn_capture_supervisor(state: AppState) -> Result<()> {
+    let lifecycle = state.capture_control.lock().await.lifecycle.clone();
+    let _guard = lifecycle.lock().await;
+    if state.capture_control.lock().await.stop.is_some() {
+        return Ok(());
+    }
+    // Reap a naturally completed task before replacing it.
+    stop_and_wait(
+        &state.capture_control,
+        &state.capture_status_bus,
+        Duration::from_secs(2),
+    )
+    .await;
+    spawn_locked(state).await
+}
+
+async fn spawn_locked(state: AppState) -> Result<()> {
+    let result = start_backend(state.clone()).await;
+    if let Err(error) = &result {
+        let cfg = state.config.read().await;
+        let kind = if matches!(
+            cfg.platform.kind,
+            crate::config::Platform::Amatsuki | crate::config::Platform::Zhangxin
+        ) {
+            CaptureKind::Native
+        } else if cfg.capture.mode == CaptureMode::Chromium {
+            CaptureKind::Chromium
+        } else {
+            CaptureKind::Mitm
+        };
+        let generation = state.capture_control.lock().await.generation;
+        finish_run(
+            &state.capture_control,
+            &state.capture_status_bus,
+            generation,
+            CaptureStatus::Error {
+                kind,
+                descriptor: None,
+                error: format!("{error:#}"),
+            },
+        )
+        .await;
+    }
+    result
+}
+
+async fn start_backend(state: AppState) -> Result<()> {
     let (mode, proxy_cfg, chromium_cfg, http_cfg, platform) = {
         let cfg = state.config.read().await;
         (
@@ -97,11 +150,7 @@ pub async fn spawn_capture_supervisor(state: AppState) -> Result<()> {
         )
     };
 
-    // Build a fresh shutdown token for this run. Stored in
-    // `capture_control.stop` as a oneshot-via-Notify shim: command-side
-    // `stop_capture` calls `notify_waiters()` on `force_close` for the
-    // hudsucker WS-kick AND fires the oneshot; we plumb both here.
-    let (shutdown_token, shutdown_notify) = ShutdownToken::new();
+    let (shutdown_token, shutdown_signal) = ShutdownToken::new();
 
     // Build backend per mode.
     let backend: Box<dyn CaptureBackend> = if platform == crate::config::Platform::Amatsuki {
@@ -140,16 +189,6 @@ pub async fn spawn_capture_supervisor(state: AppState) -> Result<()> {
         RtCaptureKind::Chromium => format!("chromium ({})", descriptor.label),
         RtCaptureKind::Native => descriptor.label.clone(),
     };
-    let running_status = CaptureStatus::Running {
-        kind,
-        descriptor: label.clone(),
-    };
-    {
-        let mut ctl = state.capture_control.lock().await;
-        ctl.status = running_status.clone();
-    }
-    let _ = state.capture_status_bus.send(running_status);
-
     let ctx = CaptureCtx {
         session: state.log_session.clone(),
         platform,
@@ -158,32 +197,55 @@ pub async fn spawn_capture_supervisor(state: AppState) -> Result<()> {
         autoplay: Some(state.autoplay_context.clone()),
         http: http_cfg,
     };
-    let status_bus = state.capture_status_bus.clone();
-    let control = state.capture_control.clone();
-    let notify_bus = state.notify_bus.clone();
+    launch_run(
+        state.capture_control.clone(),
+        state.capture_status_bus.clone(),
+        state.notify_bus.clone(),
+        kind,
+        label,
+        shutdown_signal,
+        async move { backend.run(ctx, shutdown_token).await },
+    )
+    .await;
+    Ok(())
+}
 
-    // Splice shutdown_notify into a oneshot-shaped trigger for
-    // `capture_control.stop`. The existing API (commands::stop_capture)
-    // sends `()` on the oneshot; we flip `notify_waiters` in response.
-    let (stop_tx, mut stop_rx) = tokio::sync::oneshot::channel::<()>();
-    {
-        let mut ctl = state.capture_control.lock().await;
-        ctl.stop = Some(stop_tx);
-    }
-    let shutdown_notify_for_relay = shutdown_notify.clone();
-    tokio::spawn(async move {
-        let _ = (&mut stop_rx).await;
-        shutdown_notify_for_relay.notify_waiters();
-    });
-
+/// Owns the complete backend future; no detached shutdown relay can outlive it.
+async fn launch_run(
+    control: Arc<Mutex<CaptureControl>>,
+    status_bus: CaptureStatusBus,
+    notify_bus: NotifyBus,
+    kind: CaptureKind,
+    label: String,
+    shutdown_signal: watch::Sender<bool>,
+    run: impl Future<Output = Result<()>> + Send + 'static,
+) {
+    let (stop_tx, stop_rx) = tokio::sync::oneshot::channel::<()>();
+    let mut ctl = control.lock().await;
+    ctl.generation = ctl.generation.wrapping_add(1);
+    let generation = ctl.generation;
+    ctl.stop = Some(stop_tx);
+    let running = CaptureStatus::Running {
+        kind,
+        descriptor: label.clone(),
+    };
+    ctl.status = running.clone();
+    let _ = status_bus.send(running);
     info!(
-        "capture supervisor: starting {} backend ({})",
-        descriptor.kind.as_str(),
-        label
+        "capture supervisor: starting {} backend ({label})",
+        kind_label(kind)
     );
-    tokio::spawn(async move {
-        let result = backend.run(ctx, shutdown_token).await;
-        let next = match &result {
+    let task_control = control.clone();
+    ctl.task = Some(tokio::spawn(async move {
+        tokio::pin!(run);
+        let result = tokio::select! {
+            result = &mut run => result,
+            _ = stop_rx => {
+                shutdown_signal.send_replace(true);
+                run.await
+            }
+        };
+        let next = match result {
             Ok(()) => {
                 info!("capture supervisor: stopped cleanly");
                 CaptureStatus::Stopped
@@ -191,9 +253,6 @@ pub async fn spawn_capture_supervisor(state: AppState) -> Result<()> {
             Err(e) => {
                 let msg = format!("{e:#}");
                 error!("capture supervisor: {msg}");
-                // Surface via toast so the user sees it without watching
-                // the dashboard. Sticky id `capture-error` lets the next
-                // restart's Running emission overwrite the same toast.
                 let _ = notify_bus.send(
                     Notification::error(format!("{} capture stopped", kind_label(kind)))
                         .body(format!(
@@ -204,20 +263,13 @@ pub async fn spawn_capture_supervisor(state: AppState) -> Result<()> {
                 );
                 CaptureStatus::Error {
                     kind,
-                    descriptor: Some(label.clone()),
+                    descriptor: Some(label),
                     error: msg,
                 }
             }
         };
-        {
-            let mut ctl = control.lock().await;
-            ctl.stop = None;
-            ctl.status = next.clone();
-        }
-        let _ = status_bus.send(next);
-    });
-
-    Ok(())
+        finish_run(&task_control, &status_bus, generation, next).await;
+    }));
 }
 
 fn kind_label(k: CaptureKind) -> &'static str {
@@ -225,5 +277,183 @@ fn kind_label(k: CaptureKind) -> &'static str {
         CaptureKind::Mitm => "MITM",
         CaptureKind::Chromium => "Chromium",
         CaptureKind::Native => "本地消息",
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::sync::atomic::{AtomicBool, Ordering};
+    use tokio::sync::{broadcast, oneshot};
+
+    fn fixtures() -> (Arc<Mutex<CaptureControl>>, CaptureStatusBus, NotifyBus) {
+        (
+            Arc::new(Mutex::new(CaptureControl::default())),
+            broadcast::channel(32).0,
+            broadcast::channel(16).0,
+        )
+    }
+    struct MarkDropped(Arc<AtomicBool>);
+    impl Drop for MarkDropped {
+        fn drop(&mut self) {
+            self.0.store(true, Ordering::SeqCst);
+        }
+    }
+
+    #[tokio::test]
+    async fn slow_old_worker_is_dropped_before_new_platform_starts() {
+        let (control, status, notify) = fixtures();
+        let dropped = Arc::new(AtomicBool::new(false));
+        let (started, ready) = oneshot::channel();
+        let (token, signal) = ShutdownToken::new();
+        let drop_flag = dropped.clone();
+        launch_run(
+            control.clone(),
+            status.clone(),
+            notify.clone(),
+            CaptureKind::Native,
+            "Amatsuki".into(),
+            signal,
+            async move {
+                let _guard = MarkDropped(drop_flag);
+                let _ = started.send(());
+                token.wait().await;
+                std::future::pending::<Result<()>>().await
+            },
+        )
+        .await;
+        ready.await.unwrap();
+        assert!(stop_and_wait(&control, &status, Duration::from_millis(20)).await);
+        assert!(dropped.load(Ordering::SeqCst));
+        let (token, signal) = ShutdownToken::new();
+        launch_run(
+            control.clone(),
+            status.clone(),
+            notify,
+            CaptureKind::Native,
+            "Zhangxin".into(),
+            signal,
+            async move {
+                token.wait().await;
+                Ok(())
+            },
+        )
+        .await;
+        tokio::task::yield_now().await;
+        let ctl = control.lock().await;
+        assert!(ctl.stop.is_some());
+        assert!(
+            matches!(&ctl.status, CaptureStatus::Running { descriptor, .. } if descriptor == "Zhangxin")
+        );
+        drop(ctl);
+        stop_and_wait(&control, &status, Duration::from_millis(100)).await;
+    }
+
+    #[tokio::test]
+    async fn stale_completion_cannot_clear_new_platform_control() {
+        let (control, status, notify) = fixtures();
+        let (token, signal) = ShutdownToken::new();
+        launch_run(
+            control.clone(),
+            status.clone(),
+            notify,
+            CaptureKind::Native,
+            "Zhangxin".into(),
+            signal,
+            async move {
+                token.wait().await;
+                Ok(())
+            },
+        )
+        .await;
+        let generation = control.lock().await.generation;
+        finish_run(
+            &control,
+            &status,
+            generation.wrapping_sub(1),
+            CaptureStatus::Stopped,
+        )
+        .await;
+        let ctl = control.lock().await;
+        assert!(ctl.stop.is_some());
+        assert!(matches!(ctl.status, CaptureStatus::Running { .. }));
+        drop(ctl);
+        stop_and_wait(&control, &status, Duration::from_millis(100)).await;
+    }
+
+    #[tokio::test]
+    async fn immediate_stop_is_not_lost_during_worker_startup() {
+        let (control, status, notify) = fixtures();
+        let (token, signal) = ShutdownToken::new();
+        launch_run(
+            control.clone(),
+            status.clone(),
+            notify,
+            CaptureKind::Native,
+            "Amatsuki".into(),
+            signal,
+            async move {
+                tokio::time::sleep(Duration::from_millis(20)).await;
+                token.wait().await;
+                Ok(())
+            },
+        )
+        .await;
+        assert!(stop_and_wait(&control, &status, Duration::from_secs(1)).await);
+        let ctl = control.lock().await;
+        assert!(ctl.task.is_none());
+        assert!(ctl.stop.is_none());
+        assert!(matches!(ctl.status, CaptureStatus::Stopped));
+    }
+
+    #[tokio::test]
+    async fn lifecycle_lock_serialises_overlapping_switches() {
+        let (control, status, notify) = fixtures();
+        let lifecycle = control.lock().await.lifecycle.clone();
+        let (token, signal) = ShutdownToken::new();
+        launch_run(
+            control.clone(),
+            status.clone(),
+            notify.clone(),
+            CaptureKind::Native,
+            "Amatsuki".into(),
+            signal,
+            async move {
+                token.wait().await;
+                Ok(())
+            },
+        )
+        .await;
+        let _first = lifecycle.lock().await;
+        let c = control.clone();
+        let s = status.clone();
+        let n = notify.clone();
+        let lock = lifecycle.clone();
+        let next = tokio::spawn(async move {
+            let _second = lock.lock().await;
+            stop_and_wait(&c, &s, Duration::from_millis(100)).await;
+            let (token, signal) = ShutdownToken::new();
+            launch_run(
+                c,
+                s,
+                n,
+                CaptureKind::Native,
+                "Zhangxin".into(),
+                signal,
+                async move {
+                    token.wait().await;
+                    Ok(())
+                },
+            )
+            .await;
+        });
+        tokio::task::yield_now().await;
+        assert!(!next.is_finished());
+        drop(_first);
+        next.await.unwrap();
+        assert!(
+            matches!(&control.lock().await.status, CaptureStatus::Running { descriptor, .. } if descriptor == "Zhangxin")
+        );
+        stop_and_wait(&control, &status, Duration::from_millis(100)).await;
     }
 }

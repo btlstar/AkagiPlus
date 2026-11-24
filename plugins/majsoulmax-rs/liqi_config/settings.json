@@ -1,0 +1,11 @@
+{
+  "sendMethod": [],
+  "sendAction": [],
+  "proxyAddr": "127.0.0.1:0",
+  "apiUrl": "https://localhost/",
+  "helperSwitch": false,
+  "modSwitch": true,
+  "autoUpdate": false,
+  "liqiVersion": "0.16.293-4.0.51",
+  "githubToken": ""
+}

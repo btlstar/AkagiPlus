@@ -276,6 +276,15 @@ impl GameTracker {
     ///
     /// `None` when there is nothing to ask: no game in progress, or no seat
     /// tagged (observer / replay mode).
+    pub fn our_seat_legal_actions(&self) -> Option<Vec<riichienv_core::action::Action>> {
+        let seat = self.our_seat?;
+        match &self.state {
+            Some(TrackedGame::Four(s)) => Some(s._get_legal_actions_internal(seat)),
+            Some(TrackedGame::Three(s)) => Some(s._get_legal_actions_internal(seat)),
+            None => None,
+        }
+    }
+
     pub fn our_seat_can_act(&self) -> Option<bool> {
         let seat = self.our_seat?;
         let legals = match &self.state {
@@ -454,16 +463,37 @@ async fn run(
                 // later one. A burst of events from one frame is applied in
                 // microseconds; anything that asks afterwards has already
                 // missed the state it meant to ask about.
-                let can_act = {
+                let (can_act, legal_actions) = {
                     let mut t = tracker.lock().await;
-                    if let Err(e) = t.handle(&ev) {
-                        warn!("game tracker: handle error: {e:#}");
+                    match t.handle(&ev) {
+                        Err(e) => {
+                            warn!("game tracker: handle error: {e:#}");
+                            (None, None)
+                        }
+                        Ok(()) => match t.our_seat_legal_actions() {
+                            Some(actions) => (
+                                Some(is_decision(&actions)),
+                                Some(
+                                    actions
+                                        .iter()
+                                        .map(|a| {
+                                            serde_json::from_str(&a.to_mjai())
+                                                .expect("legal action JSON")
+                                        })
+                                        .collect(),
+                                ),
+                            ),
+                            None => (None, None),
+                        },
                     }
-                    t.our_seat_can_act()
                 };
                 if let Some(p) = &post {
                     // Receiver may have lagged or no-one subscribed yet — ignore.
-                    let _ = p.send(TrackedEvent { event: ev, can_act });
+                    let _ = p.send(TrackedEvent {
+                        event: ev,
+                        can_act,
+                        legal_actions,
+                    });
                 }
             }
             Err(broadcast::error::RecvError::Lagged(n)) => {
@@ -544,6 +574,64 @@ mod tests {
             actor,
             pai: pai.into(),
             tsumogiri: false,
+        }
+    }
+
+    #[test]
+    fn riichi_legal_context_preserves_wins_north_and_drawn_concealed_kan() {
+        use riichienv_core::action::ActionType;
+        for players in [3, 4] {
+            for drawn in ["9s", "P", "N", "E"] {
+                let mut t = GameTracker::new();
+                let hand = serde_json::json!([
+                    "1p", "2p", "3p", "4p", "5p", "6p", "7s", "8s", "9s", "E", "E", "E", "P"
+                ]);
+                let hands: Vec<serde_json::Value> = (0..players)
+                    .map(|seat| {
+                        if seat == 0 {
+                            hand.clone()
+                        } else {
+                            serde_json::json!(vec!["?"; 13])
+                        }
+                    })
+                    .collect();
+                let setup: Vec<AkagiEvent> = serde_json::from_value(serde_json::json!([
+                    {"type":"start_game","names":vec!["test";players],"id":0,"num_players":players},
+                    {"type":"start_kyoku","bakaze":"E","dora_marker":"2s","kyoku":1,
+                     "honba":0,"kyotaku":0,"oya":0,"scores":vec![35000;players],
+                     "tehais":hands,"num_players":players},
+                    {"type":"tsumo","actor":0,"pai":"9p"},
+                    {"type":"reach","actor":0},
+                    {"type":"dahai","actor":0,"pai":"9p","tsumogiri":true},
+                    {"type":"reach_accepted","actor":0},
+                    {"type":"tsumo","actor":1,"pai":"?"},
+                    {"type":"dahai","actor":1,"pai":"C","tsumogiri":true},
+                    {"type":"tsumo","actor":0,"pai":drawn}
+                ]))
+                .unwrap();
+                for event in setup {
+                    t.handle(&event).unwrap();
+                }
+                let choices = t.our_seat_legal_actions().unwrap();
+                let types: Vec<_> = choices.iter().map(|a| a.action_type).collect();
+                assert!(
+                    types.contains(&ActionType::Discard),
+                    "{players}p {drawn}: {types:?}"
+                );
+                match drawn {
+                    "9s" => assert!(types.iter().all(|a| *a == ActionType::Discard)),
+                    "P" => assert!(types.contains(&ActionType::Tsumo)),
+                    "N" if players == 3 => assert!(types.contains(&ActionType::Kita)),
+                    "E" => assert!(types.contains(&ActionType::Ankan), "{players}p: {types:?}"),
+                    _ => {}
+                }
+                for action in choices {
+                    let wire: serde_json::Value = serde_json::from_str(&action.to_mjai()).unwrap();
+                    if action.action_type == ActionType::Discard {
+                        assert_eq!(wire["pai"], drawn);
+                    }
+                }
+            }
         }
     }
 

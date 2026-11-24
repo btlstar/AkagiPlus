@@ -1,6 +1,6 @@
 # ZhangxinPlus · 掌心 Plus
 
-掌心全民麻将本地装扮插件，版本见 [plugin.toml](plugin.toml)，资源兼容性由安装器核验。AkagiPlus 提供安装、还原和游戏启动入口；插件运行不依赖 AkagiPlus 代理或 Proxifier。
+掌心全民麻将本地装扮插件，版本见 [plugin.toml](plugin.toml)，支持资源 **92217 / 92318**，资源兼容性由安装器核验。AkagiPlus 提供安装、还原和游戏启动入口；插件运行不依赖 AkagiPlus 代理或 Proxifier。
 
 ## 使用
 

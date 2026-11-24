@@ -157,3 +157,9 @@ AmatsukiStyle integration (2026):
 RiichiCityStyle integration (2026):
 - plugins/riichicity_local is the integrated RiichiCityStyle cosmetic core, Apache-2.0.
 - Standalone manager: https://github.com/btlstar/RiichiCityStyle . Compatibility identifiers and existing local preferences are preserved.
+
+MajsoulMax-rs worker integration (2026-11-23):
+- plugins/majsoulmax-rs contains the user-updated MajsoulMax-rs 0.7.0 core,
+  adapted for AP JSONL process isolation, GPL-3.0. The corresponding source,
+  source snapshot hashes and license are shipped alongside the executable.
+- See plugins/majsoulmax-rs/SOURCE.json and LICENSE.

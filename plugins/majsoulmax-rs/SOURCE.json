@@ -1,0 +1,26 @@
+{
+  "upstream": "Xerxes-2/MajsoulMax-rs",
+  "version": "0.7.0",
+  "snapshot": "0.16.293-4.0.51",
+  "source_hashes": {
+    "src/modder.rs": "9b28b19e40e6ef800fde04d2e98efae489b5f9ff98f4140811d296d2466e3cb1",
+    "src/parser.rs": "c7c634cfea528b989504c5df0efd6a37721827950b8e51edc69572de369549c2",
+    "src/settings.rs": "04419c9e32fc5d1983accb0aea3afddf460b2d2d33faa8608a14a13e5ec59e86",
+    "src/proto/mod.rs": "9575bff3e3bac9203e223e5c1a4eec08cc1317f5822c137e759572ccf094766e",
+    "src/proto/base.rs": "60b8b5da1227864b248af14cc61bb5022f03416ebbd6493cdb9d1fa55d6a9e7b",
+    "build.rs": "df96967b87e44e4559ee105260f61566374abe1bc00aa3754190d300bfb97590",
+    "liqi_config/liqi.desc": "bb789712f22ffb04b0a84ca1d926280bf7f03a973931f3effbca6e5e28cecef1",
+    "liqi_config/liqi.json": "df346143d0d5c65c8463a9a60a8de3f94737db6c04e4fa77f208b41dc37ad9d5",
+    "liqi_config/max_data.yaml": "d78517b3ed09529c48adac98945f93c53ae73c5c8420e52db322a21825bf6609",
+    "liqi_config/max_data.local.json": "1751dbc2fd36d5c9cd49f22eac75d36ba0d49dfbf5e731ab78b52788ade327a5",
+    "LICENSE": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986"
+  },
+  "adaptations": [
+    "JSONL worker entry; no proxy, listener, certificate or AI client",
+    "Public defaults separated from private selections",
+    "Original core regression tests retained",
+    "Ordered atomic JSON saves; preserve unreadable existing profile",
+    "Persist character skin changes before replying"
+  ],
+  "license": "GPL-3.0"
+}

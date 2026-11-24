@@ -112,7 +112,7 @@ export function applyMahgenSize(el: MahgenEl): void {
     el.style.display = 'none'
     return
   }
-  el.style.display = ''
+  el.style.display = el.tagName === 'AP-MAHGEN' ? 'inline-block' : ''
 
   const cfg = SIZE_CTX[entry.kind]
   const cw = entry.container?.clientWidth ?? ('ref' in cfg ? cfg.ref : 200)
@@ -159,6 +159,10 @@ export function applyMahgenSize(el: MahgenEl): void {
     const ch = entry.container?.clientHeight ?? cfg.min + cfg.pad
     h = Math.max(cfg.min, Math.min(cfg.max, ch - cfg.pad))
     w = aspectKnown ? (h * nw) / nh : h * 0.75
+    if (aspectKnown && w > cw * 0.44) {
+      w = cw * 0.44
+      h = w * nh / nw
+    }
   } else {
     h = cfg.base * (cw / cfg.ref)
     h = Math.max(cfg.min, Math.min(cfg.max, h))
@@ -214,6 +218,11 @@ if (typeof window !== 'undefined') {
 export function setMahgenSeq(el: MahgenEl, seq: string): void {
   const next = seq ?? ''
   if ((el.getAttribute('data-seq') ?? '') === next) return
+  if (el.tagName === 'AP-MAHGEN') {
+    el.setAttribute('data-seq', next)
+    applyMahgenSize(el)
+    return
+  }
   el.style.opacity = '0'
   requestAnimationFrame(() => {
     el.setAttribute('data-seq', next)

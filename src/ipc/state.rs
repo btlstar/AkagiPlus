@@ -7,9 +7,8 @@
 //!
 //! Snapshots vs streams: the `*_bus` channels are the canonical event
 //! stream, but a frontend that opens a window mid-game needs a one-shot
-//! "what's the current state?" answer. To serve that, the IPC forwarder
-//! task mirrors every status event into the `bot_status` /
-//! `capture_control.status` slots, and the `get_status` command reads
+//! "what's the current state?" answer. To serve that, the bot forwarder and capture supervisor
+//! update the latest status snapshots, and the `get_status` command reads
 //! them back. Commands that *change* state (set_active_bot,
 //! start/stop_capture) also write the snapshot synchronously so a
 //! follow-up `get_status` is always consistent with the action that just
@@ -49,6 +48,10 @@ pub struct CaptureControl {
     pub status: CaptureStatus,
     pub stop: Option<oneshot::Sender<()>>,
     pub force_close: Arc<Notify>,
+    pub task: Option<tokio::task::JoinHandle<()>>,
+    pub generation: u64,
+    /// Serialises start, stop and restart, including startup outside IPC.
+    pub lifecycle: Arc<Mutex<()>>,
 }
 
 impl Default for CaptureControl {
@@ -57,6 +60,9 @@ impl Default for CaptureControl {
             status: CaptureStatus::Stopped,
             stop: None,
             force_close: Arc::new(Notify::new()),
+            task: None,
+            generation: 0,
+            lifecycle: Arc::new(Mutex::new(())),
         }
     }
 }

@@ -3,10 +3,18 @@ import argparse, hashlib, io, json, re
 from pathlib import Path
 import UnityPy
 
+# Both reviewed releases use the same original HTTP and message bundles.
+RESOURCE_VERSIONS = ('92217', '92318')
 BASELINE = {
     'df6b54478d440170373e336b88ffe419': 'a6da50485d36c4e50cd5e26dcc82a05ac88d1c85cfbf44226b9f4034e5bbbbed',
     '6356fb4c08102b577abf1dead61d6444': '26914c132413a75eba62b07c62c74ed17dbda15d8d2a0ea5e68e3b88839f28e3',
 }
+def resource_version(source):
+    version=(source/'version_num.txt').read_text().strip()
+    if version not in RESOURCE_VERSIONS:
+        raise ValueError('当前掌心资源 '+version+' 未适配，支持 '+', '.join(RESOURCE_VERSIONS)+'。请更新 ZhangxinPlus。')
+    return version
+
 def digest(b): return hashlib.sha256(b).hexdigest()
 def scripts(b):
     at=b.index(b'UnityFS\0')
@@ -41,14 +49,14 @@ def prepare(game,out):
     if not (game/'zhangxinmj.exe').is_file(): raise ValueError('Expected Zhangxin installation folder')
     if out==game or game in out.parents: raise ValueError('Staging must be outside the game')
     source=game/'zhangxinmj_Data/_Data/Mahjong'
-    if (source/'version_num.txt').read_text().strip()!='92217': raise ValueError('Unreviewed resource version')
+    version=resource_version(source)
     payload=Path(__file__).with_name('local_cosmetics.lua').read_text('utf-8')
     records=[];out.mkdir(parents=True,exist_ok=True)
     for name in BASELINE:
         raw=(source/name).read_bytes();patched,changed=build(raw,name,payload)
         (out/name).write_bytes(patched)
         records.append(dict(name=name,original_sha256=digest(raw),patched_sha256=digest(patched),changed=changed))
-    manifest=dict(schema=1,resource_version='92217',payload_sha256=digest(payload.encode()),bundles=records)
+    manifest=dict(schema=1,resource_version=version,payload_sha256=digest(payload.encode()),bundles=records)
     (out/'manifest.json').write_text(json.dumps(manifest,indent=2),encoding='utf-8')
     return manifest
 if __name__=='__main__':

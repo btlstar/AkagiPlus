@@ -120,6 +120,7 @@ export function Settings() {
       setStored(draft)
     } catch (e) {
       setErr(String(e))
+      try { setStored(await invoke<AppConfig>('get_config')) } catch { /* Keep the save error visible. */ }
     } finally {
       setSaving(false)
     }
@@ -134,6 +135,7 @@ export function Settings() {
       blocker.proceed?.()
     } catch (e) {
       setErr(String(e))
+      try { setStored(await invoke<AppConfig>('get_config')) } catch { /* Keep the save error visible. */ }
       blocker.reset?.()
     } finally {
       setSaving(false)

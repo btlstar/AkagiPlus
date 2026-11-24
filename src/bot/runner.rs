@@ -70,6 +70,15 @@ pub trait BotRunner: Send {
     /// `MjaiEvent::None` wrapped in a `BotResponse`.
     async fn react(&mut self, events: &[MjaiEvent]) -> Result<BotResponse>;
 
+    /// Optional host-only context; other bot protocols remain unchanged.
+    async fn react_with_legal_actions(
+        &mut self,
+        events: &[MjaiEvent],
+        _legal_actions: Option<&[serde_json::Value]>,
+    ) -> Result<BotResponse> {
+        self.react(events).await
+    }
+
     /// Tear down and respawn for a new game.
     async fn reset(&mut self) -> Result<()>;
 }
@@ -154,24 +163,7 @@ impl SubprocessBot {
         })
     }
 
-    pub fn bot_name(&self) -> &str {
-        &self.bot_name
-    }
-
-    pub fn actor_id(&self) -> u8 {
-        self.actor_id
-    }
-
-    /// Override the default 5 s react timeout. Mostly for tests.
-    pub fn set_react_timeout(&mut self, t: std::time::Duration) {
-        self.react_timeout = t;
-    }
-}
-
-#[async_trait]
-impl BotRunner for SubprocessBot {
-    async fn react(&mut self, events: &[MjaiEvent]) -> Result<BotResponse> {
-        let line = serde_json::to_string(events)?;
+    async fn exchange(&mut self, line: &str) -> Result<BotResponse> {
         self.stdin
             .write_all(line.as_bytes())
             .await
@@ -196,6 +188,42 @@ impl BotRunner for SubprocessBot {
         let resp: BotResponse = serde_json::from_str(buf.trim())
             .with_context(|| format!("bot {} reply malformed: {}", self.bot_name, buf.trim()))?;
         Ok(resp)
+    }
+
+    pub fn bot_name(&self) -> &str {
+        &self.bot_name
+    }
+
+    pub fn actor_id(&self) -> u8 {
+        self.actor_id
+    }
+
+    /// Override the default 5 s react timeout. Mostly for tests.
+    pub fn set_react_timeout(&mut self, t: std::time::Duration) {
+        self.react_timeout = t;
+    }
+}
+
+#[async_trait]
+impl BotRunner for SubprocessBot {
+    async fn react(&mut self, events: &[MjaiEvent]) -> Result<BotResponse> {
+        let line = serde_json::to_string(events)?;
+        self.exchange(&line).await
+    }
+
+    async fn react_with_legal_actions(
+        &mut self,
+        events: &[MjaiEvent],
+        legal_actions: Option<&[serde_json::Value]>,
+    ) -> Result<BotResponse> {
+        if self.bot_name != "archer-api" || legal_actions.is_none() {
+            return self.react(events).await;
+        }
+        let mut batch = serde_json::to_value(events)?;
+        if let Some(last) = batch.as_array_mut().and_then(|b| b.last_mut()) {
+            last["_ap_legal_actions"] = serde_json::to_value(legal_actions.unwrap())?;
+        }
+        self.exchange(&batch.to_string()).await
     }
 
     async fn reset(&mut self) -> Result<()> {
@@ -272,9 +300,20 @@ mod tests {
     use tempfile::TempDir;
 
     fn system_python() -> Option<PathBuf> {
-        which::which("python3")
-            .or_else(|_| which::which("python"))
-            .ok()
+        if let Some(path) =
+            std::env::var_os("AKAGI_TEST_PYTHON").or_else(|| std::env::var_os("ARCHER_TEST_PYTHON"))
+        {
+            return Some(PathBuf::from(path));
+        }
+        ["python", "python3"].into_iter().find_map(|name| {
+            let path = which::which(name).ok()?;
+            // Windows App Execution Aliases can exist on PATH without a working interpreter.
+            let output = std::process::Command::new(&path)
+                .arg("--version")
+                .output()
+                .ok()?;
+            output.status.success().then_some(path)
+        })
     }
 
     fn write_echo_bot(dir: &Path) {

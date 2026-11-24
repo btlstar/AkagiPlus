@@ -4,7 +4,11 @@ AkagiPlus @VERSION@ — Windows x64
 在「总览」选择游戏并点击「启动游戏」；运行后可点击「返回游戏」。
 在「机器人」配置 AI；新对局开局前连接，建议显示在「对局」或悬浮窗。
 
-雀魂：在「装扮」启用 MajsoulMax，使用 MITM 与专用浏览器。
+Archer：在「机器人」打开 Archer 插件配置，填写自己的密钥并分别选择三麻、四麻模型。
+也可运行 mjai_bot/archer-api/configure.cmd 打开独立配置页；API Token 由 Archer 另外计费。
+若机器人列表提示环境未安装，先点击安装环境。为三麻、四麻同时选择 Archer 后按新对局人数自动切换；候选百分比表示相对权重，不是胜率。
+局前连接检测不调用付费推理；局中不显示 Token 用量。
+雀魂：在「装扮」启用 MajsoulMax-rs，使用 MITM 与专用浏览器。
 麻雀一番街：选择 Game/Mahjong-JP.exe，AI 捕获需配置并保持 Proxifier 运行。
 RiichiCityStyle 装扮在「装扮」页安装、更新和还原；仅装扮无需代理。
 掌心全民麻将：完成官方更新并退出游戏后，在「装扮」安装 ZhangxinPlus。
@@ -25,6 +29,9 @@ AmatsukiStyle：https://github.com/btlstar/AmatsukiStyle
 本地装扮不增加服务器拥有物，也不改变真实购买、奖励和养成进度。
 
 更新前退出游戏与程序，备份个人设置，使用完整包更新。
+旧版为便携配置时，备份并迁移 configs/config.toml、mjai_bot/archer-api/settings.toml、
+.local/majsoulmax 和已有 mjai_bot 插件；不要覆盖新版程序文件。
+使用用户目录配置时保留 %APPDATA%/akagiplus。不要分享个人密钥或证书。
 保留用户目录 akagiplus/riichicity-local 与 akagiplus/zhangxinplus 中的原始恢复备份。
 天月本地装扮选择位于 %LOCALAPPDATA%/AmatsukiStyle/profiles。
 版本：v@VERSION@，基于 Akagi 3.8.0。

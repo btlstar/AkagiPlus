@@ -68,7 +68,7 @@ export function Cosmetics() {
       </header>
       {config?.platform.kind === 'Amatsuki' ? <AmatsukiStyleCard /> : config?.platform.kind === 'Zhangxin' ? <ZhangxinPlusCard /> : config?.platform.kind === 'RiichiCity' ? <><RiichiCityLocalCard /><details className="text-sm"><summary className="cursor-pointer text-muted-foreground mb-4">可选：外部 RiichiCityUnlock</summary><RiichiCityUnlockCard /></details></> : <Card>
         <CardHeader className="flex flex-row items-center justify-between gap-4">
-          <div><CardTitle>雀魂 · MajsoulMax</CardTitle><p className="text-xs text-muted-foreground mt-2">MajsoulMax</p></div>
+          <div><CardTitle>雀魂 · MajsoulMax-rs</CardTitle><p className="text-xs text-muted-foreground mt-2">MajsoulMax-rs 0.7.0</p></div>
           <Switch aria-label="启用 MajsoulMax" checked={draft.enabled} disabled={!supported || saving}
             onCheckedChange={(enabled) => setDraft({ ...draft, enabled })} />
         </CardHeader>

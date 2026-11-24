@@ -26,6 +26,24 @@ describe('pickShow', () => {
 })
 
 describe('visibleItems', () => {
+  it('normalizes the displayed candidate weights after the overlay cap without changing source data', () => {
+    const original: ShowMeta = { items: [1, 0.319, 0.285, 0.1].map((weight, i) => ({ label: `Action ${i}`, weight })) }
+    const visible = visibleItems(original, 3)
+    expect(visible.map((it) => it.value)).toEqual(['62.3%', '19.9%', '17.8%'])
+    expect(visible.reduce((sum, it) => sum + Math.round(it.weight_percent! * 10), 0)).toBe(1000)
+    expect(original.items[0].value).toBeUndefined()
+    expect(visibleItems(original, 1)[0].value).toBe('100.0%')
+    expect(visibleItems(original, 0)).toEqual([])
+  })
+
+  it('keeps rounded equal weights at exactly 100% and leaves ordinary bot rows alone', () => {
+    const equal: ShowMeta = { items: [1,1,1].map((weight, i) => ({ label: `${i}`, weight })) }
+    expect(visibleItems(equal).map((it) => it.value)).toEqual(['33.4%', '33.3%', '33.3%'])
+    const plain = { items: [{ label: 'Pass', value: '87%' }] }
+    expect(visibleItems(plain)).toEqual(plain.items)
+    const zero = { items: [{ label: 'Pass', weight: 0, value: 'unchanged' }] }
+    expect(visibleItems(zero)).toEqual(zero.items)
+  })
   const show: ShowMeta = {
     items: [
       row('Discard 1m', ['1m']),

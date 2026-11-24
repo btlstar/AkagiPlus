@@ -1,7 +1,7 @@
 """Install/status/restore a verified Zhangxin patch. Never kills a game process."""
 import argparse, json, os, subprocess, tempfile
 from pathlib import Path
-from build import BASELINE, digest, build
+from build import BASELINE, digest, build, resource_version
 
 def atomic(path,data):
     path.parent.mkdir(parents=True,exist_ok=True)
@@ -20,7 +20,7 @@ def paths(game):
     root=game/'zhangxinmj_Data'
     hot=root/'_Data/Mahjong'
     if not (hot/'version_num.txt').is_file(): raise ValueError('请先启动掌心，完成官方资源更新后退出游戏。')
-    if (hot/'version_num.txt').read_text().strip()!='92217': raise ValueError('当前掌心资源版本未适配，请等待 ZhangxinPlus 更新。')
+    resource_version(hot)
     result={f'_Data/Mahjong/{name}':hot/name for name in BASELINE}
     if not all(p.is_file() for p in result.values()): raise ValueError('官方资源尚未下载完整，请先正常启动并更新掌心。')
     return result
@@ -99,7 +99,7 @@ def prepare_install(game,staged,journal):
         patched,changed=build(raw,name,payload)
         atomic(staged/name,patched)
         records.append(dict(name=name,original_sha256=digest(raw),patched_sha256=digest(patched),changed=changed))
-    atomic(staged/'manifest.json',json.dumps(dict(schema=1,resource_version='92217',payload_sha256=digest(payload.encode()),bundles=records)).encode())
+    atomic(staged/'manifest.json',json.dumps(dict(schema=1,resource_version=resource_version(game/'zhangxinmj_Data/_Data/Mahjong'),payload_sha256=digest(payload.encode()),bundles=records)).encode())
     return install(game,staged,journal)
 
 def status(game,journal):
@@ -113,12 +113,13 @@ def status(game,journal):
     if not installed:return dict(status='not_installed',message='未安装或已还原 ZhangxinPlus')
     current=digest(Path(__file__).with_name('local_cosmetics.lua').read_text('utf-8').encode())
     if r.get('payload_sha256')!=current:return dict(status='update_available',message='ZhangxinPlus 已安装，插件代码有更新。')
-    result=dict(status='installed',message='ZhangxinPlus 已安装 · 资源 92217')
+    version=resource_version(game/'zhangxinmj_Data/_Data/Mahjong')
+    result=dict(status='installed',message='ZhangxinPlus 已安装 · 资源 '+version)
     heartbeat=game/'zhangxinmj_Data/_Data/Mahjong/zhangxinplus-status.json'
     if heartbeat.is_file():
         try:
             value=json.loads(heartbeat.read_text('utf-8-sig'))
-            if value.get('plugin')=='ZhangxinPlus' and value.get('version')=='0.1.5':
+            if value.get('plugin')=='ZhangxinPlus' and value.get('version')=='0.1.6':
                 result['message']+=' · 游戏曾加载';result['runtime']={k:value.get(k) for k in ('reads','writes','last_route','ai_frames','ai_error','last_error','scheme_id_type')}
         except (ValueError,OSError):pass
     return result

@@ -1,4 +1,5 @@
-import { useEffect, useRef, type RefObject } from 'react'
+import { warmSuggestionTiles } from '@/lib/cachedMahgen'
+import { useEffect, useLayoutEffect, useRef, type RefObject } from 'react'
 import {
   registerMahgen,
   unregisterMahgen,
@@ -16,16 +17,17 @@ type Props = {
 }
 
 // Wraps a single <mah-gen> custom element, manages registry lifecycle, and
-// animates seq swaps via setMahgenSeq (opacity crossfade).
+// uses decoded image caching for live suggestions.
 export function Mahgen({ seq, kind, riverMode, containerRef, className }: Props) {
   const wrapperRef = useRef<HTMLSpanElement>(null)
   const elRef = useRef<HTMLElement | null>(null)
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const wrapper = wrapperRef.current
     if (!wrapper) return
 
-    const el = document.createElement('mah-gen') as HTMLElement
+    const cached = kind === 'bot-show' || kind === 'overlay-show'
+    const el = document.createElement(cached ? 'ap-mahgen' : 'mah-gen') as HTMLElement
     if (riverMode) el.setAttribute('data-river-mode', '')
     if (seq) el.setAttribute('data-seq', seq)
     wrapper.appendChild(el)
@@ -43,11 +45,15 @@ export function Mahgen({ seq, kind, riverMode, containerRef, className }: Props)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [kind, riverMode])
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const el = elRef.current
     if (!el) return
     setMahgenSeq(el as never, seq)
   }, [seq])
+
+  useEffect(() => {
+    if (kind === 'bot-show' || kind === 'overlay-show') warmSuggestionTiles()
+  }, [kind])
 
   return <span ref={wrapperRef} className={className} style={{ display: 'inline-block', transition: 'opacity 120ms' }} />
 }

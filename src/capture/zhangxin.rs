@@ -10,6 +10,10 @@ use std::{
 };
 use tokio::io::{AsyncReadExt, AsyncSeekExt};
 
+fn supported_resource_version(version: &str) -> bool {
+    matches!(version.trim(), "92217" | "92318")
+}
+
 pub fn client_path(configured: &Path) -> PathBuf {
     if !configured.as_os_str().is_empty() {
         return configured.to_path_buf();
@@ -82,12 +86,9 @@ impl CaptureBackend for ZhangxinBackend {
         }
     }
     async fn run(self: Box<Self>, ctx: CaptureCtx, shutdown: ShutdownToken) -> Result<()> {
-        if tokio::fs::read_to_string(self.root.join("version_num.txt"))
-            .await?
-            .trim()
-            != "92217"
-        {
-            bail!("掌心资源版本未适配，请更新 ZhangxinPlus。")
+        let version = tokio::fs::read_to_string(self.root.join("version_num.txt")).await?;
+        if !supported_resource_version(&version) {
+            bail!("掌心资源 {} 未适配，请更新 ZhangxinPlus。", version.trim())
         }
         // Require the installed AI-capable patch, rather than claiming capture
         // is working while a previous cosmetics-only patch is installed.
@@ -247,5 +248,17 @@ impl CaptureBackend for ZhangxinBackend {
         }
         drop(lease);
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn resource_gate_accepts_only_reviewed_releases() {
+        assert!(supported_resource_version("92217"));
+        assert!(supported_resource_version("92318\r\n"));
+        assert!(!supported_resource_version("99999"));
+        assert!(!supported_resource_version(""));
     }
 }

@@ -27,7 +27,7 @@ use crate::schema::{
 use crate::util::resolve_dir;
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
-use tauri::{AppHandle, State};
+use tauri::{AppHandle, Emitter, State};
 
 #[tauri::command]
 pub fn get_majsoulmax_status() -> crate::proxy::majsoulmax::Status {
@@ -151,6 +151,8 @@ pub async fn update_config(
     let new_overlay = new_config.overlay.clone();
     *state.config.write().await = new_config;
 
+    let _ = app.emit("bot-config-changed", ());
+
     // Open / close / retune the overlay window to match what was just saved.
     overlay::reconcile(&app, &new_overlay);
 
@@ -165,9 +167,12 @@ pub async fn update_config(
             .expect("history platform lock poisoned") = crate::schema::Platform::from(new_platform);
     }
 
-    if capture_changed || proxy_changed || platform_changed {
-        // Run the restart in the background — `update_config` returns
-        // promptly so the UI doesn't hang on slow shutdowns.
+    let capture_failed = matches!(
+        state.capture_control.lock().await.status,
+        crate::schema::CaptureStatus::Error { .. }
+    );
+    if capture_changed || proxy_changed || platform_changed || capture_failed {
+        // Complete the handoff before reporting the saved platform to the UI.
         restart_capture_inner((*state).clone())
             .await
             .map_err(|e| format!("捕获启动失败：{e:#}"))?;
@@ -329,6 +334,7 @@ pub async fn get_bot_settings(name: String, state: State<'_, AppState>) -> CmdRe
 pub async fn update_bot_settings(
     name: String,
     values: BTreeMap<String, serde_json::Value>,
+    app: AppHandle,
     state: State<'_, AppState>,
 ) -> CmdResult<()> {
     let dir = state.config.read().await.bot.dir.clone();
@@ -343,6 +349,7 @@ pub async fn update_bot_settings(
         .ok_or_else(|| format!("bot {name:?} has no manifest.toml"))?;
     manifest::save_values(&entry.dir, manifest, &values)
         .map_err(|e| format!("save settings: {e:#}"))?;
+    let _ = app.emit("bot-config-changed", ());
     let _ = state
         .notify_bus
         .send(Notification::success(format!("{name} settings saved")));
@@ -364,6 +371,7 @@ pub async fn update_bot_settings(
 pub async fn set_active_bot(
     mode: String,
     name: String,
+    app: AppHandle,
     state: State<'_, AppState>,
 ) -> CmdResult<()> {
     // Built-in native bots are always available (no venv); skip the registry
@@ -390,6 +398,7 @@ pub async fn set_active_bot(
         }
         persist_config(&cfg, &state.config_path).map_err(|e| e.to_string())?;
     }
+    let _ = app.emit("bot-config-changed", ());
     let label = if name.is_empty() {
         format!("{mode} bot cleared")
     } else {
@@ -675,25 +684,10 @@ pub async fn stop_capture(state: State<'_, AppState>) -> CmdResult<()> {
     let _launch_guard = crate::ipc::game_launcher::OPERATION
         .try_lock()
         .map_err(|_| "正在启动游戏或管理补丁，请稍候。".to_owned())?;
-    let (stop, force_close) = {
-        let mut ctl = state.capture_control.lock().await;
-        (ctl.stop.take(), ctl.force_close.clone())
-    };
-    // Kick in-flight WS flows first so the game client actually
-    // disconnects. Without this, hudsucker's graceful shutdown only
-    // blocks new connections; existing ones drain naturally and the
-    // user sees comm "still working" even after stop. (Chromium backend
-    // ignores this — its shutdown closes the browser process directly.)
-    force_close.notify_waiters();
-    match stop {
-        Some(tx) => {
-            // Receiver dropped means the task already exited — that's fine,
-            // we still cleared `stop` and the status forwarder will catch
-            // up via the next CaptureStatus emission.
-            let _ = tx.send(());
-            Ok(())
-        }
-        None => Err("capture backend is not running".into()),
+    if crate::ipc::capture_supervisor::stop_capture_inner((*state).clone()).await {
+        Ok(())
+    } else {
+        Err("capture backend is not running".into())
     }
 }
 
@@ -1798,6 +1792,7 @@ macro_rules! ipc_handlers {
     () => {
         ::tauri::generate_handler![
             $crate::ipc::commands::get_config,
+            $crate::ipc::archer::get_archer_readiness,
             $crate::ipc::game_launcher::launch_game,
             $crate::ipc::game_launcher::get_game_launch_status,
             $crate::ipc::game_launcher::riichicity_local,

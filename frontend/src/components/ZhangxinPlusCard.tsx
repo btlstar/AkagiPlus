@@ -17,13 +17,13 @@ export function ZhangxinPlusCard() {
   const act = async (action: 'status' | 'install' | 'restore') => {
     setBusy(true); setError('')
     try { setResult(JSON.parse(await invoke<string>('zhangxinplus', { action })) as Status) }
-    catch (e) { setError(String(e)) } finally { setBusy(false) }
+    catch (e) { setResult(null); setError(String(e)) } finally { setBusy(false) }
   }
   useEffect(() => {
     let active = true
     void invoke<string>('zhangxinplus', { action: 'status' })
       .then(raw => { if (active) setResult(JSON.parse(raw) as Status) })
-      .catch(e => { if (active) setError(String(e)) })
+      .catch(e => { if (active) { setResult(null); setError(String(e)) } })
       .finally(() => { if (active) setBusy(false) })
     void refresh()
     return () => { active = false }
@@ -32,7 +32,7 @@ export function ZhangxinPlusCard() {
     <CardHeader><CardTitle>{t('platform.plugin_title', { game: t('platform.zhangxin'), plugin: 'ZhangxinPlus' })}</CardTitle></CardHeader>
     <CardContent className="grid gap-4">
       <p className="text-sm text-muted-foreground">{t('platform.zhangxin_cosmetics')}</p>
-      <p className="text-sm" role="status">{busy ? '正在处理…' : result?.message ?? '正在检查…'}</p>
+      <p className="text-sm" role="status">{busy ? '正在处理…' : error ? '检查失败，请查看下方提示。' : result?.message ?? '尚未检查'}</p>
       {result?.runtime && <p className="text-xs text-muted-foreground">上次游戏运行：已处理 {result.runtime.reads} 次读取、{result.runtime.writes} 次本地选择；AI 消息 {result.runtime.ai_frames ?? 0} 条。</p>}
       {result?.runtime?.ai_error && <p role="alert" className="text-sm text-destructive">本地 AI 消息写入失败：{result.runtime.ai_error}</p>}
       <div className="flex flex-wrap gap-2">

@@ -6,7 +6,7 @@ import { useConfigStore } from '@/stores/configStore'
 import { useGameStore } from '@/stores/gameStore'
 import { useLauncherStore } from '@/stores/launcherStore'
 import { PLATFORMS, platformInfo, isKnownDefaultStartUrl } from '@/lib/platforms'
-import type { PlatformKind } from '@/types'
+import type { AppConfig, PlatformKind } from '@/types'
 import { invoke } from '@/lib/tauri'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -38,7 +38,10 @@ export function GameLauncher({ compact = false }: { compact?: boolean }) {
       chromium: { ...config.capture.chromium, start_url: isKnownDefaultStartUrl(config.capture.chromium.start_url) ? info.defaultStartUrl : config.capture.chromium.start_url },
     }, proxy: { ...config.proxy, enabled: true }, autoplay: (kind === 'Zhangxin' || kind === 'Amatsuki') ? { ...config.autoplay, enabled: false } : config.autoplay }
     try { await invoke('update_config', { newConfig: next }); setConfig(next); await refresh() }
-    catch (e) { setLocalError(String(e)) } finally { setChanging(false) }
+    catch (e) {
+      setLocalError(String(e))
+      try { setConfig(await invoke<AppConfig>('get_config')) } catch { /* Preserve the visible error if IPC is unavailable. */ }
+    } finally { setChanging(false) }
   }
   const configure = async () => {
     if (!native) { setLocalError('请在设置 → 封包捕获中指定浏览器路径。'); return }
@@ -50,7 +53,10 @@ export function GameLauncher({ compact = false }: { compact?: boolean }) {
       const previous = config.proxy.riichicity_unlock ?? { enabled: false, executable: '', ca_path: '', client_path: '', injector_path: '' }
       const next = { ...config, proxy: { ...config.proxy, ...(amatsuki ? { amatsuki: { ...config.proxy.amatsuki, client_path: path } } : zhangxin ? { zhangxinplus: { client_path: path } } : { riichicity_unlock: { ...previous, client_path: path } }) } }
       await invoke('update_config', { newConfig: next }); setConfig(next); setPathOpen(false); await launch()
-    } catch (e) { setLocalError(String(e)) } finally { setChanging(false) }
+    } catch (e) {
+      setLocalError(String(e))
+      try { setConfig(await invoke<AppConfig>('get_config')) } catch { /* Preserve the visible error if IPC is unavailable. */ }
+    } finally { setChanging(false) }
   }
   const start = async () => {
     setLocalError(''); await launch()

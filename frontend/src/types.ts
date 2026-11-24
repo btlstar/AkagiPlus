@@ -39,6 +39,10 @@ export type ShowItem = {
   color?: string
   /** Small subtitle under `label`. */
   note?: string
+  /** Relative mass supplied by a bot; normalized over the displayed candidates. */
+  weight?: number
+  /** Rounded percentage for rendering; produced by visibleItems. */
+  weight_percent?: number
 }
 
 export type ShowMeta = {

@@ -38,5 +38,19 @@ export function hasContent(it: ShowItem): boolean {
  */
 export function visibleItems(show: ShowMeta | null, limit?: number): ShowItem[] {
   const items = show?.items.filter(hasContent) ?? []
-  return limit === undefined ? items : items.slice(0, Math.max(0, limit))
+  const visible = limit === undefined ? items : items.slice(0, Math.max(0, limit))
+  const weighted = visible.filter((it) => typeof it.weight === 'number' && Number.isFinite(it.weight) && it.weight >= 0)
+  const total = weighted.reduce((sum, it) => sum + it.weight!, 0)
+  if (!weighted.length || !Number.isFinite(total) || total <= 0) return visible
+  const exact = weighted.map((it) => it.weight! / total * 1000)
+  const units = exact.map(Math.floor)
+  const order = exact.map((value, i) => ({ i, remainder: value - units[i] }))
+    .sort((a, b) => b.remainder - a.remainder || a.i - b.i)
+  const remaining = 1000 - units.reduce((sum, value) => sum + value, 0)
+  for (const { i } of order.slice(0, remaining)) units[i] += 1
+  const percentages = new Map(weighted.map((it, i) => [it, units[i] / 10]))
+  return visible.map((it) => {
+    const percentage = percentages.get(it)
+    return percentage === undefined ? it : { ...it, weight_percent: percentage, value: `${percentage.toFixed(1)}%` }
+  })
 }

@@ -65,6 +65,8 @@ pub struct TrackedEvent {
     /// or no seat tagged (observer / replay). Consumers treat that as "no
     /// opinion" and fall back to their own policy rather than going silent.
     pub can_act: Option<bool>,
+    /// Exact legal choices captured under the same tracker lock as this event.
+    pub legal_actions: Option<Vec<serde_json::Value>>,
 }
 
 /// Post-tracker fan-out: each event re-emitted *after* the `GameTracker`

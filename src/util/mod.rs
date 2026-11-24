@@ -104,19 +104,23 @@ mod tests {
 
     #[test]
     fn appimage_routes_relative_path_to_user_config() {
-        let user_root = PathBuf::from("/home/u/.config/akagi");
-        let resolved = resolve_dir_inner(Path::new("./logs"), true, Some(user_root.clone()));
-        assert_eq!(resolved, user_root.join("logs"));
+        let root = tempfile::tempdir().unwrap();
+        let user_root = root.path().join("user-config");
+        // Avoid depending on a developer's existing ./logs or test executable directory.
+        let relative = PathBuf::from(format!(
+            "./missing-{}",
+            root.path().file_name().unwrap().to_string_lossy()
+        ));
+        let resolved = resolve_dir_inner(&relative, true, Some(user_root.clone()));
+        assert_eq!(resolved, user_root.join(strip_leading_dot(&relative)));
     }
 
     #[test]
     fn appimage_preserves_absolute_path() {
-        let resolved = resolve_dir_inner(
-            Path::new("/var/log/akagi"),
-            true,
-            Some(PathBuf::from("/home/u/.config/akagi")),
-        );
-        assert_eq!(resolved, PathBuf::from("/var/log/akagi"));
+        let root = tempfile::tempdir().unwrap();
+        let absolute = root.path().join("logs");
+        let resolved = resolve_dir_inner(&absolute, true, Some(root.path().join("user-config")));
+        assert_eq!(resolved, absolute);
     }
 
     #[test]

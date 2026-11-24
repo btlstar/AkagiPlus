@@ -188,13 +188,18 @@ impl BotManager {
         self.handle_tracked(TrackedEvent {
             event,
             can_act: None,
+            legal_actions: None,
         })
         .await
     }
 
     /// Drive one tracked event through the manager.
     pub async fn handle_tracked(&mut self, tracked: TrackedEvent) -> Result<()> {
-        let TrackedEvent { event, can_act } = tracked;
+        let TrackedEvent {
+            event,
+            can_act,
+            legal_actions,
+        } = tracked;
         // Kyoku/game boundaries clear the one-shot reach-echo drop: a lost
         // declaration never produces the echo it was waiting for, so the flag
         // must not survive into the next hand and eat a real reach there.
@@ -304,7 +309,10 @@ impl BotManager {
             .expect("runner is Some — checked above");
         let batch = std::mem::take(&mut self.pending);
         let started = Instant::now();
-        let mut resp = match runner.react(&batch).await {
+        let mut resp = match runner
+            .react_with_legal_actions(&batch, legal_actions.as_deref())
+            .await
+        {
             Ok(r) => r,
             Err(e) => {
                 let err_str = format!("{e:#}");
@@ -939,7 +947,11 @@ mod tests {
     }
 
     fn tracked(event: MjaiEvent, can_act: Option<bool>) -> TrackedEvent {
-        TrackedEvent { event, can_act }
+        TrackedEvent {
+            event,
+            can_act,
+            legal_actions: None,
+        }
     }
 
     /// Regression (Hora answered with a pass press): an opponent's discard we

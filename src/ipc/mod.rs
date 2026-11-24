@@ -40,6 +40,7 @@
 //! [`overlay`] window render suggestions without any dedicated plumbing.
 //! `overlay-config` is the exception: it is emitted to the overlay label only.
 
+pub mod archer;
 pub mod capture_supervisor;
 pub mod commands;
 pub mod game_launcher;
@@ -132,12 +133,10 @@ fn spawn_bot_status_forwarder<R: Runtime>(app: AppHandle<R>, state: AppState) {
 
 fn spawn_capture_status_forwarder<R: Runtime>(app: AppHandle<R>, state: AppState) {
     let mut rx = state.capture_status_bus.subscribe();
-    let control = state.capture_control.clone();
     tauri::async_runtime::spawn(async move {
         loop {
             match rx.recv().await {
                 Ok(s) => {
-                    control.lock().await.status = s.clone();
                     if let Err(e) = app.emit("capture-status", &s) {
                         warn!("ipc emit capture-status failed: {e}");
                     }
