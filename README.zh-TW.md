@@ -2,7 +2,7 @@
 
 基於 [Akagi 3.8.0](https://github.com/shinkuan/Akagi) 的麻將 AI 與本機裝扮擴充，提供統一遊戲啟動入口、多平台裝扮外掛，以及 Archer API 三麻 / 四麻引擎接入。
 
-[简体中文](README.zh-CN.md) · [English](README.md) · [下載 Windows 版](https://github.com/btlstar/AkagiPlus/releases/tag/v3.8.0-plus.5)
+[简体中文](README.md) · [English](README.en.md) · [下載 Windows 版](https://github.com/btlstar/AkagiPlus/releases/tag/v3.8.0-plus.5)
 
 ## 下載與使用
 
