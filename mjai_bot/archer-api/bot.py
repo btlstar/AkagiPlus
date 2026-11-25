@@ -14,7 +14,7 @@ import tomllib
 
 from archer_client import ArcherClient, ArcherError, compact
 
-VERSION = "0.4.4"
+VERSION = "0.4.5"
 WEIGHT_TEMPERATURE = {3: 1.0, 4: 20.0}
 ROOT = Path(__file__).resolve().parent
 FIELDS = {
@@ -114,10 +114,10 @@ class ArcherBot:
         self.pending_next = None
         self.cache.clear()
 
-    def status(self, text, *, error=False):
-        items = [{"label": text, "value": "", "color": "#ef4444" if error else "#94a3b8"}]
+    def status(self, text, *, error=False, label_key="no_advice"):
+        items = [{"label": text, "label_key": label_key, "value": "", "color": "#ef4444" if error else "#94a3b8"}]
         return {"type": "none", "meta": {"archer": self.meta_state(), "show": {
-            "title": "Archer · " + (self.model or "尚未选择模型"), "items": items}}}
+            "title": "Archer · " + (self.model or "API"), "items": items}}}
 
     def meta_state(self):
         return {"version": VERSION, "model": self.model, "players": self.num_players, "calls": self.calls, "billed_tokens": self.billed,
@@ -242,7 +242,7 @@ class ArcherBot:
             return {"type": "dahai", "actor": self.seat, "pai": last["pai"], "tsumogiri": True,
                     "meta": {"archer": {**self.meta_state(), "skip_reason": "riichi_tsumogiri"},
                              "show": {"title": "Archer · " + self.model, "items": [{
-                                 "label": "摸切", "type": "dahai", "pais": [last["pai"]],
+                                 "label": "摸切", "label_key": "tsumogiri", "type": "dahai", "pais": [last["pai"]],
                                  "value": "100.0%", "weight": 1.0, "weight_percent": 100.0,
                                  "color": "#6ee7b7"}]}}}
         return None
@@ -407,6 +407,12 @@ class ArcherBot:
             if mode == "weights":
                 value = f"{percentages[index]:.1f}%"
             row = {"label": LABELS[kind], "value": value, "type": "kita" if kind == "nuki" else kind}
+            row["label_key"] = row["type"]
+            if mode == "relative":
+                if gap < 0.00005:
+                    row["value_key"] = "top"
+                else:
+                    row.update(value_key="behind", value_arg=f"{gap:.2f}")
             if mode == "weights":
                 row.update(weight=weights[index], weight_percent=percentages[index],
                            color="#6ee7b7" if index == 0 else "#93c5fd")
@@ -414,7 +420,7 @@ class ArcherBot:
                 row["pais"] = [tile]
             added = self.kakan_candidate_tile(item)
             if added is not None:
-                row.update(label=LABELS["kakan"], type="kakan", pais=[added])
+                row.update(label=LABELS["kakan"], label_key="kakan", type="kakan", pais=[added])
             if kind == "chi":
                 tiles = self.chi_tiles(item, action)
                 if tiles:
@@ -425,14 +431,15 @@ class ArcherBot:
                 row["pais"] = [action["pai"]]
             rows.append(row)
         if not rows:
-            row = {"label": LABELS[action["type"]], "value": "", "type": action["type"]}
+            row = {"label": LABELS[action["type"]], "value": "", "type": action["type"],
+                   "label_key": "kita" if action["type"] == "nuki" else action["type"]}
             if mode == "weights":
                 row.update(value="100.0%", weight=1.0, weight_percent=100.0, color="#6ee7b7")
             if action.get("pai") in TILES:
                 row["pais"] = [action["pai"]]
             rows.append(row)
         if action["type"] == "reach" and not any(row.get("type") == "reach" for row in rows):
-            rows.insert(0, {"label": "立直宣言牌", "pais": [action["pai"]], "value": ""})
+            rows.insert(0, {"label": "立直宣言牌", "label_key": "reach_tile", "pais": [action["pai"]], "value": ""})
         action["meta"] = {"archer": {**self.meta_state(), "candidates": candidates},
                           "show": {"title": "Archer · " + self.model, "items": rows}}
         return action
@@ -452,7 +459,7 @@ class ArcherBot:
         last = batch[-1]
         if not self.hand_active:
             if last.get("type") in ("start_game", "start_kyoku", "end_kyoku", "end_game", "hora", "ryukyoku"):
-                return self.status("等待新的三麻或四麻决策")
+                return self.status("等待新的三麻或四麻决策", label_key="waiting_decision")
             return no_action()
         if last.get("type") == "reach" and last.get("actor") == self.seat and self.pending_next:
             result = deepcopy(self.pending_next)
@@ -526,8 +533,8 @@ def main():
         try:
             batch = json.loads(line)
             result = bot.react(batch) if bot is not None else {
-                "type": "none", "meta": {"show": {"title": "Archer · 配置错误",
-                "items": [{"label": "配置无法读取，请手动判断。", "value": ""}]}}}
+                "type": "none", "meta": {"show": {"title": "Archer API",
+                "items": [{"label": "配置无法读取，请手动判断。", "label_key": "no_advice", "value": ""}]}}}
         except Exception:
             # Never leak raw requests, hand contents, settings or credentials to stderr.
             notify("error", "Archer 插件错误", "本次无法给出建议，请手动判断并检查本机配置。")

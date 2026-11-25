@@ -44,7 +44,7 @@ export function GameLauncher({ compact = false }: { compact?: boolean }) {
     } finally { setChanging(false) }
   }
   const configure = async () => {
-    if (!native) { setLocalError('请在设置 → 封包捕获中指定浏览器路径。'); return }
+    if (!native) { setLocalError(t('launcher.browser_path')); return }
     setPath((amatsuki ? config.proxy.amatsuki : zhangxin ? config.proxy.zhangxinplus : config.proxy.riichicity_unlock)?.client_path ?? ''); setPathOpen(true)
   }
   const savePath = async () => {
@@ -64,24 +64,24 @@ export function GameLauncher({ compact = false }: { compact?: boolean }) {
   }
   return <div className="flex flex-col gap-2 min-w-0">
     <div className="flex flex-wrap items-center gap-2">
-      {!compact && <select aria-label="启动游戏平台" value={config.platform.kind} disabled={busy || changing || inGame}
-        title={inGame ? '对局结束后可切换平台' : '选择游戏平台'}
+      {!compact && <select aria-label={t('launcher.platform')} value={config.platform.kind} disabled={busy || changing || inGame}
+        title={inGame ? t('launcher.after_match') : t('launcher.platform')}
         onChange={e => void select(e.target.value as PlatformKind)}
         className="h-9 max-w-48 rounded-md border border-input bg-background px-3 text-sm disabled:opacity-50">
         {PLATFORMS.map(p => <option key={p.kind} value={p.kind}>{t(p.labelKey)}</option>)}
       </select>}
       <Button size="sm" onClick={() => void start()} disabled={busy || changing} className="gap-1.5">
         {busy || changing ? <LoaderCircle className="size-4 animate-spin" /> : running ? <ExternalLink className="size-4" /> : <Play className="size-4" />}
-        {changing ? '正在切换…' : busy ? '正在启动…' : running ? '返回游戏' : '启动游戏'}
+        {changing ? t('launcher.switching') : busy ? t('launcher.starting') : running ? t('launcher.back') : t('launcher.start')}
       </Button>
-      {!compact && native && <Button size="icon" variant="ghost" aria-label="配置游戏路径" disabled={busy || changing || inGame} onClick={() => void configure()}><Settings2 className="size-4" /></Button>}
+      {!compact && native && <Button size="icon" variant="ghost" aria-label={t('launcher.configure')} disabled={busy || changing || inGame} onClick={() => void configure()}><Settings2 className="size-4" /></Button>}
     </div>
-    {(error || localError) && <div className="max-w-md text-xs text-destructive" role="alert">{localError || error} <button className="underline" onClick={() => void configure()}>配置路径</button></div>}
+    {(error || localError) && <div className="max-w-md text-xs text-destructive" role="alert">{localError || error} <button className="underline" onClick={() => void configure()}>{t('launcher.configure')}</button></div>}
     <Dialog open={pathOpen} onOpenChange={setPathOpen}><DialogContent>
       <DialogHeader><DialogTitle>{t('platform.game_path_title', { game: t(platformInfo(config.platform.kind).labelKey) })}</DialogTitle><DialogDescription>{t(amatsuki ? 'platform.amatsuki_path_hint' : zhangxin ? 'platform.zhangxin_path_hint' : 'platform.riichi_city_path_hint')}</DialogDescription></DialogHeader>
-      <Label htmlFor="game-client-path">游戏程序</Label>
-      <div className="flex gap-2"><Input id="game-client-path" value={path} onChange={e => setPath(e.target.value)} /><Button variant="outline" onClick={async () => { const p = await open({ multiple: false, filters: [{ name: '游戏程序', extensions: ['exe'] }] }); if (typeof p === 'string') setPath(p) }}>浏览</Button></div>
-      <Button onClick={() => void savePath()} disabled={changing || !path.trim()}>保存并启动</Button>
+      <Label htmlFor="game-client-path">{t('launcher.program')}</Label>
+      <div className="flex gap-2"><Input id="game-client-path" value={path} onChange={e => setPath(e.target.value)} /><Button variant="outline" onClick={async () => { const p = await open({ multiple: false, filters: [{ name: t('launcher.program'), extensions: ['exe'] }] }); if (typeof p === 'string') setPath(p) }}>{t('launcher.browse')}</Button></div>
+      <Button onClick={() => void savePath()} disabled={changing || !path.trim()}>{t('launcher.save_launch')}</Button>
     </DialogContent></Dialog>
   </div>
 }

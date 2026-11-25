@@ -27,7 +27,7 @@ export function AmatsukiStyleCard() {
   return <Card>
     <CardHeader className="flex flex-row items-center justify-between gap-4">
       <CardTitle>{t('platform.plugin_title', { game: t('platform.amatsuki'), plugin: 'AmatsukiStyle' })}</CardTitle>
-      <Switch aria-label="启用 AmatsukiStyle" checked={enabled} disabled={saving} onCheckedChange={v => void change(v)} />
+      <Switch aria-label={t('cosmetics.enable', { plugin: 'AmatsukiStyle' })} checked={enabled} disabled={saving} onCheckedChange={v => void change(v)} />
     </CardHeader>
     <CardContent className="grid gap-3 text-sm text-muted-foreground">
       <p>{t(enabled ? 'platform.amatsuki_enabled' : 'platform.amatsuki_disabled')}</p>

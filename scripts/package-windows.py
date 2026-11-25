@@ -87,8 +87,9 @@ enabled = false
     forbidden += [s for s in files if Path(s).name in private_notes or set(Path(s).parts) & {'docs', 'notes', 'research'}]
     assert not forbidden, forbidden
     commit=subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip()
+    source_dirty=bool(subprocess.check_output(['git','status','--porcelain'],cwd=ROOT,text=True).strip())
     plugin_version=tomllib.loads((ROOT/'plugins/zhangxinplus/plugin.toml').read_text('utf8'))['version']
-    manifest={'version':version,'source_commit':commit,'upstream':'shinkuan/Akagi@63cea4b5d23d83bbee8d56bc3b9d547cca2046c3','plugins':{'ArcherAPI':tomllib.loads((ROOT/'mjai_bot/archer-api/manifest.toml').read_text('utf8'))['bot']['version'],'MajsoulMax-rs':'0.7.0','ZhangxinPlus':plugin_version,'AmatsukiStyle':tomllib.loads((ROOT/'plugins/amatsukistyle/plugin.toml').read_text('utf8'))['version']},'files':files}
+    manifest={'version':version,'source_commit':commit,'source_dirty':source_dirty,'upstream':'shinkuan/Akagi@63cea4b5d23d83bbee8d56bc3b9d547cca2046c3','plugins':{'ArcherAPI':tomllib.loads((ROOT/'mjai_bot/archer-api/manifest.toml').read_text('utf8'))['bot']['version'],'MajsoulMax-rs':'0.7.0','ZhangxinPlus':plugin_version,'AmatsukiStyle':tomllib.loads((ROOT/'plugins/amatsukistyle/plugin.toml').read_text('utf8'))['version']},'files':files}
     (stage/'MANIFEST.json').write_text(json.dumps(manifest,indent=2),encoding='utf8')
     archive=ROOT/'dist'/f'{name}.zip'
     with zipfile.ZipFile(archive,'w',zipfile.ZIP_DEFLATED,compresslevel=6) as z:

@@ -2,11 +2,11 @@
 
 基於 [Akagi 3.8.0](https://github.com/shinkuan/Akagi) 的麻將 AI 與本機裝扮擴充，提供統一遊戲啟動入口、多平台裝扮外掛，以及 Archer API 三麻 / 四麻引擎接入。
 
-[简体中文](README.zh-CN.md) · [English](README.md) · [下載 Windows 版](https://github.com/btlstar/AkagiPlus/releases/tag/v3.8.0-plus.4)
+[简体中文](README.zh-CN.md) · [English](README.md) · [下載 Windows 版](https://github.com/btlstar/AkagiPlus/releases/tag/v3.8.0-plus.5)
 
 ## 下載與使用
 
-下載 [AkagiPlus-3.8.0-plus.4-windows-x64.zip](https://github.com/btlstar/AkagiPlus/releases/download/v3.8.0-plus.4/AkagiPlus-3.8.0-plus.4-windows-x64.zip)，完整解壓後執行 `AkagiPlus.exe`，保留相鄰目錄。需要 Windows x64 與 WebView2；無須另裝 Python 或 Node。
+下載 [AkagiPlus-3.8.0-plus.5-windows-x64.zip](https://github.com/btlstar/AkagiPlus/releases/download/v3.8.0-plus.5/AkagiPlus-3.8.0-plus.5-windows-x64.zip)，完整解壓後執行 `AkagiPlus.exe`，保留相鄰目錄。需要 Windows x64 與 WebView2；無須另裝 Python 或 Node。
 
 1. 在「總覽」選擇平台並設定遊戲路徑。
 2. 在「裝扮」啟用或安裝對應外掛；安裝、更新與還原前請先退出遊戲。
@@ -28,15 +28,15 @@
 
 ## Archer API
 
-內建 Archer API 0.4.4，可分別設定三麻、四麻模型，新對局按人數自動選擇。支援局前連線檢查，以及動作、牌圖與候選權重顯示；候選百分比合計 100%，表示相對權重，並非勝率。
+內建 Archer API 0.4.5，可分別設定三麻、四麻模型，新對局按人數自動選擇。支援局前連線檢查，以及動作、牌圖與候選權重顯示；候選百分比合計 100%，表示相對權重，並非勝率。
 
 在「機器人」開啟 Archer 設定，或執行 `mjai_bot/archer-api/configure.cmd` 開啟獨立設定頁。需要自己的 Archer API 金鑰與 Token 餘額。首次使用若提示環境未安裝，先安裝環境，再啟用四麻、三麻開關。詳見[Archer 設定說明](mjai_bot/archer-api/README.md)。
 
-完整包已包含 Archer；同一[發佈頁](https://github.com/btlstar/AkagiPlus/releases/tag/v3.8.0-plus.4) 也提供獨立外掛 ZIP。
+完整包已包含 Archer；同一[發佈頁](https://github.com/btlstar/AkagiPlus/releases/tag/v3.8.0-plus.5) 也提供獨立外掛 ZIP。
 
 ## 界面預覽
 
-![平台選擇：天月、掌心與其他平台](docs/images/platforms.png)
+![平台選擇：雀魂、天鳳、麻雀一番街、掌心全民麻將、天月麻雀](docs/images/platforms.png)
 ![統一啟動入口與天月本機擷取](docs/images/overview.png)
 
 <details>

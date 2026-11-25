@@ -6,6 +6,7 @@ import type { AppConfig, BotResponse, BotStatus, MjaiEvent, OverlayConfig, ShowM
 export type ArcherReadiness = {
   state: 'checking' | 'ready' | 'error' | 'disabled' | 'in_game'
   message: string
+  code?: string | null
   models: Array<{ players: number; name: string; available: boolean }>
   elapsed_ms: number
 }

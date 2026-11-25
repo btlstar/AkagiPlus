@@ -4,7 +4,7 @@ manifest_version = 1
 name = "archer-api"
 display = "Archer API · 三麻 / 四麻"
 description = "通过 Archer API 获取三麻、四麻建议和候选权重。请先配置密钥和模型。"
-version = "0.4.4"
+version = "0.4.5"
 supported_modes = ["4p", "3p"]
 
 [settings.api_url]

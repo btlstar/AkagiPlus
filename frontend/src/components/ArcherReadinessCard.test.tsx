@@ -1,8 +1,18 @@
-import { fireEvent, render, screen } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import i18n from '@/i18n'
 import { ArcherReadinessCard } from './ArcherReadinessCard'
 
 describe('Archer readiness card', () => {
+  beforeEach(async () => { await i18n.changeLanguage('zh-CN') })
+
+  it('updates an open card from the main window language setting', async () => {
+    render(<ArcherReadinessCard status={{ state: 'error', code: 'invalid_key',
+      message: 'API 密钥无效', elapsed_ms: 0, models: [] }} recheck={vi.fn()} />)
+    window.dispatchEvent(new StorageEvent('storage', { key: 'akagi.lang', newValue: 'ja' }))
+    await waitFor(() => expect(screen.getByRole('status').textContent).toContain('API キーが無効です'))
+    expect(screen.getByRole('button', { name: '再確認' })).toBeTruthy()
+  })
   it('shows model names and a working retry without in-game accounting', () => {
     const recheck = vi.fn()
     render(<ArcherReadinessCard status={{

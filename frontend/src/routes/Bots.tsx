@@ -167,6 +167,7 @@ export function Bots() {
   function botLabel(bot: BotInfo): string {
     if (bot.name === NATIVE_4P) return t('bots.native_4p')
     if (bot.name === NATIVE_3P) return t('bots.native_3p')
+    if (bot.name === 'archer-api') return t('archer.title')
     return bot.manifest?.bot.display ?? bot.name
   }
 
@@ -585,8 +586,8 @@ function BotSettingsDrawer({ name, open, onOpenChange, onEnvChanged }: { name: s
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="flex flex-col gap-4 overflow-y-auto p-4 sm:max-w-md">
         <SheetHeader className="p-0">
-          <SheetTitle>{data?.manifest.bot.display ?? name}</SheetTitle>
-          <SheetDescription>{data?.manifest.bot.description}</SheetDescription>
+          <SheetTitle>{name === 'archer-api' ? t('archer.title') : data?.manifest.bot.display ?? name}</SheetTitle>
+          <SheetDescription>{name === 'archer-api' ? t('archer.description') : data?.manifest.bot.description}</SheetDescription>
         </SheetHeader>
 
         {!data ? (
@@ -597,7 +598,13 @@ function BotSettingsDrawer({ name, open, onOpenChange, onEnvChanged }: { name: s
               <ManifestField
                 key={key}
                 fieldKey={key}
-                spec={spec}
+                spec={name === 'archer-api' ? {
+                  ...spec,
+                  label: t('archer.' + key, { defaultValue: spec.label }),
+                  help: spec.help ? t('archer.' + key + '_help', { defaultValue: spec.help }) : undefined,
+                } : spec}
+                choiceLabel={name === 'archer-api' && key === 'score_mode'
+                  ? choice => t('archer.' + choice, { defaultValue: choice }) : undefined}
                 value={values[key] ?? spec.default}
                 onChange={(v) => setValues({ ...values, [key]: v })}
               />

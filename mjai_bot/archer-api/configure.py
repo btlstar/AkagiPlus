@@ -67,12 +67,13 @@ def readiness(settings, modes=(3, 4)):
     """Free account/model checks; never calls /v1/decide or writes settings."""
     import time
     started = time.perf_counter()
-    result = {"state": "error", "message": "", "models": [], "elapsed_ms": 0}
+    result = {"state": "error", "message": "", "code": "error", "models": [], "elapsed_ms": 0}
     client = None
     try:
         for players in sorted(set(modes), reverse=True):
             name = str(settings.get("model_3p" if players == 3 else "model", "")).strip()
             if not name:
+                result["code"] = f"model_{players}p_missing"
                 result["message"] = ("三麻" if players == 3 else "四麻") + "模型尚未配置"
                 return result
             result["models"].append({"players": players, "name": name[:80], "available": False})
@@ -83,17 +84,20 @@ def readiness(settings, modes=(3, 4)):
             item["available"] = any(m["players"] == item["players"] and m["name"] == item["name"] for m in models)
         unavailable = [item for item in result["models"] if not item["available"]]
         if unavailable:
+            result["code"] = "unavailable"
             result["message"] = "所选模型不可用，请重新选择"
         elif balance == 0:
+            result["code"] = "balance"
             result["message"] = "账户余额不足"
         else:
-            result.update(state="ready", message="连接正常")
+            result.update(state="ready", code="ready", message="连接正常")
     except ArcherError as exc:
         messages = {"configuration": "请先配置 Archer API 密钥和连接地址",
                     "invalid_key": "API 密钥无效，请重新配置",
                     "account_disabled": "Archer 账号暂时不可用",
                     "network": "无法连接 Archer，请检查网络",
                     "rate_limited": "检查过于频繁，请稍后重试"}
+        result["code"] = exc.code if exc.code in messages else "service"
         result["message"] = messages.get(exc.code, "Archer 接口暂时不可用，请稍后重试")
     except Exception:
         result["message"] = "连接检查失败，请检查本机配置"

@@ -44,5 +44,20 @@ if (-not (Test-Path -LiteralPath 'frontend\node_modules\.bin\tauri.cmd')) { thro
 if ($Check) { Write-Output 'AkagiPlus source environment paths OK'; exit 0 }
 New-Item -ItemType Directory -Path '.local' -Force | Out-Null
 # Tauri needs two separators: runner args, then application args.
-& '.\frontend\node_modules\.bin\tauri.cmd' dev -- -- --config .local/config.toml
-exit $LASTEXITCODE
+# Keep the restart reason after the console scrollback has moved on.
+$watchLog = Join-Path (Get-Location) '.local\tauri-dev-restarts.log'
+$previousErrorAction = $ErrorActionPreference
+try {
+    $ErrorActionPreference = 'Continue'
+    & '.\frontend\node_modules\.bin\tauri.cmd' dev -- -- --config .local/config.toml 2>&1 | ForEach-Object {
+        $line = [string]$_
+        if ($line -match 'changed\..*Rebuilding application') {
+            Add-Content -LiteralPath $watchLog -Value ('{0:yyyy-MM-dd HH:mm:ss} {1}' -f (Get-Date), $line) -Encoding UTF8
+        }
+        Write-Host $line
+    }
+    $devExitCode = $LASTEXITCODE
+} finally {
+    $ErrorActionPreference = $previousErrorAction
+}
+exit $devExitCode

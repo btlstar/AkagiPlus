@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
+import i18n from '@/i18n'
 import { Cosmetics } from './Cosmetics'
 import { useConfigStore } from '@/stores/configStore'
 import type { AppConfig } from '@/types'
@@ -91,7 +92,8 @@ const fixture: AppConfig = {
 }
 
 describe('MajsoulMax cosmetics settings', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
+  await i18n.changeLanguage('zh-CN')
     vi.mocked(invoke).mockReset()
     vi.mocked(invoke).mockImplementation(async (command) => {
       if (command === 'get_riichicity_unlock_status') return { phase: 'ready' }

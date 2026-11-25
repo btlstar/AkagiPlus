@@ -1,0 +1,3 @@
+# Archer settings and uv can emit events for the bot directory itself.
+# The Python bot is loaded by AkagiPlus when a new game starts.
+/mjai_bot/archer-api/

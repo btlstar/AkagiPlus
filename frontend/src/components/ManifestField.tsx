@@ -15,7 +15,9 @@ export function ManifestField({
   spec,
   value,
   onChange,
+  choiceLabel,
 }: {
+  choiceLabel?: (choice: string) => string
   fieldKey: string
   spec: FieldSpec
   value: unknown
@@ -24,7 +26,7 @@ export function ManifestField({
   return (
     <div className="grid gap-1.5">
       <Label>{spec.label}</Label>
-      {renderInput(fieldKey, spec, value, onChange)}
+      {renderInput(fieldKey, spec, value, onChange, choiceLabel)}
       {spec.help && <span className="text-xs text-muted-foreground">{spec.help}</span>}
     </div>
   )
@@ -35,6 +37,7 @@ function renderInput(
   spec: FieldSpec,
   value: unknown,
   onChange: (v: unknown) => void,
+  choiceLabel?: (choice: string) => string,
 ) {
   switch (spec.type) {
     case 'bool':
@@ -47,7 +50,7 @@ function renderInput(
           </SelectTrigger>
           <SelectContent>
             {(spec.choices ?? []).map((c) => (
-              <SelectItem key={c} value={c}>
+              <SelectItem key={choiceLabel?.(c) ?? c} value={c}>
                 {c}
               </SelectItem>
             ))}

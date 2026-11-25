@@ -5,6 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "check:translations": "node check-translations.mjs",
+    "prebuild": "npm run check:translations",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "test": "vitest run",

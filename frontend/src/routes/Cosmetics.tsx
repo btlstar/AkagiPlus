@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { AmatsukiStyleCard } from '@/components/AmatsukiStyleCard'
 import { ZhangxinPlusCard } from '@/components/ZhangxinPlusCard'
 import { RiichiCityLocalCard } from '@/components/RiichiCityLocalCard'
@@ -18,11 +19,10 @@ const defaults: MajsoulMaxConfig = {
   enabled: false, python: '.venv/Scripts/python.exe',
   worker: 'plugins/majsoulmax/worker.py', data_dir: '.local/majsoulmax',
 }
-const phases: Record<string, string> = {
-  disabled: '未启用', stopped: '捕获已停止', starting: '正在加载', ready: '已就绪', failed: '已暂停，请检查诊断',
-}
+const phases = ['disabled', 'stopped', 'starting', 'ready', 'failed']
 
 export function Cosmetics() {
+  const { t } = useTranslation()
   const config = useConfigStore((s) => s.config)
   const setConfig = useConfigStore((s) => s.setConfig)
   const [draft, setDraft] = useState<MajsoulMaxConfig>(defaults)
@@ -55,7 +55,7 @@ export function Cosmetics() {
     try {
       await invoke('update_config', { newConfig: next })
       setConfig(next)
-      toast.success('装扮设置已保存', { description: '捕获会重新启动，请重新登录游戏加载装扮。' })
+      toast.success(t('cosmetics.saved'), { description: t('cosmetics.relogin') })
     } catch (e) { setError(String(e)) }
     finally { setSaving(false) }
   }
@@ -63,42 +63,42 @@ export function Cosmetics() {
   return (
     <div className="p-6 max-w-4xl flex flex-col gap-6">
       <header>
-        <h1 className="text-2xl font-semibold">装扮</h1>
-        <p className="text-sm text-muted-foreground mt-2">为各平台提供独立的装扮扩展。</p>
+        <h1 className="text-2xl font-semibold">{t('cosmetics.title')}</h1>
+        <p className="text-sm text-muted-foreground mt-2">{t('cosmetics.intro')}</p>
       </header>
-      {config?.platform.kind === 'Amatsuki' ? <AmatsukiStyleCard /> : config?.platform.kind === 'Zhangxin' ? <ZhangxinPlusCard /> : config?.platform.kind === 'RiichiCity' ? <><RiichiCityLocalCard /><details className="text-sm"><summary className="cursor-pointer text-muted-foreground mb-4">可选：外部 RiichiCityUnlock</summary><RiichiCityUnlockCard /></details></> : <Card>
+      {config?.platform.kind === 'Amatsuki' ? <AmatsukiStyleCard /> : config?.platform.kind === 'Zhangxin' ? <ZhangxinPlusCard /> : config?.platform.kind === 'RiichiCity' ? <><RiichiCityLocalCard /><details className="text-sm"><summary className="cursor-pointer text-muted-foreground mb-4">{t('cosmetics.optional')}</summary><RiichiCityUnlockCard /></details></> : <Card>
         <CardHeader className="flex flex-row items-center justify-between gap-4">
-          <div><CardTitle>雀魂 · MajsoulMax-rs</CardTitle><p className="text-xs text-muted-foreground mt-2">MajsoulMax-rs 0.7.0</p></div>
-          <Switch aria-label="启用 MajsoulMax" checked={draft.enabled} disabled={!supported || saving}
+          <div><CardTitle>{t('platform.plugin_title', { game: t('platform.majsoul'), plugin: 'MajsoulMax-rs' })}</CardTitle><p className="text-xs text-muted-foreground mt-2">MajsoulMax-rs 0.7.0</p></div>
+          <Switch aria-label={t('cosmetics.enable', { plugin: 'MajsoulMax' })} checked={draft.enabled} disabled={!supported || saving}
             onCheckedChange={(enabled) => setDraft({ ...draft, enabled })} />
         </CardHeader>
         <CardContent className="grid gap-5">
-          {!supported && <p className="text-sm text-muted-foreground">请先在设置中选择雀魂平台。</p>}
-          <p className="text-sm text-muted-foreground">启用后，在游戏内选择角色、皮肤与装扮；选择会保存在本机。</p>
-          {config?.capture.mode !== 'mitm' && <p className="text-sm text-amber-500">保存并启用 MajsoulMax 将切换到 MITM 捕获。</p>}
+          {!supported && <p className="text-sm text-muted-foreground">{t('cosmetics.select_majsoul')}</p>}
+          <p className="text-sm text-muted-foreground">{t('cosmetics.majsoul_help')}</p>
+          {config?.capture.mode !== 'mitm' && <p className="text-sm text-amber-500">{t('cosmetics.mitm')}</p>}
           <div className="flex items-center gap-2 text-sm" role="status">
             <span className={`size-2 rounded-full ${status?.phase === 'ready' ? 'bg-emerald-500' : status?.phase === 'failed' ? 'bg-red-500' : 'bg-muted-foreground'}`} />
-            <span>{status ? phases[status.phase] ?? status.phase : '尚未连接程序'}</span>
-            {status?.phase === 'ready' && <span className="text-muted-foreground">已处理 {status.modified} 条装扮消息</span>}
+            <span>{status ? phases.includes(status.phase) ? t('cosmetics.' + status.phase) : status.phase : t('cosmetics.disconnected')}</span>
+            {status?.phase === 'ready' && <span className="text-muted-foreground">{t('cosmetics.processed', { count: status.modified })}</span>}
           </div>
-          <p className="text-xs text-muted-foreground">在「总览」或「对局」页点击「启动游戏」，打开专用游戏浏览器。</p>
+          <p className="text-xs text-muted-foreground">{t('cosmetics.browser')}</p>
           <details className="text-sm">
-            <summary className="cursor-pointer text-muted-foreground hover:text-foreground">插件路径</summary>
+            <summary className="cursor-pointer text-muted-foreground hover:text-foreground">{t('cosmetics.paths')}</summary>
             <div className="grid gap-4 mt-4">
-              {([['python', 'Python'], ['worker', 'MajsoulMax 入口'], ['data_dir', '私人装扮配置目录']] as const).map(([key, label]) => (
+              {([['python', 'Python'], ['worker', t('cosmetics.worker')], ['data_dir', t('cosmetics.data_dir')]] as const).map(([key, label]) => (
                 <div className="grid gap-2" key={key}><Label htmlFor={`majsoulmax-${key}`}>{label}</Label>
                   <Input id={`majsoulmax-${key}`} value={draft[key]} onChange={(e) => setDraft({ ...draft, [key]: e.target.value })} />
                 </div>
               ))}
-              {status?.snapshot && <span className="text-xs text-muted-foreground">资源快照：{status.snapshot}</span>}
+              {status?.snapshot && <span className="text-xs text-muted-foreground">{t('cosmetics.snapshot', { value: status.snapshot })}</span>}
             </div>
           </details>
           {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
           <div className="flex items-center justify-between gap-4">
-            <Button variant="outline" asChild><Link to="/logs">查看诊断</Link></Button>
-            <Button onClick={save} disabled={!supported || saving}>{saving ? '保存中…' : '保存设置'}</Button>
+            <Button variant="outline" asChild><Link to="/logs">{t('cosmetics.diagnostics')}</Link></Button>
+            <Button onClick={save} disabled={!supported || saving}>{saving ? t('common.saving') : t('cosmetics.save_settings')}</Button>
           </div>
-          <p className="text-xs text-muted-foreground">保存会重启捕获，请在对局结束后修改。关闭 MajsoulMax 后重新登录，游戏将恢复原始装扮。</p>
+          <p className="text-xs text-muted-foreground">{t('cosmetics.majsoul_hint')}</p>
         </CardContent>
       </Card>}
     </div>

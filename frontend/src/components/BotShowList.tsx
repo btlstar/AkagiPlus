@@ -1,4 +1,5 @@
 import type { RefObject } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Mahgen } from '@/components/Mahgen'
 import { hexToRgba } from '@/lib/botShow'
 import { mjaiToMahgen } from '@/lib/tileIdx'
@@ -29,6 +30,7 @@ type Props = {
 }
 
 export function BotShowList({ items, containerRef, variant = 'tile', className }: Props) {
+  const { t } = useTranslation()
   const overlay = variant === 'overlay'
 
   return (
@@ -73,7 +75,7 @@ export function BotShowList({ items, containerRef, variant = 'tile', className }
             )}
             <div className="flex min-w-0 flex-1 flex-col">
               {it.label && (
-                <span className="truncate text-sm text-foreground">{it.label}</span>
+                <span className="truncate text-sm text-foreground">{it.label_key ? t('archer_hud.' + it.label_key, { defaultValue: it.label }) : it.label}</span>
               )}
               {it.note && (
                 <span className="truncate text-[10px] text-muted-foreground">{it.note}</span>
@@ -86,7 +88,7 @@ export function BotShowList({ items, containerRef, variant = 'tile', className }
                   weighted ? 'text-lg font-semibold' : overlay ? 'text-sm' : 'text-xs',
                 )}
               >
-                {it.value}
+                {it.value_key ? t('archer_hud.' + it.value_key, { gap: it.value_arg, defaultValue: it.value }) : it.value}
               </span>
             )}
           </li>

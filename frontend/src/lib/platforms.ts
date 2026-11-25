@@ -28,8 +28,6 @@ export type PlatformInfo = {
 }
 
 export const PLATFORMS: PlatformInfo[] = [
-  { kind: 'Amatsuki', labelKey: 'platform.amatsuki', descriptionKey: 'platform.amatsuki_desc', defaultStartUrl: '', supportsChromium: false },
-  { kind: 'Zhangxin', labelKey: 'platform.zhangxin', descriptionKey: 'platform.zhangxin_desc', defaultStartUrl: '', supportsChromium: false },
   {
     kind: 'Majsoul',
     labelKey: 'platform.majsoul',
@@ -52,6 +50,8 @@ export const PLATFORMS: PlatformInfo[] = [
     defaultStartUrl: '',
     supportsChromium: false,
   },
+  { kind: 'Zhangxin', labelKey: 'platform.zhangxin', descriptionKey: 'platform.zhangxin_desc', defaultStartUrl: '', supportsChromium: false },
+  { kind: 'Amatsuki', labelKey: 'platform.amatsuki', descriptionKey: 'platform.amatsuki_desc', defaultStartUrl: '', supportsChromium: false },
 ]
 
 const BY_KIND: Record<PlatformKind, PlatformInfo> = Object.fromEntries(

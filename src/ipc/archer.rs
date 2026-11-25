@@ -19,6 +19,8 @@ pub struct ReadinessModel {
 pub struct ArcherReadiness {
     state: String,
     message: String,
+    #[serde(default)]
+    code: Option<String>,
     models: Vec<ReadinessModel>,
     elapsed_ms: u64,
 }
@@ -28,6 +30,7 @@ impl ArcherReadiness {
         Self {
             state: state.into(),
             message: message.into(),
+            code: None,
             models: vec![],
             elapsed_ms: 0,
         }
@@ -107,7 +110,10 @@ pub async fn get_archer_readiness(
             serde_json::from_slice::<ArcherReadiness>(&output.stdout)
                 .unwrap_or_else(|_| ArcherReadiness::status("error", "连接检查返回异常"))
         }
-        Err(_) => ArcherReadiness::status("error", "连接检查超时，请稍后重试"),
+        Err(_) => ArcherReadiness {
+            code: Some("timeout".into()),
+            ..ArcherReadiness::status("error", "连接检查超时，请稍后重试")
+        },
         _ => ArcherReadiness::status("error", "无法启动 Archer 连接检查，请检查插件文件"),
     };
     *cache = Some(CachedCheck {

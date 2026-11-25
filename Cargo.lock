@@ -19,7 +19,7 @@ dependencies = [
 
 [[package]]
 name = "akagi"
-version = "3.8.0-plus.4"
+version = "3.8.0-plus.5"
 dependencies = [
  "anyhow",
  "async-trait",

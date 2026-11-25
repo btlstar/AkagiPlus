@@ -37,4 +37,13 @@ void i18n
     },
   })
 
+// Tauri's main window and overlay have separate i18next instances.
+window.addEventListener('storage', (event) => {
+  const language = event.newValue
+  if (event.key === 'akagi.lang' && SUPPORTED_LANGS.some((value) => value === language) &&
+      language && language !== i18n.language) {
+    void i18n.changeLanguage(language)
+  }
+})
+
 export default i18n

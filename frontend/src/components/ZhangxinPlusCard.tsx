@@ -32,15 +32,15 @@ export function ZhangxinPlusCard() {
     <CardHeader><CardTitle>{t('platform.plugin_title', { game: t('platform.zhangxin'), plugin: 'ZhangxinPlus' })}</CardTitle></CardHeader>
     <CardContent className="grid gap-4">
       <p className="text-sm text-muted-foreground">{t('platform.zhangxin_cosmetics')}</p>
-      <p className="text-sm" role="status">{busy ? '正在处理…' : error ? '检查失败，请查看下方提示。' : result?.message ?? '尚未检查'}</p>
-      {result?.runtime && <p className="text-xs text-muted-foreground">上次游戏运行：已处理 {result.runtime.reads} 次读取、{result.runtime.writes} 次本地选择；AI 消息 {result.runtime.ai_frames ?? 0} 条。</p>}
-      {result?.runtime?.ai_error && <p role="alert" className="text-sm text-destructive">本地 AI 消息写入失败：{result.runtime.ai_error}</p>}
+      <p className="text-sm" role="status">{busy ? t('cosmetics.working') : error ? t('cosmetics.check_failed') : result ? t('cosmetics.' + result.status, { defaultValue: result.message }) : t('cosmetics.checking')}</p>
+      {result?.runtime && <p className="text-xs text-muted-foreground">{t('cosmetics.last_run', { reads: result.runtime.reads, writes: result.runtime.writes, frames: result.runtime.ai_frames ?? 0 })}</p>}
+      {result?.runtime?.ai_error && <p role="alert" className="text-sm text-destructive">{t('cosmetics.ai_error', { error: result.runtime.ai_error })}</p>}
       <div className="flex flex-wrap gap-2">
-        <Button disabled={busy || running || launching} onClick={() => void act('install')}>安装 / 更新 ZhangxinPlus</Button>
-        <Button variant="outline" disabled={busy || running || launching} onClick={() => void act('restore')}>还原游戏文件</Button>
-        <Button variant="ghost" disabled={busy || launching} onClick={() => void act('status')}>刷新状态</Button>
+        <Button disabled={busy || running || launching} onClick={() => void act('install')}>{t('cosmetics.install')} ZhangxinPlus</Button>
+        <Button variant="outline" disabled={busy || running || launching} onClick={() => void act('restore')}>{t('cosmetics.restore')}</Button>
+        <Button variant="ghost" disabled={busy || launching} onClick={() => void act('status')}>{t('cosmetics.refresh')}</Button>
       </div>
-      {(running || launching) && <p className="text-xs text-muted-foreground">请先退出掌心，再安装或还原插件。</p>}
+      {(running || launching) && <p className="text-xs text-muted-foreground">{t('cosmetics.quit', { game: t('platform.zhangxin') })}</p>}
       {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
       <p className="text-xs text-muted-foreground">{t('platform.zhangxin_install_hint')}</p>
       <p className="text-xs text-muted-foreground">{t('platform.zhangxin_limits')}</p>

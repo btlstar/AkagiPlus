@@ -29,6 +29,9 @@ export type BotResponse = MjaiEvent & { meta?: Record<string, unknown> }
 export type ShowItem = {
   /** Primary text on the row. */
   label?: string
+  label_key?: string
+  value_key?: string
+  value_arg?: string
   /** mjai tile strings; converted to mahgen via `mjaiToMahgen`. */
   pais?: string[]
   /** Raw mahgen DSL string. Wins over `pais` if both are set. */

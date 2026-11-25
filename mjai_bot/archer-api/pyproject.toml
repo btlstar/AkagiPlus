@@ -1,6 +1,6 @@
 [project]
 name = "akagiplus-archer-api"
-version = "0.4.4"
+version = "0.4.5"
 description = "Archer public API adapter for Akagi mjai bots"
 requires-python = ">=3.12"
 dependencies = []

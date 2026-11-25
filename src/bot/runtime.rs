@@ -62,7 +62,8 @@ impl PythonRuntime {
     ///    secondary fallback so `cargo run` and any future Tauri-bundled
     ///    install (`/usr/lib/akagi/`, `.app/Contents/Resources/`) keep
     ///    working.
-    /// 3. **System PATH**: `python3` and `uv` resolved via the `which` crate.
+    /// 3. **Source tree (debug builds)**: the checkout’s `runtime/` directory.
+    /// 4. **System PATH**: `python3` and `uv` resolved via the `which` crate.
     ///
     /// Pass `None` for `resource_dir` outside Tauri (tests, CLI tools).
     pub fn locate(resource_dir: Option<&Path>) -> Result<Self> {
@@ -73,6 +74,10 @@ impl PythonRuntime {
             if let Some(rt) = try_bundled(rd) {
                 return Ok(rt);
             }
+        }
+        #[cfg(debug_assertions)]
+        if let Some(rt) = try_bundled(Path::new(env!("CARGO_MANIFEST_DIR"))) {
+            return Ok(rt);
         }
         try_system().context("no bundled runtime found and neither `python3` nor `uv` is on PATH")
     }
@@ -153,6 +158,8 @@ impl PythonRuntime {
                 .with_context(|| format!("create {}", parent.display()))?;
         }
 
+        // uv resolves a relative environment path from the project directory.
+        let venv = std::path::absolute(venv).context("resolve bot environment path")?;
         let mut sync_cmd = Command::new(&self.uv);
         sync_cmd
             .arg("sync")
@@ -167,6 +174,13 @@ impl PythonRuntime {
             .with_context(|| format!("spawn `uv` at {}", self.uv.display()))?;
         if !status.success() {
             bail!("uv sync failed in {} ({status})", bot_dir.display());
+        }
+
+        if !venv_python_alive(&venv) || !venv_home_exists(&venv) {
+            bail!(
+                "uv reported success but no usable environment was created at {}",
+                venv.display()
+            );
         }
 
         // `uv sync` creates (or refreshes) `uv.lock`, so the `current`

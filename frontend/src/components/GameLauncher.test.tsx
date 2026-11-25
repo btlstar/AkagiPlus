@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import i18n from '@/i18n'
 import { GameLauncher } from './GameLauncher'
 import { useConfigStore } from '@/stores/configStore'
 import { useLauncherStore } from '@/stores/launcherStore'
@@ -8,9 +9,10 @@ import { invoke } from '@/lib/tauri'
 import type { AppConfig, GameStateSnapshot } from '@/types'
 vi.mock('@/lib/tauri', () => ({ invoke: vi.fn() }))
 vi.mock('@tauri-apps/plugin-dialog', () => ({ open: vi.fn() }))
-vi.mock('react-i18next', () => ({ useTranslation: () => ({ t: (key: string) => key }) }))
+
 const config = { platform: { kind: 'Majsoul' }, proxy: { enabled: true }, capture: { mode: 'mitm', chromium: { start_url: 'https://game.maj-soul.com/1/' } } } as AppConfig
-beforeEach(() => {
+beforeEach(async () => {
+  await i18n.changeLanguage('zh-CN')
   vi.clearAllMocks()
   useConfigStore.setState({ config })
   useGameStore.setState({ game: null })
@@ -28,6 +30,13 @@ describe('GUI game launch', () => {
     expect(vi.mocked(invoke).mock.calls.filter(([cmd]) => cmd === 'launch_game')).toHaveLength(1)
     finish({ running: true, client_path: '' })
     await waitFor(() => expect(screen.getAllByRole('button', { name: '返回游戏' })).toHaveLength(2))
+  })
+  it('updates both launch buttons when the language changes', async () => {
+    render(<><GameLauncher /><GameLauncher compact /></>)
+    for (const [lang, label] of [['en', 'Launch game'], ['ja', 'ゲームを起動'], ['zh-TW', '啟動遊戲']]) {
+      await i18n.changeLanguage(lang)
+      await waitFor(() => expect(screen.getAllByRole('button', { name: label })).toHaveLength(2))
+    }
   })
   it('disables platform changes during a match', () => {
     useGameStore.setState({ game: { is_done: false } as GameStateSnapshot })
