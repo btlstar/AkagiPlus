@@ -5,7 +5,7 @@ AkagiPlus @VERSION@ — Windows x64
 在「机器人」配置 AI；新对局开局前连接，建议显示在「对局」或悬浮窗。
 
 Archer：在「机器人」打开 Archer 插件配置，填写自己的密钥并分别选择三麻、四麻模型。
-也可运行 mjai_bot/archer-api/configure.cmd 打开独立配置页；API Token 由 Archer 另外计费。
+在「机器人」页的 Archer API 卡片获取模型并检查连接。API Token 由 Archer 另外计费。
 若机器人列表提示环境未安装，先点击安装环境。为三麻、四麻同时选择 Archer 后按新对局人数自动切换；候选百分比表示相对权重，不是胜率。
 局前连接检测不调用付费推理；局中不显示 Token 用量。
 雀魂：在「装扮」启用 MajsoulMax-rs，使用 MITM 与专用浏览器。
@@ -34,6 +34,6 @@ AmatsukiStyle：https://github.com/btlstar/AmatsukiStyle
 使用用户目录配置时保留 %APPDATA%/akagiplus。不要分享个人密钥或证书。
 保留用户目录 akagiplus/riichicity-local 与 akagiplus/zhangxinplus 中的原始恢复备份。
 天月本地装扮选择位于 %LOCALAPPDATA%/AmatsukiStyle/profiles。
-版本：v@VERSION@，基于 Akagi 3.8.0。
+版本：v@VERSION@，基于 Akagi 3.9.0。
 下载：https://github.com/btlstar/AkagiPlus/releases/tag/v@VERSION@
 许可见 LICENSE.txt、NOTICE、LICENSES；MajsoulMax 源码及 GPL 许可随包提供。

@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 use std::sync::OnceLock;
 use std::time::{Duration, Instant};
 use tauri::State;
+use tokio::io::AsyncWriteExt;
 use tokio::process::Command;
 use tokio::sync::Mutex;
 
@@ -122,4 +123,51 @@ pub async fn get_archer_readiness(
         result: result.clone(),
     });
     Ok(result)
+}
+
+#[tauri::command]
+pub async fn diagnose_archer(
+    action: String,
+    values: serde_json::Value,
+    state: State<'_, AppState>,
+) -> Result<serde_json::Value, String> {
+    if !matches!(action.as_str(), "models" | "health" | "test3" | "test4") {
+        return Err("invalid_action".into());
+    }
+    let data = serde_json::to_vec(&values).map_err(|_| "configuration")?;
+    if !values.is_object() || data.len() > 16_384 {
+        return Err("configuration".into());
+    }
+    let runtime = state.runtime.as_ref().ok_or("runtime_unavailable")?;
+    let dir = {
+        let config = state.config.read().await;
+        crate::util::resolve_dir(std::path::Path::new(&config.bot.dir)).join("archer-api")
+    };
+    let mut command = Command::new(runtime.python());
+    command
+        .current_dir(dir)
+        .args(["configure.py", "--diagnose-draft", action.as_str()])
+        .env_remove("PYTHONHOME")
+        .env_remove("PYTHONPATH")
+        .env_remove("AKAGI_BOT_CONFIG")
+        .stdin(std::process::Stdio::piped())
+        .stdout(std::process::Stdio::piped())
+        .stderr(std::process::Stdio::null())
+        .kill_on_drop(true);
+    #[cfg(target_os = "windows")]
+    command.creation_flags(0x08000000);
+    let mut child = command.spawn().map_err(|_| "runtime_unavailable")?;
+    let mut stdin = child.stdin.take().ok_or("runtime_unavailable")?;
+    let output = tokio::time::timeout(Duration::from_secs(35), async move {
+        stdin.write_all(&data).await?;
+        drop(stdin);
+        child.wait_with_output().await
+    })
+    .await
+    .map_err(|_| "timeout")?
+    .map_err(|_| "runtime_unavailable")?;
+    if !output.status.success() || output.stdout.len() > 65_536 {
+        return Err("invalid_response".into());
+    }
+    serde_json::from_slice(&output.stdout).map_err(|_| "invalid_response".into())
 }

@@ -120,7 +120,7 @@ class ArcherClient:
         if body is not None and len(body)>MAX_BODY:
             raise ArcherError("too_large","本小局事件超过 Archer 32 KB 限制，已停止本次请求。")
         headers={"Authorization":"Bearer "+self.key,"Accept":"application/json","Content-Type":"application/json",
-                 "User-Agent":"AkagiPlus-Archer/0.4.5"}
+                 "User-Agent":"AkagiPlus-Archer/0.4.6"}
         timeout=self.timeout if payload is not None else 10.0
         started=time.perf_counter()
         reused=self.connection is not None

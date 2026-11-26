@@ -4,7 +4,7 @@ manifest_version = 1
 name = "archer-api"
 display = "Archer API · 三麻 / 四麻"
 description = "通过 Archer API 获取三麻、四麻建议和候选权重。请先配置密钥和模型。"
-version = "0.4.5"
+version = "0.4.6"
 supported_modes = ["4p", "3p"]
 
 [settings.api_url]
@@ -24,7 +24,7 @@ help = "使用 Archer 账号信息中生成的开放接口密钥，与 MJOT 密�
 type = "string"
 label = "四麻模型名称"
 default = ""
-help = "双击插件目录的 configure.cmd，可查询三麻、四麻模型和余额。填写完整模型名。"
+help = "在机器人页的 Archer API 卡片获取模型，填入完整模型名。"
 
 [settings.timeout_ms]
 type = "int"

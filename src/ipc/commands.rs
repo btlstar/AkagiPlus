@@ -408,6 +408,74 @@ pub async fn set_active_bot(
     Ok(())
 }
 
+/// Archer's master switch updates both selections together. A mode supplied by
+/// the bot list updates only that selection.
+#[tauri::command]
+pub async fn set_archer_active(
+    mode: Option<String>,
+    enabled: bool,
+    app: AppHandle,
+    state: State<'_, AppState>,
+) -> CmdResult<AppConfig> {
+    let (four, three) = match mode.as_deref() {
+        None => (true, true),
+        Some("4p") => (true, false),
+        Some("3p") => (false, true),
+        _ => return Err("invalid_action".into()),
+    };
+    let mut config = state.config.write().await;
+    if enabled {
+        let dir = resolve_dir(Path::new(&config.bot.dir));
+        let registry = BotRegistry::scan(&dir).map_err(|_| "setup_required")?;
+        let entry = registry.find("archer-api").ok_or("setup_required")?;
+        let manifest = entry.manifest.as_ref().ok_or("setup_required")?;
+        let values = manifest::load_values(&entry.dir, manifest).map_err(|_| "setup_required")?;
+        let present = |key: &str| {
+            values
+                .get(key)
+                .and_then(serde_json::Value::as_str)
+                .is_some_and(|value| !value.trim().is_empty())
+        };
+        if !present("api_key") || (four && !present("model")) || (three && !present("model_3p")) {
+            return Err("setup_required".into());
+        }
+        if !runtime::is_synced(&entry.dir) {
+            return Err("environment_required".into());
+        }
+    }
+
+    let mut next = config.clone();
+    apply_archer_selection(&mut next.bot, four, three, enabled);
+    persist_config(&next, &state.config_path).map_err(|e| e.to_string())?;
+    *config = next.clone();
+    drop(config);
+    let _ = app.emit("bot-config-changed", ());
+    Ok(next)
+}
+
+fn apply_archer_selection(
+    bot: &mut crate::config::BotConfig,
+    four: bool,
+    three: bool,
+    enabled: bool,
+) {
+    for (selected, slot) in [(four, &mut bot.active_4p), (three, &mut bot.active_3p)] {
+        if selected {
+            if enabled {
+                "archer-api".clone_into(slot);
+            } else if slot == "archer-api" {
+                slot.clear();
+            }
+        }
+    }
+    if enabled
+        && !crate::bot::native::is_native(&bot.active_4p)
+        && !crate::bot::native::is_native(&bot.active_3p)
+    {
+        bot.api.enabled = false;
+    }
+}
+
 /// Install a bot by downloading the latest release zip from a GitHub
 /// repository. Refuses to overwrite an existing `mjai_bot/<name>/` —
 /// the user must remove it first via the file browser. The installer
@@ -869,12 +937,15 @@ pub async fn list_log_sessions(state: State<'_, AppState>) -> CmdResult<Vec<LogS
             // for the UI it's enough to be a rough indicator, and a
             // recursive walk on a session with thousands of game files
             // would block the picker.
+            let sensitive = path.join(crate::logger::SENSITIVE_DIR);
             let mut size_bytes: u64 = 0;
-            if let Ok(rd2) = std::fs::read_dir(&path) {
-                for f in rd2.flatten() {
-                    if let Ok(m) = f.metadata() {
-                        if m.is_file() {
-                            size_bytes += m.len();
+            for dir in [&path, &sensitive] {
+                if let Ok(rd2) = std::fs::read_dir(dir) {
+                    for f in rd2.flatten() {
+                        if let Ok(m) = f.metadata() {
+                            if m.is_file() {
+                                size_bytes += m.len();
+                            }
                         }
                     }
                 }
@@ -893,6 +964,7 @@ pub async fn list_log_sessions(state: State<'_, AppState>) -> CmdResult<Vec<LogS
                 size_bytes,
                 mtime_ms,
                 is_active,
+                legacy_layout: !sensitive.is_dir(),
             });
         }
         out.sort_by(|a, b| b.name.cmp(&a.name));
@@ -999,6 +1071,42 @@ pub async fn read_log_session(
     .map_err(|e| format!("read_log_session join: {e}"))?
 }
 
+/// The full inspector file under `sensitive/`, or the session's only one if
+/// it was recorded before the split. The Inspector tab is local, so it shows
+/// everything.
+fn inspector_path(session_dir: &Path) -> PathBuf {
+    let full = session_dir
+        .join(crate::logger::SENSITIVE_DIR)
+        .join("inspector.jsonl");
+    if full.is_file() {
+        full
+    } else {
+        session_dir.join("inspector.jsonl")
+    }
+}
+
+/// Bundle log sessions into a zip for a bug report. See `logger::pack`.
+#[tauri::command]
+pub async fn pack_logs(
+    req: crate::schema::PackLogsRequest,
+    state: State<'_, AppState>,
+) -> CmdResult<crate::logger::pack::PackSummary> {
+    if let Some(bad) = req.sessions.iter().find(|s| !is_session_name(s)) {
+        return Err(format!("invalid session name {bad:?}"));
+    }
+    let root = state.log_session.root().to_path_buf();
+    let opts = crate::logger::pack::PackOptions {
+        include_sensitive: req.include_sensitive,
+        password: req.password,
+    };
+    tokio::task::spawn_blocking(move || {
+        crate::logger::pack::pack(&root, &req.sessions, &opts, &req.dest)
+    })
+    .await
+    .map_err(|e| format!("pack_logs join: {e}"))?
+    .map_err(|e| format!("{e:#}"))
+}
+
 /// Read filtered, paginated entries from a session's `inspector.jsonl`.
 /// Same line-oriented, fault-tolerant reader as `read_log_session` —
 /// malformed lines bumped under `skipped_malformed`, `limit` capped at
@@ -1015,7 +1123,7 @@ pub async fn read_inspector(
     let root = state.log_session.root().to_path_buf();
 
     tokio::task::spawn_blocking(move || -> Result<ReadInspectorResponse, String> {
-        let path = root.join(&req.session).join("inspector.jsonl");
+        let path = inspector_path(&root.join(&req.session));
         let file = match std::fs::File::open(&path) {
             Ok(f) => f,
             Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
@@ -1131,6 +1239,7 @@ fn inspector_matches(
                 let mut buf = match raw {
                     crate::schema::FrameRaw::Text(t) => t.to_lowercase(),
                     crate::schema::FrameRaw::Binary(b) => b.to_lowercase(),
+                    crate::schema::FrameRaw::Withheld => String::new(),
                 };
                 if let Some(p) = parsed {
                     buf.push(' ');
@@ -1793,6 +1902,7 @@ macro_rules! ipc_handlers {
         ::tauri::generate_handler![
             $crate::ipc::commands::get_config,
             $crate::ipc::archer::get_archer_readiness,
+            $crate::ipc::archer::diagnose_archer,
             $crate::ipc::game_launcher::launch_game,
             $crate::ipc::game_launcher::get_game_launch_status,
             $crate::ipc::game_launcher::riichicity_local,
@@ -1803,6 +1913,7 @@ macro_rules! ipc_handlers {
             $crate::ipc::commands::set_overlay_enabled,
             $crate::ipc::commands::list_bots,
             $crate::ipc::commands::set_active_bot,
+            $crate::ipc::commands::set_archer_active,
             $crate::ipc::commands::get_bot_settings,
             $crate::ipc::commands::update_bot_settings,
             $crate::ipc::commands::install_bot_from_github,
@@ -1828,6 +1939,7 @@ macro_rules! ipc_handlers {
             $crate::ipc::commands::read_log_session,
             $crate::ipc::commands::subscribe_log_events,
             $crate::ipc::commands::read_inspector,
+            $crate::ipc::commands::pack_logs,
             $crate::ipc::commands::subscribe_inspector,
             $crate::ipc::commands::get_analysis,
             $crate::ipc::commands::get_game_snapshot,
@@ -1881,6 +1993,34 @@ mod tests {
                 "{url} must be refused"
             );
         }
+    }
+
+    #[test]
+    fn archer_master_and_individual_selections_share_the_same_slots() {
+        let mut bot = crate::config::BotConfig::default();
+        bot.api.enabled = true;
+        apply_archer_selection(&mut bot, true, true, true);
+        assert_eq!(bot.active_4p, "archer-api");
+        assert_eq!(bot.active_3p, "archer-api");
+        assert!(!bot.api.enabled);
+        apply_archer_selection(&mut bot, true, false, false);
+        assert!(bot.active_4p.is_empty());
+        assert_eq!(bot.active_3p, "archer-api");
+        apply_archer_selection(&mut bot, false, true, false);
+        assert!(bot.active_3p.is_empty());
+    }
+
+    #[test]
+    fn archer_does_not_disable_the_other_slot_or_its_mjot() {
+        let mut bot = crate::config::BotConfig::default();
+        let native_three = bot.active_3p.clone();
+        bot.api.enabled = true;
+        apply_archer_selection(&mut bot, true, false, true);
+        assert!(bot.api.enabled);
+        apply_archer_selection(&mut bot, true, true, false);
+        assert_eq!(bot.active_3p, native_three);
+        assert!(bot.api.enabled);
+        assert!(bot.active_4p.is_empty());
     }
 
     #[test]

@@ -65,7 +65,6 @@
     "data_dir": "Personal cosmetics directory",
     "snapshot": "Resource snapshot: {{value}}",
     "save_settings": "Save settings",
-    "diagnostics": "View diagnostics",
     "majsoul_hint": "Saving restarts capture. Make changes after a match. Disable MajsoulMax and sign in again to restore the original cosmetics.",
     "saved": "Cosmetics settings saved",
     "relogin": "Capture will restart. Sign in to the game again to load cosmetics.",
@@ -85,6 +84,7 @@
     "quit": "Exit {{game}} before installing or restoring the plugin.",
     "installed": "Installed",
     "not_installed": "Not installed",
+    "update_available": "A local cosmetics patch update is available",
     "restored": "Game files restored",
     "unsupported": "This game version is unsupported",
     "riichi_help": "Install the patch to choose characters, outfits, avatars and presets in game.",
@@ -103,13 +103,42 @@
   },
   "archer": {
     "title": "Archer API · Three / Four Players",
-    "description": "Get three- and four-player advice and candidate weights through the Archer API. Set your key and models first.",
+    "description": "Use Archer cloud models for three- and four-player advice. Fetch models, check connectivity and balance, and test the selected model.",
+    "settings_apply": "Saved settings take effect in the next match. Change each mode separately in the list below.",
+    "enable": "Enable Archer API",
+    "enable_hint": "Enables three- and four-player modes together",
+    "inactive": "Disabled",
+    "active_both": "Three and four players enabled",
+    "active_four": "Four players only",
+    "active_three": "Three players only",
+    "activation_pending": "Setup pending",
+    "setup_hint": "Enter your key and the model for each selected mode, then save and enable.",
+    "install_first": "Install the runtime environment first.",
+    "save_enable": "Save and enable",
+    "cancel_activation": "Cancel activation",
+    "advanced_settings": "Advanced settings",
+    "diagnostics": "Diagnostics",
+    "settings_saved": "Settings saved.",
     "api_url": "API base URL",
     "api_url_help": "Enter the server's base URL without /v1/decide.",
     "api_key": "Archer API key",
     "api_key_help": "Use the API key generated in your Archer account.",
     "model": "Four-player model name",
-    "model_help": "Use configure.cmd to look up models and balance. Enter the full model name.",
+    "model_help": "Fetch models to choose the full model name.",
+    "fetch_models": "Fetch models",
+    "health_check": "Health check",
+    "test_four": "Test four-player",
+    "test_three": "Test three-player",
+    "test_confirm": "Run one paid inference request using the selected model?",
+    "test_run": "Run paid test",
+    "diagnostic_running": "Checking Archer…",
+    "diagnostic_failed": "Archer diagnostic failed. Check the settings and connection.",
+    "diagnostic_timeout": "Archer diagnostic timed out.",
+    "model_count": "Available models: {{count}}",
+    "balance_status": "Connected · Balance: {{balance}} Token",
+    "model_valid": "Available",
+    "model_unavailable": "Unselected or unavailable",
+    "test_passed": "Inference test passed · {{action}}",
     "model_3p": "Three-player model name",
     "model_3p_help": "New matches use the model for their player count.",
     "timeout_ms": "Request timeout (ms)",
@@ -341,7 +370,30 @@
     "detail_target": "Target",
     "detail_location": "Location",
     "detail_message": "Message",
-    "detail_fields": "Fields"
+    "detail_fields": "Fields",
+    "pack": {
+      "button": "Pack logs",
+      "title": "Pack logs",
+      "description": "Bundle log runs into one zip to attach to a bug report.",
+      "all": "All runs ({{count}})",
+      "choose": "Choose runs",
+      "legacy": "older format",
+      "include_full": "Include full information",
+      "full_warning": "Full information is every captured WebSocket frame, which can include login tokens and other account credentials. Only give it to the developer privately.",
+      "password": "Password (recommended)",
+      "toggle_password": "Show or hide the password",
+      "password_hint": "The full information goes into sensitive.zip inside the pack, encrypted with this password; everything else extracts without one. The developer will ask you for the password privately if they need it.",
+      "no_password": "Without a password, the full information goes into the zip unencrypted.",
+      "legacy_note": "Older runs chosen: {{count}}. They were recorded before full information was kept separately, so they only go into the zip when full information is included.",
+      "save_title": "Save log pack",
+      "submit": "Pack…",
+      "packing": "Packing…",
+      "done": "Logs packed",
+      "done_withheld": "Full information left out.",
+      "done_encrypted": "Full information is in sensitive.zip, encrypted with your password.",
+      "done_plain": "Full information included unencrypted.",
+      "failed": "Could not pack logs"
+    }
   },
   "inspector": {
     "kind": "Show",
@@ -384,7 +436,8 @@
     "detail_url": "Full URL",
     "invalid_base64": "(invalid base64)",
     "bytes_truncated": "… {{count}} more bytes truncated",
-    "binary": "(binary)"
+    "binary": "(binary)",
+    "withheld": "Content left out of the shareable log."
   },
   "sidebar": {
     "collapse": "Collapse sidebar",
@@ -606,7 +659,8 @@
       "min_delay": "Minimum delay (ms)",
       "min_delay_hint": "Safety floor for every action: Mahjong Soul needs time to render the UI, and a click issued too early is silently lost. Each decision draws its own value; in Lua mode it is handed to delay.lua, which applies it (the default script does), in legacy mode Akagi applies it.",
       "min_button_delay": "Minimum button delay (ms)",
-      "min_button_delay_hint": "Higher floor for chi/pon/kan/ron/skip/riichi buttons — they appear only after the discard animation plus their own pop-in, later than hand tiles. Raise this if buttons are still missing clicks."
+      "min_button_delay_hint": "Higher floor for chi/pon/kan/ron/skip/riichi buttons — they appear only after the discard animation plus their own pop-in, later than hand tiles. Raise this if buttons are still missing clicks.",
+      "unsupported_platform": "This platform has no autoplay yet; Akagi only shows recommendations."
     },
     "overlay": "Suggestion overlay",
     "overlay_enabled": "Show overlay window",
@@ -965,7 +1019,9 @@
     "reconnect": "Reconnect",
     "zhangxin_cosmetics": "Choose characters, outfits, tables, tiles, riichi sticks, effects, emotes, music, titles, avatar frames and cosmetic sets in game. Choices are saved locally for each account.",
     "zhangxin_install_hint": "Finish official updates and exit the game before installing. Original files are backed up; installation stops for unknown resource versions. Restore game files to disable the plugin.",
-    "zhangxin_limits": "No Proxifier required. AI advice supports ordinary four-player and three-player riichi friend games. Avatars and voices are not fully adapted yet."
+    "zhangxin_limits": "No Proxifier required. AI advice supports ordinary 4- and 3-player riichi friend games. On resource version 92318, awakening emotes and voices can be previewed in the character profile.",
+    "holo_mahjong": "HoloMahjong",
+    "holo_mahjong_desc": "Native client — MITM only · yonma + sanma"
   },
   "updates": {
     "toast": {
@@ -1031,6 +1087,13 @@
       "settings_button": "Announcements"
     },
     "entries": {
+      "plus_3_9_0_6": {
+        "title": "AkagiPlus 3.9.0 · Plus 6",
+        "holomahjong_title": "HoloMahjong support",
+        "holomahjong_desc": "Recommendations for 4- and 3-player games, including after a reconnect. Route the game to AkagiPlus as an HTTP proxy, e.g. with Proxifier.",
+        "pack_logs_title": "Pack logs",
+        "pack_logs_desc": "Pack your logs for a bug report in one click on the Logs page. The part with account data is added only if you choose, encrypted with your password."
+      },
       "plus_3_8_0_2": {
         "title": "AkagiPlus 3.8.0 · Plus 2",
         "zhangxin_title": "Zhangxin AI",

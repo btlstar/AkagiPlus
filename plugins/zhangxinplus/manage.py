@@ -1,7 +1,7 @@
 """Install/status/restore a verified Zhangxin patch. Never kills a game process."""
 import argparse, json, os, subprocess, tempfile
 from pathlib import Path
-from build import BASELINE, digest, build, resource_version
+from build import BASELINE, LEGACY_BASELINE, bundle_names, digest, build, resource_version
 
 def atomic(path,data):
     path.parent.mkdir(parents=True,exist_ok=True)
@@ -20,10 +20,13 @@ def paths(game):
     root=game/'zhangxinmj_Data'
     hot=root/'_Data/Mahjong'
     if not (hot/'version_num.txt').is_file(): raise ValueError('请先启动掌心，完成官方资源更新后退出游戏。')
-    resource_version(hot)
-    result={f'_Data/Mahjong/{name}':hot/name for name in BASELINE}
+    version=resource_version(hot)
+    result={f'_Data/Mahjong/{name}':hot/name for name in bundle_names(version, BASELINE)}
     if not all(p.is_file() for p in result.values()): raise ValueError('官方资源尚未下载完整，请先正常启动并更新掌心。')
     return result
+
+def recoverable_hashes(record):
+    return {record['original_sha256'], record['patched_sha256'], *record.get('prior_sha256', [])}
 
 def validate_journal(game,journal):
     r=json.loads(journal.read_text('utf-8'))
@@ -39,33 +42,40 @@ def validate_journal(game,journal):
         if root.resolve() not in target.parents: raise ValueError('Recovery target escaped game folder')
         original=Path(item['backup']).read_bytes()
         if digest(original)!=BASELINE[Path(rel).name] or digest(original)!=item['original_sha256']: raise ValueError('Original backup checksum mismatch')
-        if digest(target.read_bytes()) not in (item['original_sha256'],item['patched_sha256']): raise ValueError('Game updated or changed; refusing to overwrite')
-    if len(seen)!=len(BASELINE): raise ValueError('Incomplete recovery record')
+        if digest(target.read_bytes()) not in recoverable_hashes(item): raise ValueError('Game updated or changed; refusing to overwrite')
+    legacy = {f'_Data/Mahjong/{name}' for name in LEGACY_BASELINE}
+    if seen != allowed and seen != legacy: raise ValueError('Incomplete recovery record')
     return r
 
 def install(game,staged,journal,guard=closed):
     guard();game=game.resolve();journal=journal.resolve()
     if journal==game or game in journal.parents: raise ValueError('Recovery must be stored outside game folder')
     m=json.loads((staged/'manifest.json').read_text('utf-8'))
-    if m.get('schema')!=1 or {b['name'] for b in m['bundles']}!=set(BASELINE) or len(m['bundles'])!=len(BASELINE): raise ValueError('Incomplete staging manifest')
+    targets=paths(game)
+    expected={p.name for p in targets.values()}
+    if m.get('schema')!=1 or {b['name'] for b in m['bundles']}!=expected or len(m['bundles'])!=len(expected): raise ValueError('Incomplete staging manifest')
     previous=validate_journal(game,journal) if journal.is_file() else None
     previous_files={x['relative']:x for x in previous['files']} if previous else {}
     records=[];plan=[]
-    for rel,target in paths(game).items():
+    for rel,target in targets.items():
         name=target.name;record=next(x for x in m['bundles'] if x['name']==name)
         if record['original_sha256']!=BASELINE[name]: raise ValueError('Unreviewed original')
         patched=(staged/name).read_bytes()
         if digest(patched)!=record['patched_sha256']: raise ValueError('Staged patch checksum mismatch')
         current=target.read_bytes();original=current
-        if digest(current)!=BASELINE[name]:
+        current_hash=digest(current)
+        if current_hash!=BASELINE[name]:
             old=previous_files.get(rel)
-            if not old or digest(current)!=old['patched_sha256']: raise ValueError('Unreviewed active client bundle')
+            if not old or current_hash not in recoverable_hashes(old): raise ValueError('Unreviewed active client bundle')
             original=Path(old['backup']).read_bytes()
         backup=journal.parent/'originals'/BASELINE[name]/name
         if backup.exists():
             if digest(backup.read_bytes())!=BASELINE[name]: raise ValueError('Backup checksum mismatch')
         else: atomic(backup,original)
-        records.append(dict(relative=rel,backup=str(backup),original_sha256=BASELINE[name],patched_sha256=digest(patched)))
+        record=dict(relative=rel,backup=str(backup),original_sha256=BASELINE[name],patched_sha256=digest(patched))
+        if current_hash not in recoverable_hashes(record):
+            record['prior_sha256']=[current_hash]
+        records.append(record)
         plan.append((target,current,patched))
     r=dict(schema=1,game=str(game),phase='prepared',payload_sha256=m.get('payload_sha256'),files=records)
     atomic(journal,json.dumps(r,indent=2).encode())
@@ -80,7 +90,7 @@ def restore(game,journal,guard=closed):
     guard();r=validate_journal(game,journal)
     for item in r['files']:
         guard();target=game.resolve()/'zhangxinmj_Data'/item['relative']
-        if digest(target.read_bytes()) not in (item['original_sha256'],item['patched_sha256']): raise ValueError('Game changed during restore')
+        if digest(target.read_bytes()) not in recoverable_hashes(item): raise ValueError('Game changed during restore')
         atomic(target,Path(item['backup']).read_bytes())
     r['phase']='restored';atomic(journal,json.dumps(r,indent=2).encode());return r
 
@@ -94,7 +104,7 @@ def prepare_install(game,staged,journal):
         raw=target.read_bytes();name=target.name
         if digest(raw)!=BASELINE[name]:
             entry=old.get(rel)
-            if not entry or digest(raw)!=entry['patched_sha256']: raise ValueError('游戏资源已变化，不能覆盖未知文件。')
+            if not entry or digest(raw) not in recoverable_hashes(entry): raise ValueError('游戏资源已变化，不能覆盖未知文件。')
             raw=Path(entry['backup']).read_bytes()
         patched,changed=build(raw,name,payload)
         atomic(staged/name,patched)
@@ -119,7 +129,7 @@ def status(game,journal):
     if heartbeat.is_file():
         try:
             value=json.loads(heartbeat.read_text('utf-8-sig'))
-            if value.get('plugin')=='ZhangxinPlus' and value.get('version')=='0.1.6':
+            if value.get('plugin')=='ZhangxinPlus' and value.get('version')=='0.1.7':
                 result['message']+=' · 游戏曾加载';result['runtime']={k:value.get(k) for k in ('reads','writes','last_route','ai_frames','ai_error','last_error','scheme_id_type')}
         except (ValueError,OSError):pass
     return result

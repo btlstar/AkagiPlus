@@ -4,7 +4,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { invoke } from '@/lib/tauri'
 import { useLauncherStore } from '@/stores/launcherStore'
-type Result = { status: string; message: string }
+type Result = { status: string; message: string; available_version?: number }
 export function RiichiCityLocalCard() {
   const { t } = useTranslation()
   const [status, setStatus] = useState<Result | null>(null)
@@ -34,7 +34,7 @@ export function RiichiCityLocalCard() {
     <CardHeader><CardTitle>{t('platform.plugin_title', { game: t('platform.riichi_city'), plugin: 'RiichiCityStyle' })}</CardTitle></CardHeader>
     <CardContent className="grid gap-4">
       <p className="text-sm text-muted-foreground">{t('cosmetics.riichi_help')}</p>
-      <p className="text-sm" role="status">{busy ? t('cosmetics.working') : status ? t('cosmetics.' + status.status, { defaultValue: status.message }) : t('cosmetics.checking')}</p>
+      <p className="text-sm" role="status">{busy ? t('cosmetics.working') : status ? t('cosmetics.' + status.status, { defaultValue: status.message }) : t('cosmetics.checking')}{!busy && status?.available_version ? ` · v${status.available_version}` : ''}</p>
       <div className="flex flex-wrap gap-2">
         <Button disabled={busy || running || launching} onClick={() => void act('install')}>{t('cosmetics.install')}</Button>
         <Button variant="outline" disabled={busy || running || launching} onClick={() => void act('restore')}>{t('cosmetics.restore')}</Button>

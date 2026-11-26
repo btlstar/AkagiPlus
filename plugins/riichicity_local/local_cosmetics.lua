@@ -1,7 +1,7 @@
 -- AkagiPlus independent local cosmetics. No changes to purchases or account entitlements.
 -- Runs after the client's own HTTP decoding, and changes only local cosmetic views.
 if _G.AkagiPlusLocalCosmetics then return _G.AkagiPlusLocalCosmetics end
-local A = {version = 6, states = {}, headModes = {}}
+local A = {version = 14, states = {}, headModes = {}}
 local cosmeticTypes = {[13]=true,[14]=true,[15]=true,[16]=true,[17]=true,[18]=true,[19]=true,[20]=true,[22]=true,[24]=true,[25]=true,[26]=true,[27]=true,[28]=true,[30]=true,[36]=true,[37]=true,[38]=true,[39]=true,[40]=true,[42]=true}
 local wireTypes = {[13]='riichi_stick_id',[14]='card_back_id',[15]='tablecloth_id',[16]='special_effect_id',[17]='riichi_effect_id',[19]='match_music_id',[20]='riichi_music_id',[24]='ming_effect_id',[26]='card_face_id',[30]='profile_frame_id',[36]='table_frame_id',[37]='head_id',[39]='hand_id'}
 local function copy(v)
@@ -31,7 +31,31 @@ local function save(s)
     csharp.PlayerPrefs.SetString('AkagiPlus.LocalCosmetics.v1.'..id,codec().encode(s)); csharp.PlayerPrefs.Save()
 end
 local function config(name) return (Configuration and Configuration[name]) or {} end
--- Unlock only local voice previews; keep genuine progression and seasonal gates.
+-- The client's class table exposes its constructor, while methods live on instances.
+local voicePreviewClass
+local function watchVoicePreview()
+    local def = UISubViewDef and UISubViewDef.RoleSound
+    if voicePreviewClass or not def or def.viewName ~= 'RoleNewSoundView' then return end
+    local ok, view = pcall(require, def.viewPath..'/'..(def.viewScriptName or def.viewName))
+    if not ok or type(view) ~= 'table' or type(view.new) ~= 'function' then return end
+    local create = view.new
+    view.new = function(...)
+        local child = create(...)
+        local isUnlock = child.IsUnlock
+        if type(isUnlock) ~= 'function' then return child end
+        child.IsUnlock = function(self, data)
+            local id = tonumber(data.id)
+            if data.unlock == 3 and id and id >= 6002 and id <= 6008 and id % 1 == 0 then
+                return true
+            end
+            return isUnlock(self, data)
+        end
+        return child
+    end
+    voicePreviewClass = view
+end
+
+-- Keep genuine progression and holiday ownership in the account data.
 local previewCatalog
 local function unlockVoicePreviews()
     local kinds=EnumDefine and EnumDefine.RoleSoundUnlockType
@@ -61,6 +85,15 @@ end
 local function ownList(list,field)
     if type(list)~='table' then return end
     for _,v in ipairs(list) do if type(v)=='table' then v.isOwn=true; if field then v[field]=true end end end
+end
+local function exposeRuYueLiShaSkin(list, roleId)
+    local skinId = 1003502
+    if roleId ~= 10035 or type(list) ~= 'table' or not validSkin(roleId,skinId) then return end
+    for _, skin in ipairs(list) do
+        if skin.skinID == skinId then return end
+    end
+    local definition = config('role_skin_config')[skinId]
+    list[#list+1] = {skinID=skinId, roleID=roleId, source=definition.source, isOwn=true, ownemoticon=true}
 end
 local function roleList(list,s)
     if type(list)~='table' then return end
@@ -280,9 +313,12 @@ function A.read(url,req,ret)
     if url=='users/getRoleInfo' and type(d)=='table' then
         roleList(d.roleList,s)
         if s.match then d.useRoleID=s.match.roleID;d.useSkinID=s.match.skinID;d.model=s.match.model or 0 end
-    elseif url=='users/getSkinInfo' then ownList(d,'ownemoticon')
+    elseif url=='users/getSkinInfo' then
+        ownList(d,'ownemoticon');exposeRuYueLiShaSkin(d,req.roleID)
     elseif url=='users/getRoleAndSkin' and type(d)=='table' then
-        roleList(d.roleList,s);ownList(d.skinList,'ownemoticon');if d.roleInfo then d.roleInfo.isOwn=true end
+        roleList(d.roleList,s);ownList(d.skinList,'ownemoticon')
+        exposeRuYueLiShaSkin(d.skinList,req.roleID)
+        if d.roleInfo then d.roleInfo.isOwn=true end
     elseif url=='users/getAllSkinInfo' then ownList(d)
     elseif url=='users/userBaseData' and tostring(req.userID)==uid() and type(d)=='table' then profile(d,s)
     elseif url=='users/homeUserData' and type(d)=='table' then
@@ -397,8 +433,91 @@ function A.write(url,req)
     end
     save(s);syncAvatar(s);return result
 end
+local function settlementAppearance(data)
+    local s = state()
+    if not s then return end
+    migrateSkinSync(s)
+    local role = s.match or s.skins[tostring(data.roleId)]
+    if role and validSkin(role.roleID,role.skinID) then return role end
+end
+
+local settlementView
+local function installSettlementPortrait()
+    if settlementView then return end
+    local def = UIViewDef and UIViewDef.FavorabilitySettlement
+    if not def then return end
+    local ok, view = pcall(require, def.viewPath..'/'..def.viewName)
+    if not ok or type(view) ~= 'table' or type(view.new) ~= 'function' then return end
+    local create = view.new
+    view.new = function(...)
+        local instance = create(...)
+        local refresh = instance.RefershView
+        if type(refresh) ~= 'function' then return instance end
+        instance.RefershView = function(self)
+            local data = self.favorabilityData
+            local role = settlementAppearance(data)
+            if not role then return refresh(self) end
+
+            -- The native refresh loads its portrait synchronously before rendering progress.
+            -- Match its original arguments instead of comparing Unity object wrappers.
+            local load = UIHelper.LoadRoleImg
+            UIHelper.LoadRoleImg = function(roleId,skinId,model,loader,target,panel,...)
+                if panel == EnumDefine.ShowRolePanel.UpStage
+                    and roleId == data.roleId and skinId == data.skinId and model == data.model then
+                    UIHelper.LoadRoleImg = load
+                    return load(role.roleID,role.skinID,role.model or 0,loader,target,panel,...)
+                end
+                return load(roleId,skinId,model,loader,target,panel,...)
+            end
+            local ok,err = pcall(refresh,self)
+            UIHelper.LoadRoleImg = load
+            if not ok then error(err,0) end
+        end
+        local showVoiceBubble = instance.SetViewGoShow
+        if type(showVoiceBubble) == 'function' then
+            instance.SetViewGoShow = function(self, viewState)
+                local data = self.favorabilityData
+                local role = settlementAppearance(data)
+                if not role then return showVoiceBubble(self, viewState) end
+
+                -- The native bubble derives both audio and subtitle from these fields.
+                -- Keep the account's settlement data for the rest of the view.
+                local presentation = setmetatable({
+                    roleId=role.roleID, skinId=role.skinID, model=role.model or 0,
+                }, {__index=data})
+                self.favorabilityData = presentation
+                local ok, err = pcall(showVoiceBubble, self, viewState)
+                self.favorabilityData = data
+                if not ok then error(err, 0) end
+            end
+        end
+        return instance
+    end
+    settlementView = view
+end
+
+local settlementUI
+local function watchCosmeticViews()
+    watchVoicePreview()
+    if settlementUI or not UIHelper or type(UIHelper.ShowView) ~= 'function' then return end
+    local show = UIHelper.ShowView
+    UIHelper.ShowView = function(def,...)
+        watchVoicePreview()
+        if UIViewDef and def == UIViewDef.FavorabilitySettlement then
+            installSettlementPortrait()
+        end
+        return show(def,...)
+    end
+    settlementUI = UIHelper
+end
+
 function A.onMessage(packet)
+    watchCosmeticViews()
     if type(packet)~='table' or type(packet.data)~='table' then return end
+    if packet.cmd=='cmd_feel_value_settle' then
+        installSettlementPortrait()
+        return
+    end
     if packet.cmd~='cmd_enter_room' and packet.cmd~='cmd_friend_match_action' then return end
     local s=state();if not s then return end
     migrateSkinSync(s)
@@ -417,6 +536,7 @@ function A.install(http)
     if http.__akagiplus_local then return end
     http.__akagiplus_local=true;local original=http.MjGamePost
     http.MjGamePost=function(url,data,callback,params,...)
+        watchCosmeticViews()
         if setters[url] then
             local ok,response=pcall(A.write,url,data)
             if not ok then response={code=1,message='AkagiPlus local cosmetic selection failed',data={}} end

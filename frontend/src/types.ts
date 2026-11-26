@@ -111,7 +111,7 @@ export type DetectedBrowser = {
 /// share names but the schema enum carries extra archive-only variants).
 /// Mirrors `src/config/platform.rs::Platform` (`#[derive(Serialize)]` →
 /// PascalCase JSON: `"Majsoul"`, `"Tenhou"`).
-export type PlatformKind = 'Majsoul' | 'Tenhou' | 'RiichiCity' | 'Zhangxin' | 'Amatsuki'
+export type PlatformKind = 'Majsoul' | 'Tenhou' | 'RiichiCity' | 'Zhangxin' | 'Amatsuki' | 'HoloMahjong'
 
 /** A duration setting as an inclusive `[min, max]` range, ms. Mirrors
  *  `src/config/range.rs::MsRange`; every decision draws one value from it. */
@@ -570,6 +570,7 @@ export type Platform =
   | 'riichi_city'
   | 'zhangxin'
   | 'amatsuki'
+  | 'holo_mahjong'
   | 'mjai'
   | 'unknown'
 
@@ -725,6 +726,26 @@ export type LogSessionInfo = {
   size_bytes: number
   mtime_ms: number
   is_active: boolean
+  /** Recorded before the `sensitive/` split: packs only with full information. */
+  legacy_layout?: boolean
+}
+
+/** Mirrors `crate::schema::PackLogsRequest`. */
+export type PackLogsRequest = {
+  sessions: string[]
+  include_sensitive: boolean
+  password: string | null
+  dest: string
+}
+
+/** Mirrors `crate::logger::pack::PackSummary`. */
+export type PackSummary = {
+  path: string
+  sessions: number
+  files: number
+  sensitive_files: number
+  withheld_files: number
+  encrypted: boolean
 }
 
 export type ReadLogRequest = {
@@ -756,6 +777,7 @@ export type FrameDirection = 'up' | 'down'
 export type FrameRaw =
   | { format: 'text'; data: string }
   | { format: 'binary'; data: string } // base64
+  | { format: 'withheld' } // left out of the shareable log; full copy under sensitive/
 
 export type ParsedFrame = {
   method: string

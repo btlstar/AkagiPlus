@@ -7,7 +7,7 @@ import tomllib
 import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
-FILES = ("bot.py", "archer_client.py", "configure.py", "configure.cmd",
+FILES = ("bot.py", "archer_client.py", "configure.py",
          "manifest.toml", "pyproject.toml", "README.md", "LICENSE.txt")
 
 

@@ -14,7 +14,7 @@ import tomllib
 
 from archer_client import ArcherClient, ArcherError, compact
 
-VERSION = "0.4.5"
+VERSION = "0.4.6"
 WEIGHT_TEMPERATURE = {3: 1.0, 4: 20.0}
 ROOT = Path(__file__).resolve().parent
 FIELDS = {

@@ -3,7 +3,6 @@ import { AmatsukiStyleCard } from '@/components/AmatsukiStyleCard'
 import { ZhangxinPlusCard } from '@/components/ZhangxinPlusCard'
 import { RiichiCityLocalCard } from '@/components/RiichiCityLocalCard'
 import { useEffect, useState } from 'react'
-import { RiichiCityUnlockCard } from './RiichiCityUnlockCard'
 import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -66,7 +65,7 @@ export function Cosmetics() {
         <h1 className="text-2xl font-semibold">{t('cosmetics.title')}</h1>
         <p className="text-sm text-muted-foreground mt-2">{t('cosmetics.intro')}</p>
       </header>
-      {config?.platform.kind === 'Amatsuki' ? <AmatsukiStyleCard /> : config?.platform.kind === 'Zhangxin' ? <ZhangxinPlusCard /> : config?.platform.kind === 'RiichiCity' ? <><RiichiCityLocalCard /><details className="text-sm"><summary className="cursor-pointer text-muted-foreground mb-4">{t('cosmetics.optional')}</summary><RiichiCityUnlockCard /></details></> : <Card>
+      {config?.platform.kind === 'Amatsuki' ? <AmatsukiStyleCard /> : config?.platform.kind === 'Zhangxin' ? <ZhangxinPlusCard /> : config?.platform.kind === 'RiichiCity' ? <RiichiCityLocalCard /> : <Card>
         <CardHeader className="flex flex-row items-center justify-between gap-4">
           <div><CardTitle>{t('platform.plugin_title', { game: t('platform.majsoul'), plugin: 'MajsoulMax-rs' })}</CardTitle><p className="text-xs text-muted-foreground mt-2">MajsoulMax-rs 0.7.0</p></div>
           <Switch aria-label={t('cosmetics.enable', { plugin: 'MajsoulMax' })} checked={draft.enabled} disabled={!supported || saving}

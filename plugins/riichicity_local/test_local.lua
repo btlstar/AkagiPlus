@@ -110,6 +110,29 @@ function AP_TEST_PACKET(category)
  assert(disposed,'packet disposed normally')
 end
 
+local previewModule = 'UIView/Role/RoleNewSoundView'
+UISubViewDef = {RoleSound = {viewPath='UIView/Role', viewName='RoleNewSoundView'}}
+local noOp = function() end
+local voiceClass = AP_VOICE_CLASS
+voiceClass.SetParentView = noOp
+voiceClass.SetParent = noOp
+voiceClass.SetViewName = noOp
+voiceClass.SetIsFullScreen = noOp
+voiceClass.Init = noOp
+package.loaded[previewModule] = voiceClass
+local profile = AP_VOICE_BASE
+profile.ChildView, profile.ChildViewList = {}, {}
+csharp.DateTime = {Now={Year=2026}}
+DateUtil = {IsInDay=function() return false end, IsInLunarDay=function() return false end}
+local owned = {}
+local model = {GetRoleVoicesList=function() return owned end}
+local original = voiceClass.new()
+original.playerModel = model
+assert(UIViewBase.CreateChildView == nil and voiceClass.IsUnlock == nil,'native class methods cannot be read on the class')
+assert(not original:IsUnlock({id='6002',unlock=3}),'native off-holiday baseline')
+A.onMessage({cmd='unrelated',data={}})
+local voicePreview = profile:CreateChildView({}, UISubViewDef.RoleSound)
+voicePreview.playerModel = model
 EnumDefine={RoleSoundUnlockType={Default=0,Awake=1,Ancient=2}}
 Configuration.role_sound_config={
  {id='lv2',unlock=1,extra={lv=2}}, {id='lv5',unlock=1,extra={lv=5}},
@@ -118,7 +141,17 @@ Configuration.role_sound_config={
 local voiceRole={roleID=10001,isOwn=true,cultivateStatus=1,FeelValue=19,oathValue=0}
 A.read('users/getRoleInfo',{}, {code=0,data={roleList={voiceRole}}})
 assert(Configuration.role_sound_config[1].unlock==0 and Configuration.role_sound_config[2].unlock==0 and Configuration.role_sound_config[3].unlock==0,'bond and awakened voice previews')
-assert(Configuration.role_sound_config[4].unlock==3,'seasonal gate preserved')
+assert(Configuration.role_sound_config[4].unlock==3,'holiday catalog entries are unchanged')
+for id=6002,6008 do
+ assert(voicePreview:IsUnlock({id=tostring(id),unlock=3}),'holiday clip can be previewed')
+end
+assert(not voicePreview:IsUnlock({id='6009',unlock=3}),'other restricted clips follow native logic')
+owned[1] = 6009
+assert(voicePreview:IsUnlock({id='6009',unlock=3}),'native ownership is still honored')
+assert(not voicePreview:IsUnlock({id='6002',unlock=4}),'an unrelated restriction is preserved')
+local isUnlock = voicePreview.IsUnlock
+profile:CreateChildView({}, UISubViewDef.RoleSound)
+assert(voicePreview.IsUnlock == isUnlock,'preview is wrapped once')
 assert(voiceRole.cultivateStatus==1 and voiceRole.FeelValue==19 and voiceRole.oathValue==0,'real progression preserved')
 
 -- Native follow-role portraits encode role/skin/model inside the head ID.
@@ -180,3 +213,99 @@ assert(ownSkin().role_id==10069 and ownSkin().skin_id==1006902,'independent matc
 A.write('users/editUserHomePage',{syncInGame=true});assert(ownSkin().role_id==10022 and ownSkin().skin_id==1002201,'enabling sync uses current hall skin')
 A.write('users/roleWearSkin',{roleID=10022,skinID=0,model=0});assert(ownSkin().skin_id==0,'explicit default skin remains selectable')
 uidValue=111
+
+
+-- The decoded settlement command must not mutate the genuine progression packet.
+function AP_TEST_SETTLEMENT()
+ local moduleName='UIView/FavorabilitySettlement/FavorabilitySettlementView'
+ UIViewDef={FavorabilitySettlement={viewPath='UIView/FavorabilitySettlement',viewName='FavorabilitySettlementView'}}
+ local create=AP_NATIVE_SETTLEMENT.new
+ local refresh=create().RefershView
+ assert(AP_NATIVE_SETTLEMENT.RefershView==nil and type(refresh)=='function','native method lives on instances')
+ local shown,view
+ UIHelper={ShowView=function(def)
+  shown=def
+  view=require(moduleName).new()
+ end}
+ package.loaded[moduleName]=AP_NATIVE_SETTLEMENT
+ A.onMessage({cmd='unrelated',data={}})
+ assert(AP_NATIVE_SETTLEMENT.new==create,'unrelated packet does not load the settlement view')
+ UIHelper.ShowView(UIViewDef.FavorabilitySettlement)
+ assert(shown==UIViewDef.FavorabilitySettlement,'original UI opening is preserved')
+ assert(view.RefershView~=refresh,'constructed view receives the portrait hook')
+ local wrappedCreate=AP_NATIVE_SETTLEMENT.new
+ local packet={cmd='cmd_feel_value_settle',data={roleId=10012,skinId=0,model=0,nowValue=2240,nowCultivateStatus=1}}
+ CMD={[3]=function(received)
+  assert(received.data.roleId==10012 and received.data.skinId==0 and received.data.model==0 and received.data.nowValue==2240)
+ end}
+ APIngress({cmd=3,bodyStr=Json.encode(packet),version=1,Dispose=function()end})
+ assert(AP_NATIVE_SETTLEMENT.new==wrappedCreate,'constructor wrapped once')
+ EnumDefine.CultivateStatus={FinishedAwaken=3}
+ EnumDefine.ShowRolePanel={UpStage=1}
+ local portrait={}
+ local loaded
+ local function load(role,skin,model,loader,img,panel)
+  assert(img==portrait and panel==1)
+  loaded={role,skin,model}
+ end
+ UIHelper.LoadRoleImg=load
+ UIHelper.ShowView(UIViewDef.FavorabilitySettlement)
+ assert(shown==UIViewDef.FavorabilitySettlement,'original UI opening is preserved')
+ view.favorabilityData=packet.data
+ view.uiElemsBinder={roleImg=portrait}
+ view.ShowButtomBtns=function()end
+ view.ShowBooldRole=function(self)
+   assert(self.favorabilityData==packet.data and self.favorabilityData.roleId==10012 and self.favorabilityData.skinId==0 and self.favorabilityData.nowValue==2240)
+ end
+ uidValue=555
+ A.write('users/roleWearSkin',{roleID=10022,skinID=1002206,model=1})
+ view:RefershView()
+ assert(loaded[1]==10022 and loaded[2]==1002206 and loaded[3]==1,'native portrait follows the local match role')
+ assert(UIHelper.LoadRoleImg==load,'portrait override restored')
+ local audio,subtitle
+ local played,shownText
+ EnumDefine.SoundName={FeelBubble='bubble'}
+ SoundType={UI=1,Voice=2}
+ SoundManager={Play=function()end,PlayWithRole=function(...) audio={...} end}
+ CommonHelper={GetSoundContentName=function(...) subtitle={...}; return 'fixture_line' end}
+ i18NStr=setmetatable({fixture_line='fixture subtitle'},{__index=function() return '%s' end})
+ setmetatable(view.uiElemsBinder,{__index=function(self,key)
+  local control={SetActive=function()end}
+  self[key]=control
+  return control
+ end})
+ view.autoMsgBox={SetContent=function(_,text) shownText=text end,SetActive=function(_,on) played=on end}
+ packet.data.changeExpValue,packet.data.changeValue=0,20
+ view:SetViewGoShow(1)
+ assert(audio[1]==10022 and audio[2]==1002206 and audio[3]==1,'settlement audio follows the selected portrait')
+ assert(audio[4]==8011 or audio[4]==8012,'original settlement dialogue selected')
+ for i=1,4 do assert(subtitle[i]==audio[i],'subtitle resolves the exact line used for audio') end
+ assert(played and shownText=='fixture subtitle' and view.uiElemsBinder.favorateText.text=='20','subtitle and progress rendered')
+ assert(view.favorabilityData==packet.data and packet.data.roleId==10012 and packet.data.nowValue==2240,'original settlement data retained')
+ SoundManager.PlayWithRole=function() error('synthetic playback failure') end
+ assert(not pcall(view.SetViewGoShow,view,1) and view.favorabilityData==packet.data,'failure restores original settlement data')
+ SoundManager.PlayWithRole=function(...) audio={...} end
+
+ uidValue=333
+ view:RefershView()
+ assert(loaded[1]==10012 and loaded[2]==0 and loaded[3]==0,'without a local selection use the native portrait')
+ view:SetViewGoShow(1)
+ assert(audio[1]==10012 and subtitle[1]==10012,'without a local selection use the native audio and subtitle')
+ uidValue=555
+ UIHelper.LoadRoleImg=function() error('synthetic renderer failure') end
+ local failing=UIHelper.LoadRoleImg
+ assert(not pcall(view.RefershView,view) and UIHelper.LoadRoleImg==failing,'failure restores the native loader')
+ uidValue=111
+end
+
+-- If the account omits its unearned task outfit, expose the shipped skin locally.
+Configuration.role_config[10035]={id=10035}
+Configuration.role_skin_config[1003502]={role_id=10035,source=8}
+local special = {code=0,data={{skinID=0,isOwn=true}}}
+A.read('users/getSkinInfo',{roleID=10035},special)
+A.read('users/getSkinInfo',{roleID=10035},special)
+assert(#special.data==2 and special.data[2].skinID==1003502 and special.data[2].isOwn)
+local unrelated = {code=0,data={{skinID=0,isOwn=true}}}
+A.read('users/getSkinInfo',{roleID=10022},unrelated)
+assert(#unrelated.data==1,'the special skin does not appear on a different role')
+assert(A.write('users/roleWearSkin',{roleID=10035,skinID=1003502}).code==0)

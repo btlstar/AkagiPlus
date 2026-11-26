@@ -52,6 +52,14 @@ export const PLATFORMS: PlatformInfo[] = [
   },
   { kind: 'Zhangxin', labelKey: 'platform.zhangxin', descriptionKey: 'platform.zhangxin_desc', defaultStartUrl: '', supportsChromium: false },
   { kind: 'Amatsuki', labelKey: 'platform.amatsuki', descriptionKey: 'platform.amatsuki_desc', defaultStartUrl: '', supportsChromium: false },
+  {
+    kind: 'HoloMahjong',
+    labelKey: 'platform.holo_mahjong',
+    descriptionKey: 'platform.holo_mahjong_desc',
+    // Native client, no web build → MITM only.
+    defaultStartUrl: '',
+    supportsChromium: false,
+  },
 ]
 
 const BY_KIND: Record<PlatformKind, PlatformInfo> = Object.fromEntries(

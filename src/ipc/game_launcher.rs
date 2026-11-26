@@ -347,12 +347,16 @@ pub async fn riichicity_local(
     action: String,
     state: State<'_, AppState>,
 ) -> Result<String, String> {
-    let _guard = OPERATION
-        .try_lock()
-        .map_err(|_| "正在执行其他游戏操作，请稍候。".to_owned())?;
     if !["status", "install", "restore"].contains(&action.as_str()) {
         return Err("未知补丁操作".into());
     }
+    let _guard = if action == "status" {
+        OPERATION.lock().await
+    } else {
+        OPERATION
+            .try_lock()
+            .map_err(|_| "正在执行其他游戏操作，请稍候。".to_owned())?
+    };
     let c = state.config.read().await.clone();
     let game = native_client(&c);
     let mut cmd = Command::new(python().map_err(|e| e.to_string())?);

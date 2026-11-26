@@ -65,7 +65,6 @@
     "data_dir": "个人装扮配置目录",
     "snapshot": "资源快照：{{value}}",
     "save_settings": "保存设置",
-    "diagnostics": "查看诊断",
     "majsoul_hint": "保存会重启捕获。请在对局结束后修改。关闭 MajsoulMax 后重新登录即可恢复原始装扮。",
     "saved": "装扮设置已保存",
     "relogin": "捕获会重新启动，请重新登录游戏加载装扮。",
@@ -85,6 +84,7 @@
     "quit": "请先退出 {{game}}，再安装或还原插件。",
     "installed": "已安装",
     "not_installed": "未安装",
+    "update_available": "有新版装扮补丁，游戏仍装着旧版",
     "restored": "已还原游戏文件",
     "unsupported": "当前版本不受支持",
     "riichi_help": "安装补丁后，可在游戏内选择角色、皮肤、头像和装扮方案。",
@@ -103,13 +103,42 @@
   },
   "archer": {
     "title": "Archer API · 三麻 / 四麻",
-    "description": "通过 Archer API 获取三麻、四麻建议和候选权重。请先配置密钥和模型。",
+    "description": "使用 Archer 云端模型提供三麻和四麻出牌建议。可以获取模型、检查连接和余额，并测试所选模型。",
+    "settings_apply": "保存后的配置从下一场对局生效。可在下方列表分别切换三麻和四麻。",
+    "enable": "启用 Archer API",
+    "enable_hint": "默认同时启用三麻和四麻",
+    "inactive": "未启用",
+    "active_both": "三麻和四麻已启用",
+    "active_four": "仅四麻已启用",
+    "active_three": "仅三麻已启用",
+    "activation_pending": "待完成配置",
+    "setup_hint": "请填写密钥和所需模式的模型，然后保存并启用。",
+    "install_first": "请先安装运行环境。",
+    "save_enable": "保存并启用",
+    "cancel_activation": "取消启用",
+    "advanced_settings": "高级设置",
+    "diagnostics": "诊断",
+    "settings_saved": "配置已保存。",
     "api_url": "接口根地址",
     "api_url_help": "填写服务器根地址，不含 /v1/decide。",
     "api_key": "Archer API 密钥",
     "api_key_help": "使用 Archer 账户生成的 API 密钥。",
     "model": "四麻模型名称",
-    "model_help": "可用 configure.cmd 查询模型与余额。请输入完整模型名。",
+    "model_help": "获取模型后可点击填入完整模型名。",
+    "fetch_models": "获取模型",
+    "health_check": "健康检查",
+    "test_four": "测试四麻",
+    "test_three": "测试三麻",
+    "test_confirm": "使用所选模型发起一次付费推理？",
+    "test_run": "运行付费测试",
+    "diagnostic_running": "正在检查 Archer…",
+    "diagnostic_failed": "Archer 检查失败，请核对设置和连接。",
+    "diagnostic_timeout": "Archer 检查超时。",
+    "model_count": "可用模型：{{count}} 个",
+    "balance_status": "连接正常 · 余额 {{balance}} Token",
+    "model_valid": "可用",
+    "model_unavailable": "未选择或不可用",
+    "test_passed": "推理测试通过 · {{action}}",
     "model_3p": "三麻模型名称",
     "model_3p_help": "新对局自动按人数选择对应模型。",
     "timeout_ms": "请求超时（毫秒）",
@@ -341,7 +370,30 @@
     "detail_target": "模块",
     "detail_location": "源位置",
     "detail_message": "消息",
-    "detail_fields": "字段"
+    "detail_fields": "字段",
+    "pack": {
+      "button": "打包日志",
+      "title": "打包日志",
+      "description": "把选中的运行记录打包成一个 zip，附在问题反馈中。",
+      "all": "全部运行记录（{{count}}）",
+      "choose": "选择运行记录",
+      "legacy": "旧格式",
+      "include_full": "包含完整信息",
+      "full_warning": "完整信息是所有捕获到的 WebSocket frame，可能含有登录 token 等账号机密信息。只能私下交给开发者。",
+      "password": "密码（建议设置）",
+      "toggle_password": "显示或隐藏密码",
+      "password_hint": "完整信息会放进压缩包里的 sensitive.zip，并用这个密码加密；其他文件解压不需要密码。开发者需要时会私下向你索取密码。",
+      "no_password": "未设置密码时，完整信息会以未加密的形式放进 zip。",
+      "legacy_note": "选中了 {{count}} 条旧运行记录。它们录制于完整信息单独保存之前，只有在包含完整信息时才会放进 zip。",
+      "save_title": "保存日志包",
+      "submit": "打包…",
+      "packing": "打包中…",
+      "done": "日志已打包",
+      "done_withheld": "未包含完整信息。",
+      "done_encrypted": "完整信息已放进 sensitive.zip，并用你的密码加密。",
+      "done_plain": "完整信息未加密。",
+      "failed": "无法打包日志"
+    }
   },
   "inspector": {
     "kind": "显示",
@@ -384,7 +436,8 @@
     "detail_url": "完整 URL",
     "invalid_base64": "(无效的 base64)",
     "bytes_truncated": "… 已截断后续 {{count}} 个字节",
-    "binary": "(二进制)"
+    "binary": "(二进制)",
+    "withheld": "此内容未写入可分享的日志。"
   },
   "sidebar": {
     "collapse": "收起侧栏",
@@ -606,7 +659,8 @@
       "min_delay": "最小延迟（ms）",
       "min_delay_hint": "所有动作的安全下限：雀魂需要时间渲染画面，过早点击会被吃掉。每次决策抽一个值；Lua 模式下这个值交给 delay.lua 处理（默认脚本会套用），旧版模式由 Akagi 套用。",
       "min_button_delay": "按钮最小延迟（ms）",
-      "min_button_delay_hint": "吃/碰/杠/和/跳过/立直等按钮的更高下限——按钮要等打牌动画结束加上自身弹出动画才会出现，比手牌渲染更晚。若仍出现按钮没点到的情况请调高此值。"
+      "min_button_delay_hint": "吃/碰/杠/和/跳过/立直等按钮的更高下限——按钮要等打牌动画结束加上自身弹出动画才会出现，比手牌渲染更晚。若仍出现按钮没点到的情况请调高此值。",
+      "unsupported_platform": "此平台尚不支持自动打牌，只会显示建议。"
     },
     "overlay": "建议悬浮窗",
     "overlay_enabled": "显示悬浮窗",
@@ -965,7 +1019,9 @@
     "reconnect": "重新连接",
     "zhangxin_cosmetics": "安装后，在游戏内选择雀士、皮肤、桌布、麻将牌、立直棒、特效、表情包、音乐、称号、头像框和装扮方案。选择按账号保存在本机。",
     "zhangxin_install_hint": "先完成官方资源更新并退出游戏，再安装插件。原文件会自动备份，未知资源版本会停止安装；停用时还原游戏文件。",
-    "zhangxin_limits": "无需 Proxifier。普通立直友人局支持四麻、三麻 AI 建议；头像和语音尚未完整适配。"
+    "zhangxin_limits": "无需 Proxifier。AI 建议支持普通四人、三人立直友人场。资源 92318 支持在雀士资料中预览觉醒表情和试听觉醒语音。",
+    "holo_mahjong": "ホロじゃん",
+    "holo_mahjong_desc": "原生客户端 — 仅 MITM · 四麻 + 三麻"
   },
   "updates": {
     "toast": {
@@ -1031,6 +1087,13 @@
       "settings_button": "公告"
     },
     "entries": {
+      "plus_3_9_0_6": {
+        "title": "AkagiPlus 3.9.0 · Plus 6",
+        "holomahjong_title": "支持ホロじゃん",
+        "holomahjong_desc": "四麻、三麻都能看建议,断线重连后也能接上。需用 Proxifier 等工具,以 HTTP 代理把游戏导向 Akagi。",
+        "pack_logs_title": "打包日志",
+        "pack_logs_desc": "在日志页面一键打包反馈用的日志。含账号信息的部分只在你选择时加入,并用你设置的密码加密。"
+      },
       "plus_3_8_0_2": {
         "title": "AkagiPlus 3.8.0 · Plus 2",
         "zhangxin_title": "掌心全民麻将 AI",

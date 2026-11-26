@@ -11,6 +11,8 @@ use tokio::{
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
 #[serde(default)]
 pub struct RiichiCityUnlockConfig {
+    // Legacy launcher paths still deserialize, but retired capture cannot be enabled from config.
+    #[serde(skip_deserializing)]
     pub enabled: bool,
     pub executable: PathBuf,
     pub ca_path: PathBuf,

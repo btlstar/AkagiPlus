@@ -3,6 +3,7 @@ import argparse
 import importlib.util
 import json
 import os
+import re
 from pathlib import Path
 import subprocess
 import sys
@@ -45,9 +46,13 @@ def main():
     journal = args.state_dir / 'install.json' if args.state_dir else JOURNAL
     backup_dir = args.state_dir / 'backups' if args.state_dir else ROOT / '.local/backups/riichicity-local'
     staged = (args.state_dir or ROOT / '.local/riichicity-local') / 'staged-lua_network'
-    def report(status, message):
-        print(json.dumps({'status': status, 'message': message}, ensure_ascii=True) if args.json else message)
+    def report(status, message, available_version=None):
+        result = {'status': status, 'message': message, 'available_version': available_version}
+        print(json.dumps(result, ensure_ascii=True) if args.json else message)
     try:
+        payload = (PLUGIN / 'local_cosmetics.lua').read_text(encoding='utf-8-sig')
+        matched_version = re.search(r'^local A = \{version = (\d+),', payload, re.M)
+        version = int(matched_version.group(1)) if matched_version else None
         game = args.game or game_folder()
         target = installer.target_for(game)
         current = installer.digest(target.read_bytes())
@@ -65,7 +70,12 @@ def main():
             record = json.loads(journal.read_text(encoding='utf-8')) if journal.is_file() else {}
             same_target = Path(record.get('target', '')).resolve() == target
             patched = same_target and current == record.get('patched_sha256')
-            report('installed' if patched else 'not_installed', '本地装扮已安装' if patched else '未安装或客户端已更新')
+            if patched and record.get('payload_sha256') != installer.digest(payload.encode('utf-8')):
+                report('update_available', '游戏仍安装着旧补丁，请退出游戏后安装新版。', version)
+            elif patched:
+                report('installed', '本地装扮已安装。', version)
+            else:
+                report('not_installed', '未安装或客户端已更新。', version)
             return 0
         if args.action == 'restore':
             installer.restore(game, journal)
@@ -81,10 +91,10 @@ def main():
                     raise ValueError('Backup checksum mismatch; do not reinstall or delete the backup.')
         subprocess.run([asset_python(), str(PLUGIN / 'build.py'), str(source), '--output', str(staged)], check=True, cwd=ROOT, capture_output=True, text=True)
         if installer.digest(staged.read_bytes()) == current:
-            report('installed', '当前本地装扮已是最新。')
+            report('installed', '当前本地装扮已是最新。', version)
             return 0
         installer.install(game, staged, backup_dir, journal)
-        report('installed', '本地装扮已安装，原文件已备份。重新启动游戏后生效。')
+        report('installed', '本地装扮已安装，原文件已备份。重新启动游戏后生效。', version)
         return 0
     except (OSError, ValueError, KeyError, subprocess.CalledProcessError) as error:
         print(f'补丁操作失败：{error}', file=sys.stderr)

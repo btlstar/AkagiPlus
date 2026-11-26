@@ -1,7 +1,7 @@
 -- ZhangxinPlus: local cosmetic plugin, reviewed resource baselines 92217 / 92318.
 -- Cosmetic selections stay on this computer, separately for each game UID.
 if _G.ZhangxinPlus then return _G.ZhangxinPlus end
-local A = {version='0.1.6', states={}, reads=0, writes=0, instance=tostring(os.time())..'-'..tostring(os.clock())}
+local A = {version='0.1.7', states={}, reads=0, writes=0, instance=tostring(os.time())..'-'..tostring(os.clock())}
 local function copy(v)
     if type(v)~='table' then return v end
     local t={};for k,x in pairs(v) do t[k]=copy(x) end;return t
@@ -65,6 +65,9 @@ end
 local function validSkin(role,skin)
     local c=config('role_skin_config')[skin]
     return validRole(role) and (skin==0 or (c and c.role_id==role))
+end
+function A.canPreviewAwakening(role)
+    return type(role)=='table' and role.isOwn == true and validRole(role.roleID)
 end
 local function overlay(v,r,wire)
     if not r then return end

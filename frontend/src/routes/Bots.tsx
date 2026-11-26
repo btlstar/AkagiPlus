@@ -53,6 +53,9 @@ function nativeModes(name: string): string[] {
   return name === NATIVE_3P ? ['3p'] : ['4p']
 }
 
+const ARCHER = 'archer-api'
+type ArcherTarget = '4p' | '3p' | 'both'
+
 export function Bots() {
   const { t } = useTranslation()
   const list = useBotStore((s) => s.list)
@@ -63,6 +66,41 @@ export function Bots() {
   const [editing, setEditing] = useState<string | null>(null)
   const [deleting, setDeleting] = useState<string | null>(null)
   const [installingEnv, setInstallingEnv] = useState<string | null>(null)
+  const [archerBusy, setArcherBusy] = useState(false)
+  const archerChanging = useRef(false)
+  const [archerPending, setArcherPending] = useState<ArcherTarget | null>(null)
+  const archer = list.find(bot => bot.name === ARCHER && bot.manifest)
+  const archerFour = config?.bot.active_4p === ARCHER
+  const archerThree = config?.bot.active_3p === ARCHER
+
+  const setArcher = async (target: ArcherTarget, enabled: boolean) => {
+    if (archerChanging.current) return false
+    archerChanging.current = true
+    setArcherBusy(true)
+    try {
+      const next = await invoke<AppConfig>('set_archer_active', {
+        mode: target === 'both' ? null : target,
+        enabled,
+      })
+      if (config?.bot.api.enabled && !next.bot.api.enabled) {
+        toast.info(t('bots.api.disabled_no_native'))
+      }
+      setConfig(next)
+      setArcherPending(null)
+      return true
+    } catch (e) {
+      if (enabled && (e === 'setup_required' || e === 'environment_required')) {
+        setArcherPending(target)
+      } else {
+        toast.error(t('bots.activate_failed'), { description: String(e) })
+      }
+      return false
+    } finally {
+      archerChanging.current = false
+      setArcherBusy(false)
+    }
+  }
+
 
   const refresh = async () => {
     setLoading(true)
@@ -189,6 +227,18 @@ export function Bots() {
           upgrade knob, while the table below is the power-user path for
           author bots. */}
       <NativeApiSettings />
+      {archer && config && (
+        <ArcherSettings
+          four={archerFour}
+          three={archerThree}
+          pending={archerPending}
+          envReady={archer.env_ready}
+          activating={archerBusy}
+          setArcher={setArcher}
+          cancelSetup={() => setArcherPending(null)}
+          onEnvChanged={refresh}
+        />
+      )}
 
       <Table>
         <TableHeader>
@@ -233,8 +283,10 @@ export function Bots() {
                       // Block activating a bot whose env isn't installed yet,
                       // but still allow turning one OFF (env may have been
                       // wiped while it was active).
-                      disabled={!supportsMode(bot, '4p') || (!bot.env_ready && !isActive4p)}
-                      onCheckedChange={(v) => void setActive('4p', v ? bot.name : '')}
+                      disabled={archerBusy || !supportsMode(bot, '4p') || (bot.name !== ARCHER && !bot.env_ready && !isActive4p)}
+                      onCheckedChange={v => bot.name === ARCHER
+                        ? void setArcher('4p', v)
+                        : void setActive('4p', v ? bot.name : '')}
                     />
                   </span>
                 </TableCell>
@@ -242,8 +294,10 @@ export function Bots() {
                   <span title={!bot.env_ready && !isActive3p ? t('bots.env_not_ready_tooltip') : undefined}>
                     <Switch
                       checked={isActive3p}
-                      disabled={!supportsMode(bot, '3p') || (!bot.env_ready && !isActive3p)}
-                      onCheckedChange={(v) => void setActive('3p', v ? bot.name : '')}
+                      disabled={archerBusy || !supportsMode(bot, '3p') || (bot.name !== ARCHER && !bot.env_ready && !isActive3p)}
+                      onCheckedChange={v => bot.name === ARCHER
+                        ? void setArcher('3p', v)
+                        : void setActive('3p', v ? bot.name : '')}
                     />
                   </span>
                 </TableCell>
@@ -265,7 +319,7 @@ export function Bots() {
                         {installingEnv === bot.name ? t('bots.installing_env') : t('bots.install_env')}
                       </Button>
                     )}
-                    <Button
+                    {bot.name !== 'archer-api' && <Button
                       size="sm"
                       variant="ghost"
                       onClick={() => setEditing(bot.name)}
@@ -274,7 +328,7 @@ export function Bots() {
                     >
                       <SettingsIcon className="h-4 w-4" />
                       {t('bots.configure_btn')}
-                    </Button>
+                    </Button>}
                     <Button
                       size="sm"
                       variant="ghost"
@@ -536,6 +590,259 @@ function InstallFromZipDialog({ onInstalled }: { onInstalled: () => void }) {
   )
 }
 
+type ArcherDiagnostic = 'models' | 'health' | 'test3' | 'test4'
+type ArcherDiagnosticResult = {
+  ok: boolean
+  code?: string
+  models?: { players: number; name: string }[]
+  balance?: number
+  selected_model_valid?: boolean
+  selected_3p_valid?: boolean
+  action?: { type?: string }
+}
+
+function ArcherSettings({ four, three, pending, envReady, activating, setArcher, cancelSetup, onEnvChanged }: {
+  four: boolean
+  three: boolean
+  pending: ArcherTarget | null
+  envReady: boolean
+  activating: boolean
+  setArcher: (target: ArcherTarget, enabled: boolean) => Promise<boolean>
+  cancelSetup: () => void
+  onEnvChanged: () => void
+}) {
+  const name = ARCHER
+  const active = four || three
+  const expanded = active || pending !== null
+  const { t } = useTranslation()
+  const [data, setData] = useState<BotSettings | null>(null)
+  const [values, setValues] = useState<Record<string, unknown>>({})
+  const [diagnosing, setDiagnosing] = useState<ArcherDiagnostic | null>(null)
+  const [models, setModels] = useState<NonNullable<ArcherDiagnosticResult['models']>>([])
+  const [diagnostic, setDiagnostic] = useState<{ kind: ArcherDiagnostic; result: ArcherDiagnosticResult } | null>(null)
+  const [confirmTest, setConfirmTest] = useState<'test3' | 'test4' | null>(null)
+  const [saved, setSaved] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [resyncing, setResyncing] = useState(false)
+  const [err, setErr] = useState<string | null>(null)
+
+  useEffect(() => {
+    let active = true
+    invoke<BotSettings>('get_bot_settings', { name })
+      .then((settings) => {
+        if (!active) return
+        setData(settings)
+        setValues(settings.values)
+      })
+      .catch((e) => { if (active) setErr(String(e)) })
+      return () => { active = false }
+  }, [])
+
+  const diagnosticError = (code: unknown) => {
+    const fallback = t('archer.diagnostic_failed')
+    if (code === 'timeout') return t('archer.diagnostic_timeout')
+    return typeof code === 'string' ? t('archer_hud.' + code, { defaultValue: fallback }) : fallback
+  }
+  const diagnose = async (kind: ArcherDiagnostic) => {
+    setConfirmTest(null)
+    setDiagnosing(kind)
+    setDiagnostic(null)
+    setErr(null)
+    try {
+      const result = await invoke<ArcherDiagnosticResult>('diagnose_archer', { action: kind, values })
+      if (!result.ok) {
+        setErr(diagnosticError(result.code))
+        return
+      }
+      if (kind === 'models') setModels(result.models ?? [])
+      setDiagnostic({ kind, result })
+    } catch (e) {
+      setErr(diagnosticError(e))
+    } finally {
+      setDiagnosing(null)
+    }
+  }
+  const busy = activating || saving || resyncing || diagnosing !== null
+  const requiredFields = ['api_key', ...(pending !== '3p' ? ['model'] : []), ...(pending !== '4p' ? ['model_3p'] : [])]
+  const canEnable = envReady && requiredFields.every(key => typeof values[key] === 'string' && values[key].trim())
+  const fieldOrder = ['api_url', 'api_key', 'model', 'model_3p', 'proxy_url', 'timeout_ms', 'score_mode', 'top_n']
+  const specs = data?.manifest.settings ?? {}
+  const settings = [...new Set([...fieldOrder, ...Object.keys(specs)])]
+    .filter(key => Object.hasOwn(specs, key))
+
+  const changeField = (key: string, value: unknown) => {
+    setValues(previous => ({ ...previous, [key]: value }))
+    setDiagnostic(null)
+    setSaved(false)
+    setConfirmTest(null)
+    if (['api_key', 'api_url', 'proxy_url'].includes(key)) setModels([])
+  }
+
+  const save = async () => {
+    setSaving(true)
+    setErr(null)
+    try {
+      await invoke('update_bot_settings', { name, values })
+      if (!pending || await setArcher(pending, true)) setSaved(true)
+    } catch (e) {
+      setErr(String(e))
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const reinstallEnv = async () => {
+    setResyncing(true)
+    setErr(null)
+    try {
+      await withInstallBlock(() => invoke('sync_bot_deps', { name, force: envReady }))
+      // Re-list bots so `env_ready` reflects the freshly-synced env and the
+      // activation switch becomes enabled without a manual refresh.
+      onEnvChanged()
+    } catch (e) {
+      setErr(String(e))
+    } finally {
+      setResyncing(false)
+    }
+  }
+
+  const primaryFields = settings.filter(key => ['api_key', 'model', 'model_3p'].includes(key))
+  const advancedFields = settings.filter(key => !primaryFields.includes(key))
+  const renderFields = (fields: string[]) => fields.map(key => {
+    const spec = specs[key]
+    const players = key === 'model' ? 4 : key === 'model_3p' ? 3 : null
+    const choices = models.filter(model => model.players === players)
+    return (
+      <div key={key} className={key === 'api_key' ? 'grid content-start gap-2 md:col-span-2' : 'grid content-start gap-2'}>
+        <ManifestField
+          fieldKey={key}
+          spec={{
+            ...spec,
+            label: t('archer.' + key, { defaultValue: spec.label }),
+            help: spec.help ? t('archer.' + key + '_help', { defaultValue: spec.help }) : undefined,
+          }}
+          choiceLabel={key === 'score_mode'
+            ? choice => t('archer.' + choice, { defaultValue: choice }) : undefined}
+          value={values[key] ?? spec.default}
+          onChange={v => changeField(key, v)}
+        />
+        {choices.length > 0 && (
+          <div className="flex flex-wrap gap-2">
+            {choices.map(model => (
+              <Button key={model.name} type="button" variant={values[key] === model.name ? 'secondary' : 'outline'} size="sm"
+                aria-pressed={values[key] === model.name} onClick={() => changeField(key, model.name)}>
+                {model.name}
+              </Button>
+            ))}
+          </div>
+        )}
+      </div>
+    )
+  })
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>{t('archer.title')}</CardTitle>
+        <p className="text-sm text-muted-foreground">{t('archer.description')}</p>
+      </CardHeader>
+      <CardContent className="grid gap-4">
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <Label htmlFor="archer-enable">{t('archer.enable')}</Label>
+            <p className="text-xs text-muted-foreground">
+              {t(pending ? 'archer.activation_pending' : four && three ? 'archer.active_both'
+                : four ? 'archer.active_four' : three ? 'archer.active_three' : 'archer.inactive')}
+              {!expanded && ' · ' + t('archer.enable_hint')}
+            </p>
+          </div>
+          <Switch id="archer-enable" checked={active} disabled={busy}
+            onCheckedChange={on => void setArcher('both', on)}
+          />
+        </div>
+        {expanded && (
+          <div className="grid gap-4 border-t border-border pt-4">
+            <p className="text-xs text-muted-foreground">{t('archer.settings_apply')}</p>
+            {pending && (
+              <p role="status" className="text-sm text-muted-foreground">
+                {t('archer.setup_hint')}{!envReady && ' ' + t('archer.install_first')}
+              </p>
+            )}
+
+            {!data ? (
+              <p className="text-sm text-muted-foreground">{t('bots.drawer_loading')}</p>
+            ) : (
+              <fieldset disabled={busy} className="grid min-w-0 gap-4">
+                <div className="grid min-w-0 gap-4 md:grid-cols-2">
+                  {renderFields(primaryFields)}
+                </div>
+
+                <div className="grid gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Button size="sm" variant="outline" onClick={() => void diagnose('models')}>{t('archer.fetch_models')}</Button>
+                    <Button size="sm" variant="outline" onClick={() => void diagnose('health')}>{t('archer.health_check')}</Button>
+                    <Button size="sm" variant="ghost" onClick={() => setConfirmTest('test4')}>{t('archer.test_four')}</Button>
+                    <Button size="sm" variant="ghost" onClick={() => setConfirmTest('test3')}>{t('archer.test_three')}</Button>
+                  </div>
+                  {confirmTest && (
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-md border border-border px-3 py-2">
+                      <p className="flex-1 basis-48 text-sm">{t('archer.test_confirm')}</p>
+                      <Button size="sm" onClick={() => void diagnose(confirmTest)}>{t('archer.test_run')}</Button>
+                      <Button size="sm" variant="ghost" onClick={() => setConfirmTest(null)}>{t('common.cancel')}</Button>
+                    </div>
+                  )}
+                  {(diagnosing || diagnostic) && (
+                    <div role="status" className="text-xs text-muted-foreground">
+                      {diagnosing && t('archer.diagnostic_running')}
+                      {diagnostic?.kind === 'models' && t('archer.model_count', { count: models.length })}
+                      {diagnostic?.kind === 'health' && (
+                        <>
+                          <div>{t('archer.balance_status', { balance: diagnostic.result.balance ?? 0 })}</div>
+                          <div>{t('archer.model')}{' · '}{t(diagnostic.result.selected_model_valid ? 'archer.model_valid' : 'archer.model_unavailable')}</div>
+                          <div>{t('archer.model_3p')}{' · '}{t(diagnostic.result.selected_3p_valid ? 'archer.model_valid' : 'archer.model_unavailable')}</div>
+                        </>
+                      )}
+                      {diagnostic?.kind.startsWith('test') && t('archer.test_passed', { action: diagnostic.result.action?.type ?? '—' })}
+                    </div>
+                  )}
+                </div>
+
+                <details className="border-t border-border pt-3">
+                  <summary className="cursor-pointer text-sm font-medium">{t('archer.advanced_settings')}</summary>
+                  <div className="mt-3 grid gap-4 md:grid-cols-2">{renderFields(advancedFields)}</div>
+                </details>
+              </fieldset>
+            )}
+
+            {err && <span className="text-sm text-red-400 [overflow-wrap:anywhere]">{err}</span>}
+
+            <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border pt-3">
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={reinstallEnv}
+                disabled={busy}
+                title={t('bots.drawer_reinstall_tooltip')}
+              >
+                {resyncing ? t('bots.drawer_reinstalling') : t(envReady ? 'bots.drawer_reinstall' : 'bots.install_env')}
+              </Button>
+              <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
+                {saved && <span role="status" className="text-xs text-muted-foreground">{t('archer.settings_saved')}</span>}
+                {pending && (
+                  <Button size="sm" variant="ghost" disabled={busy} onClick={cancelSetup}>{t('archer.cancel_activation')}</Button>
+                )}
+                <Button size="sm" onClick={save} disabled={busy || !data || (pending !== null && !canEnable)}>
+                  {saving ? t('common.saving') : t(pending ? 'archer.save_enable' : 'common.save')}
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  )
+}
+
 function BotSettingsDrawer({ name, open, onOpenChange, onEnvChanged }: { name: string; open: boolean; onOpenChange: (open: boolean) => void; onEnvChanged: () => void }) {
   const { t } = useTranslation()
   const [data, setData] = useState<BotSettings | null>(null)
@@ -586,8 +893,8 @@ function BotSettingsDrawer({ name, open, onOpenChange, onEnvChanged }: { name: s
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="flex flex-col gap-4 overflow-y-auto p-4 sm:max-w-md">
         <SheetHeader className="p-0">
-          <SheetTitle>{name === 'archer-api' ? t('archer.title') : data?.manifest.bot.display ?? name}</SheetTitle>
-          <SheetDescription>{name === 'archer-api' ? t('archer.description') : data?.manifest.bot.description}</SheetDescription>
+          <SheetTitle>{data?.manifest.bot.display ?? name}</SheetTitle>
+          <SheetDescription>{data?.manifest.bot.description}</SheetDescription>
         </SheetHeader>
 
         {!data ? (
@@ -598,13 +905,7 @@ function BotSettingsDrawer({ name, open, onOpenChange, onEnvChanged }: { name: s
               <ManifestField
                 key={key}
                 fieldKey={key}
-                spec={name === 'archer-api' ? {
-                  ...spec,
-                  label: t('archer.' + key, { defaultValue: spec.label }),
-                  help: spec.help ? t('archer.' + key + '_help', { defaultValue: spec.help }) : undefined,
-                } : spec}
-                choiceLabel={name === 'archer-api' && key === 'score_mode'
-                  ? choice => t('archer.' + choice, { defaultValue: choice }) : undefined}
+                spec={spec}
                 value={values[key] ?? spec.default}
                 onChange={(v) => setValues({ ...values, [key]: v })}
               />

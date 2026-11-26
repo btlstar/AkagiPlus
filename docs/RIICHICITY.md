@@ -25,21 +25,15 @@
 规则从上到下：
 
 1. Localhost → Direct：`localhost`、`127.0.0.0/8`、`::1`。
-2. `AkagiPlus.exe`（源码运行时为 `akagi.exe`）、`RiichiCityUnlock.exe` → Direct。
+2. `AkagiPlus.exe`（源码运行时为 `akagi.exe`） → Direct。
 3. `Mahjong-JP.exe` → 上述本机 HTTPS 代理，目标地址/端口 Any。
 4. Default → Direct。
 
-`41110` 是连接可选外部 RiichiCityUnlock 的内部端口，不是 Proxifier 的游戏入口。日常启动统一使用 GUI。
-
-## 外部 RiichiCityUnlock
-
-原有外部插件接入保留为可选方案，现有配置仍可使用。它与 RiichiCityStyle 是不同工具，不应互相替代名称或配置。本项目不改变原工具的授权模式。
-
-「装扮 → 一番街 · RiichiCityUnlock」中配置完整工具 exe；游戏程序选择 `Game/Mahjong-JP.exe`，不要选择启动器。使用 Proxifier 时无需 proxinject。外部插件公共 CA 默认取用户目录 `.mitmproxy/mitmproxy-ca-cert.pem`，供 Akagi 校验插件；它与游戏需要信任的 Akagi CA 不同。
+日常可从 AkagiPlus 的「总览」启动游戏。
 
 ## 常见问题
 
-- **10061／服务未就绪**：确认一番街、MITM 捕获已启用；若配置了外部插件，也应等待其「已就绪」。新入口会明确指出缺少哪个服务。
+- **10061／服务未就绪**：确认一番街、MITM 捕获已启用。
 - **BadCertificate**：游戏需信任所配置 CA 目录下的公共证书 `akagi-ca.cer`（默认 `ca/akagi-ca.cer`）。如尚未导入，可双击安装到当前用户「受信任的根证书颁发机构」，核对名称 Akagi Proxy CA。不要导入私钥文件。
 - **候场/详情页是特殊皮肤，入场及牌桌变成默认皮肤**：检查游戏自带的「安全模式」。开启且包含自己时，客户端会在进桌阶段把皮肤设为默认；关闭对自己的处理即可保留所选皮肤。补丁遵循这个设置，不强行覆盖。
 - **补丁安装后没有变化**：先完全退出游戏再启动，检查补丁管理中的状态。客户端会缓存已加载的 Lua。

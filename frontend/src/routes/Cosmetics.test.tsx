@@ -125,25 +125,18 @@ describe('MajsoulMax cosmetics settings', () => {
 })
 
 
-describe('RiichiCityUnlock cosmetics settings', () => {
-  it('offers the selected platform plugin and keeps MajsoulMax settings untouched', async () => {
-    const previous: AppConfig = { ...fixture, platform: { kind: 'RiichiCity' },
-      proxy: { ...fixture.proxy, majsoulmax: { enabled: true, python: 'private-python', worker: 'worker', data_dir: 'private-data' } } }
-    useConfigStore.setState({ config: structuredClone(previous) })
+describe('RiichiCity cosmetics settings', () => {
+  it('offers only the local cosmetics installer', async () => {
+    vi.mocked(invoke).mockImplementation(async command => {
+      if (command === 'riichicity_local') return JSON.stringify({ status: 'installed', message: 'ok' })
+      if (command === 'get_game_launch_status') return { running: false, client_path: '' }
+    })
+    useConfigStore.setState({ config: { ...fixture, platform: { kind: 'RiichiCity' } } })
     render(<MemoryRouter><Cosmetics /></MemoryRouter>)
-    expect(screen.queryByRole('switch', { name: '启用 MajsoulMax' })).toBeNull()
-    fireEvent.change(screen.getByLabelText('RiichiCityUnlock 程序'), { target: { value: 'D:/tools/RiichiCityUnlock.exe' } })
-    fireEvent.click(screen.getByRole('switch', { name: '启用 RiichiCityUnlock' }))
-    fireEvent.click(screen.getByRole('button', { name: '保存设置' }))
-    await waitFor(() => expect(invoke).toHaveBeenCalledWith('update_config', { newConfig: {
-      ...previous, capture: { ...previous.capture, mode: 'mitm' },
-      proxy: { ...previous.proxy, enabled: true, riichicity_unlock: {
-        enabled: true, executable: 'D:/tools/RiichiCityUnlock.exe', ca_path: '', client_path: '', injector_path: '',
-      } },
-    } }))
+    expect(await screen.findByRole('button', { name: '安装 / 更新' })).toBeTruthy()
+    expect(screen.queryByText(/RiichiCityUnlock/)).toBeNull()
   })
 })
-
 
 describe('ZhangxinPlus cosmetics settings', () => {
   it('ends checking after an unsupported resource error and permits refresh', async () => {

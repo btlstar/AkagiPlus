@@ -1,12 +1,12 @@
 # AkagiPlus
 
-A fork of [Akagi 3.8.0](https://github.com/shinkuan/Akagi) with a shared game launcher, integrated local cosmetics and Archer API support for three- and four-player mahjong.
+A fork of [Akagi 3.9.0](https://github.com/shinkuan/Akagi/releases/tag/v3.9.0) with a shared game launcher, integrated local cosmetics and Archer API support for three- and four-player mahjong.
 
-[简体中文](README.md) · [繁體中文](README.zh-TW.md) · [Download for Windows](https://github.com/btlstar/AkagiPlus/releases/tag/v3.8.0-plus.5)
+[简体中文](README.md) · [繁體中文](README.zh-TW.md) · [Download for Windows](https://github.com/btlstar/AkagiPlus/releases/tag/v3.9.0-plus.6)
 
 ## Download and use
 
-Download [AkagiPlus-3.8.0-plus.5-windows-x64.zip](https://github.com/btlstar/AkagiPlus/releases/download/v3.8.0-plus.5/AkagiPlus-3.8.0-plus.5-windows-x64.zip), extract the complete archive and run `AkagiPlus.exe`. Keep the adjacent folders. Windows x64 and WebView2 are required; Python and Node are bundled.
+Download [AkagiPlus-3.9.0-plus.6-windows-x64.zip](https://github.com/btlstar/AkagiPlus/releases/download/v3.9.0-plus.6/AkagiPlus-3.9.0-plus.6-windows-x64.zip), extract the complete archive and run `AkagiPlus.exe`. Keep the adjacent folders. Windows x64 and WebView2 are required; Python is bundled.
 
 1. Select a platform on Overview and configure the game path.
 2. Enable or install its plugin under Cosmetics. Close the game before installing, updating or restoring a patch.
@@ -28,11 +28,11 @@ Zhangxin and Amatsuki do not support special modes, mid-game recovery or autopla
 
 ## Archer API
 
-Archer API 0.4.5 is included. Configure separate 3p and 4p models; each new match selects the appropriate model automatically. The overlay checks connectivity before a match and displays actions, tile images and candidate weights. Visible weights sum to 100%; they are not win probabilities.
+Archer API 0.4.6 is included. Configure separate 3p and 4p models; each new match selects the appropriate model automatically. The overlay checks connectivity before a match and displays actions, tile images and candidate weights. Visible weights sum to 100%; they are not win probabilities.
 
-Open Archer settings under Bots, or run `mjai_bot/archer-api/configure.cmd` for the independent configuration page. You need your own Archer API key and Token balance. If the environment is not ready, install it in Bots before enabling both modes. See the [Archer setup guide](mjai_bot/archer-api/README.md).
+Use the Archer API card on the Bots page to fetch models, check connectivity and configure the plugin. You need your own Archer API key and Token balance. If the environment is not ready, install it in Bots before enabling both modes. See the [Archer setup guide](mjai_bot/archer-api/README.md).
 
-The full package includes Archer; a standalone plugin ZIP is also available on the same [release page](https://github.com/btlstar/AkagiPlus/releases/tag/v3.8.0-plus.5).
+The full package includes Archer; a standalone plugin ZIP is also available on the same [release page](https://github.com/btlstar/AkagiPlus/releases/tag/v3.9.0-plus.6).
 
 ## Screenshots
 

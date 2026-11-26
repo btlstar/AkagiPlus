@@ -27,6 +27,7 @@ pub enum Platform {
     RiichiCity,
     Zhangxin,
     Amatsuki,
+    HoloMahjong,
     Mjai,
     Unknown,
 }

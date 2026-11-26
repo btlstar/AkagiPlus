@@ -1,5 +1,5 @@
 """Stage an allowlisted Windows portable release; never copy a working profile."""
-import argparse, hashlib, json, shutil, zipfile, subprocess
+import argparse, hashlib, json, re, shutil, zipfile, subprocess
 from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 TRIPLE = 'x86_64-pc-windows-msvc'
@@ -89,7 +89,24 @@ enabled = false
     commit=subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip()
     source_dirty=bool(subprocess.check_output(['git','status','--porcelain'],cwd=ROOT,text=True).strip())
     plugin_version=tomllib.loads((ROOT/'plugins/zhangxinplus/plugin.toml').read_text('utf8'))['version']
-    manifest={'version':version,'source_commit':commit,'source_dirty':source_dirty,'upstream':'shinkuan/Akagi@63cea4b5d23d83bbee8d56bc3b9d547cca2046c3','plugins':{'ArcherAPI':tomllib.loads((ROOT/'mjai_bot/archer-api/manifest.toml').read_text('utf8'))['bot']['version'],'MajsoulMax-rs':'0.7.0','ZhangxinPlus':plugin_version,'AmatsukiStyle':tomllib.loads((ROOT/'plugins/amatsukistyle/plugin.toml').read_text('utf8'))['version']},'files':files}
+    riichi_city_payload = (ROOT/'plugins/riichicity_local/local_cosmetics.lua').read_text('utf-8-sig')
+    riichi_city_version = re.search(r'^local A = \{version = (\d+),', riichi_city_payload, re.M)
+    if not riichi_city_version:
+        raise ValueError('RiichiCityStyle payload version is missing')
+    manifest = {
+        'version': version,
+        'source_commit': commit,
+        'source_dirty': source_dirty,
+        'upstream': 'shinkuan/Akagi@c560cb4c2e82ad8e5ea9521d82136d987e9a05ed',
+        'plugins': {
+            'ArcherAPI': tomllib.loads((ROOT/'mjai_bot/archer-api/manifest.toml').read_text('utf8'))['bot']['version'],
+            'MajsoulMax-rs': tomllib.loads((ROOT/'plugins/majsoulmax-rs/Cargo.toml').read_text('utf8'))['package']['version'],
+            'ZhangxinPlus': plugin_version,
+            'RiichiCityStyle': riichi_city_version.group(1),
+            'AmatsukiStyle': tomllib.loads((ROOT/'plugins/amatsukistyle/plugin.toml').read_text('utf8'))['version'],
+        },
+        'files': files,
+    }
     (stage/'MANIFEST.json').write_text(json.dumps(manifest,indent=2),encoding='utf8')
     archive=ROOT/'dist'/f'{name}.zip'
     with zipfile.ZipFile(archive,'w',zipfile.ZIP_DEFLATED,compresslevel=6) as z:

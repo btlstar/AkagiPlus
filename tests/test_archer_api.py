@@ -330,86 +330,17 @@ class TransportTests(unittest.TestCase):
                 configure.smoke({**SETTINGS, "api_url": url})
             self.assertFalse(any(c["path"] == "/v1/decide" for c in calls))
 
-    def test_saved_settings_roundtrip(self):
-        with tempfile.TemporaryDirectory() as directory, patch.object(configure, "ROOT", Path(directory)):
-            import shutil
-            shutil.copyfile(BOT_DIR / "manifest.toml", Path(directory) / "manifest.toml")
-            values = {**SETTINGS, "api_key": 'a"b\\c', "model": "测试模型"}
-            configure.save_settings(values)
-            self.assertEqual(configure.read_settings(), values)
-
-
-
-
-class WebConfigurationTests(unittest.TestCase):
-    def test_portable_page_settings_save_checks_and_origin_boundary(self):
-        import shutil
-        with fixture_server(normal_responder) as (upstream, calls), tempfile.TemporaryDirectory() as directory:
-            folder = Path(directory)
-            shutil.copyfile(BOT_DIR / "manifest.toml", folder / "manifest.toml")
-            ready = threading.Event()
-            location = []
-            def opened(url):
-                self.assertTrue(configure.page_is_ready(url), "service must respond before opening the browser")
-                location.append(url)
-                ready.set()
-                return True
-            with patch.object(configure, "ROOT", folder), patch.object(configure, "open_page", opened):
-                thread = threading.Thread(target=configure.run_gui, daemon=True)
-                thread.start()
-                self.assertTrue(ready.wait(3), "local page did not start")
-                url = location[0]
-                opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
-                try:
-                    page = opener.open(url, timeout=3)
-                    self.assertIn("text/html", page.headers["Content-Type"])
-                    self.assertIn("Archer", page.read().decode())
-                    configure.run_gui()
-                    self.assertEqual(location, [url, url], "repeated launch must reuse the same server")
-                    saved = json.load(opener.open(url + "settings", timeout=3))
-                    self.assertEqual(saved["api_key"], "")
-                    values = {**SETTINGS, "api_url": upstream}
-                    body = json.dumps(values).encode()
-                    request = urllib.request.Request(url + "save", data=body,
-                        headers={"Content-Type": "application/json", "Origin": "https://unrelated.example"})
-                    with self.assertRaises(urllib.error.HTTPError) as error:
-                        opener.open(request, timeout=3)
-                    self.assertEqual(error.exception.code, 403)
-                    for action in ("check", "save"):
-                        request = urllib.request.Request(url + action, data=body,
-                            headers={"Content-Type": "application/json"})
-                        report = json.load(opener.open(request, timeout=5))
-                        self.assertTrue(report["ok"])
-                    local = tomllib.loads((folder / "settings.toml").read_text())
-                    self.assertEqual(local["model"], "fixture-4p")
-                    self.assertEqual(local["api_key"], SETTINGS["api_key"])
-                    self.assertNotIn(SETTINGS["api_key"], (folder / ".akagi/connection_check.json").read_text())
-                    self.assertFalse(any(c["path"] == "/v1/decide" for c in calls))
-                finally:
-                    opener.open(urllib.request.Request(url + "close", data=b"{}",
-                        headers={"Content-Type": "application/json"}), timeout=3).read()
-                    thread.join(timeout=3)
-                self.assertFalse(thread.is_alive())
-                self.assertFalse((folder / ".akagi/config_url.txt").exists())
-
-
-
-    def test_windows_uses_default_url_association_despite_browser_override(self):
-        with patch.dict(os.environ, {"BROWSER": "nonexistent-special-launcher"}), \
-             patch.object(configure.os, "name", "nt"), \
-             patch.object(configure.os, "startfile", create=True) as opened, \
-             patch("webbrowser.open") as overridden:
-            configure.open_page("http://127.0.0.1:12345/example/")
-            opened.assert_called_once_with("http://127.0.0.1:12345/example/")
-            overridden.assert_not_called()
-
-    def test_stale_config_url_is_not_reused(self):
-        with tempfile.TemporaryDirectory() as directory, patch.object(configure, "ROOT", Path(directory)):
-            folder=Path(directory)/".akagi"
-            folder.mkdir()
-            (folder/"config_url.txt").write_text("http://127.0.0.1:1/stale/",encoding="utf8")
-            self.assertIsNone(configure.existing_page())
-            self.assertFalse(configure.page_is_ready("https://example.com/stale/"))
+    def test_draft_queries_do_not_save_or_request_inference(self):
+        with tempfile.TemporaryDirectory() as directory, fixture_server(normal_responder) as (url, calls):
+            with patch.object(configure, "ROOT", Path(directory)):
+                settings = {**SETTINGS, "api_url": url}
+                models = configure.diagnose_draft("models", settings)
+                self.assertTrue(any(model["players"] == 4 for model in models["models"]))
+                health = configure.diagnose_draft("health", settings)
+                self.assertTrue(health["ok"])
+                self.assertTrue(health["selected_model_valid"])
+                self.assertFalse((Path(directory) / "settings.toml").exists())
+                self.assertEqual([call["path"] for call in calls], ["/v1/models", "/v1/models", "/v1/balance"])
 
 
 class DualModeTests(unittest.TestCase):

@@ -13,7 +13,7 @@ pub trait Bridge: Send {
 }
 ```
 
-- `parse` — a directional frame or native message → mjai events and an optional parsed view.
+- `parse` — a directional frame or native message → mjai events and an optional decoded view and a flag for shareable logs.
 - `build` — outbound mjai command (also `MjaiEvent`) → optional raw WS binary frame (autoplay).
 
 ## mjai types
@@ -56,6 +56,26 @@ list of every constructor between here and the capture backend.
    `for_platform`.
 4. If the platform will support autoplay and its planner needs something only
    the parser sees, add a field to `BridgeHooks` rather than a new parameter.
+5. Give it an allowlist and set `ParseResult::shareable` (see below).
+
+## Shareable frames
+
+A session's logs outside `sensitive/` are meant to be shared in bug reports,
+and nobody can know in advance which frames a platform puts credentials in.
+So a frame's content reaches them only when the bridge says so:
+`ParseResult::shareable` is `false` by default, and each bridge sets it from an
+explicit allowlist (`is_shareable` in `majsoul/`, `tenhou/`, `riichi_city/`,
+`holomahjong/`).
+Everything else is logged as method, direction and size; the full frame is
+still recorded under `sensitive/`.
+
+To allow a message, check it carries no credentials (tokens, passwords, login
+handshakes) in either direction, then add it. A message the bridge reads can
+still stay off the list: Majsoul's `authGame` request is read for the account
+id but carries the game token, and Riichi City's `CMD_AUTH` is read for the uid.
+A new message the bridge starts reading is withheld until someone adds it.
+Bridges must not log payloads of frames off the list themselves; see
+`bridge::shown`.
 
 ## Existing bridges
 
@@ -71,3 +91,7 @@ list of every constructor between here and the capture backend.
 - `riichi_city/` — Riichi City (JSON inside a 15-byte binary header).
   See `riichi_city/README.md`; autoplay uses the MITM injection path.
 - `zhangxin/` and `amatsuki/` — native local messages for ordinary riichi AI; no autoplay or mid-match recovery.
+- `holomahjong/` — HoloMahjong (MagicOnion StreamingHub messages, MessagePack
+  over gRPC on cleartext HTTP/2). The proxy relays and taps its tunnels
+  itself; `parse` receives one hub message per call. Observe-only. See
+  `holomahjong/README.md`.

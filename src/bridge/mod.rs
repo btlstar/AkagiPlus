@@ -5,11 +5,13 @@
 //! independent game session (e.g. one Majsoul WebSocket flow).
 
 pub mod amatsuki;
+pub mod holomahjong;
 pub mod majsoul;
 pub mod riichi_city;
 pub mod tenhou;
 pub mod zhangxin;
 
+pub use holomahjong::HoloMahjongBridge;
 pub use majsoul::MajsoulBridge;
 pub use riichi_city::RiichiCityBridge;
 pub use tenhou::TenhouBridge;
@@ -50,6 +52,10 @@ impl Direction {
 pub struct ParseResult {
     pub events: Vec<MjaiEvent>,
     pub parsed: Option<ParsedFrame>,
+    /// The frame is on the bridge's allowlist, so its content may go into the
+    /// shareable logs. Anything else is recorded in full only under the
+    /// session's `sensitive/` directory. See "Shareable frames" in the README.
+    pub shareable: bool,
 }
 
 impl ParseResult {
@@ -59,8 +65,19 @@ impl ParseResult {
     pub fn just_events(events: Vec<MjaiEvent>) -> Self {
         Self {
             events,
-            parsed: None,
+            ..Self::default()
         }
+    }
+}
+
+pub use crate::schema::WITHHELD;
+
+/// `content` if the frame is shareable, else [`WITHHELD`]. For log lines.
+pub fn shown(shareable: bool, content: &serde_json::Value) -> &dyn std::fmt::Display {
+    if shareable {
+        content
+    } else {
+        &WITHHELD
     }
 }
 
@@ -135,5 +152,6 @@ pub fn for_platform(
         crate::config::Platform::RiichiCity => {
             Box::new(RiichiCityBridge::new(flow_log, session).with_inject(hooks.riichi_inject))
         }
+        crate::config::Platform::HoloMahjong => Box::new(HoloMahjongBridge::new(flow_log, session)),
     }
 }

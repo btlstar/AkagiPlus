@@ -16,6 +16,10 @@ pub enum Platform {
     /// Native local decoded-message capture (ordinary-riichi AI preview).
     Zhangxin,
     Amatsuki,
+    /// ホロじゃん / HoloMahjong (Aiming). Native Windows client only, so MITM
+    /// only. Its battle server speaks gRPC over cleartext HTTP/2, which the
+    /// proxy relays and taps itself (see `proxy::h2c`). Observe-only.
+    HoloMahjong,
 }
 
 impl Platform {
@@ -28,6 +32,7 @@ impl Platform {
             Platform::RiichiCity => "riichi_city",
             Platform::Zhangxin => "zhangxin",
             Platform::Amatsuki => "amatsuki",
+            Platform::HoloMahjong => "holomahjong",
         }
     }
 }
@@ -43,6 +48,7 @@ impl From<Platform> for schema::Platform {
             Platform::RiichiCity => schema::Platform::RiichiCity,
             Platform::Zhangxin => schema::Platform::Zhangxin,
             Platform::Amatsuki => schema::Platform::Amatsuki,
+            Platform::HoloMahjong => schema::Platform::HoloMahjong,
         }
     }
 }
@@ -74,6 +80,10 @@ mod tests {
         assert_eq!(
             schema::Platform::from(Platform::RiichiCity),
             schema::Platform::RiichiCity
+        );
+        assert_eq!(
+            schema::Platform::from(Platform::HoloMahjong),
+            schema::Platform::HoloMahjong
         );
     }
 }

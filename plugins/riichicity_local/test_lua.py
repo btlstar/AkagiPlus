@@ -36,6 +36,30 @@ def main():
                     ingress=source[source.index('local function OnRecvMsg(wpacket)'):source.index('local function PlayingHandle(data)')]
                     assert ingress.count('AkagiPlusLocalCosmetics.onMessage')==1, 'Hook must run at decoded ingress'
                     ingress=ingress.replace('local function OnRecvMsg(wpacket)','function APIngress(wpacket)',1)
+        def voice_method(bundle, asset, method):
+            for directory in ('_Data/Mahjong/Base', 'StreamingAssets/Base'):
+                file = args.game/'Mahjong-JP_Data'/directory/bundle
+                if file.is_file():
+                    break
+            data = file.read_bytes()
+            scripts = UnityPy.load(io.BytesIO(data[data.index(b'UnityFS\0'):]))
+            for obj in scripts.objects:
+                if obj.type.name != 'TextAsset':
+                    continue
+                script = obj.parse_as_object()
+                if script.m_Name.startswith(asset):
+                    source = script.m_Script.replace('\r\n', '\n')
+                    match = re.search(r'^function ' + re.escape(method) + r'\(.*?^end[ \t]*$', source, re.M | re.S)
+                    assert match, f'Native method structure changed: {method}'
+                    return match[0]
+            raise AssertionError(f'Missing native method {method}')
+
+        runtime.run('local _class = {}\n' +
+                    voice_method('lua_base', 'b891', 'class') +
+                    '\nUIViewBase = class()\nM = class(UIViewBase)\n' +
+                    voice_method('lua_modules_uiview', 'b0c88', 'UIViewBase:CreateChildView') + '\n' +
+                    voice_method('lua_uiview_role', 'dff0', 'M:IsUnlock') +
+                    '\nAP_VOICE_BASE = class(UIViewBase).new()\nAP_VOICE_CLASS = M')
         prefix='PAYLOAD='+json.dumps(str(Path(__file__).with_name('local_cosmetics.lua').resolve().as_posix()))+'\n'
         runtime.run(prefix+Path(__file__).with_name('test_local.lua').read_text(encoding='utf-8-sig'))
         assert ingress, 'Missing generated dispatcher'
@@ -63,6 +87,14 @@ EResType={Icon_SimpleHead=1}
 local sprite=AP_NATIVE_HEAD(AP_TEST_FOLLOW_HEAD,10022,0,0,{LoadSprite=function(_,_,value)return value end})
 assert(sprite[1]==10069 and sprite[2]==1006902 and sprite[3]==1,'native decoder must use the locally selected portrait')
 """)
-        print(json.dumps({'native_head_renderer':'passed','ingress_categories_tested':3,'patched_scripts_compile':compiled,'synthetic_lua_suite':'passed','game_started':False,'network_requests':0}))
+        settlement_bundle = 'lua_uiview_favorabilitysettlement'
+        settlement_asset = 'a699'
+        runtime.run('AP_NATIVE_SETTLEMENT = class()\nM = AP_NATIVE_SETTLEMENT\n'
+                    'local ViewState = {NormalChange=1, AuRoChange=2, MaxChange=3}\n'
+                    'local feel_value_sound_cfg = {[1]={8011,8012}}\n' +
+                    voice_method(settlement_bundle, settlement_asset, 'M:RefershView') + '\n' +
+                    voice_method(settlement_bundle, settlement_asset, 'M:SetViewGoShow'))
+        runtime.run('AP_TEST_SETTLEMENT()')
+        print(json.dumps({'native_head_renderer':'passed','native_settlement_renderer':'passed','ingress_categories_tested':3,'patched_scripts_compile':compiled,'synthetic_lua_suite':'passed','game_started':False,'network_requests':0}))
     finally:runtime.close()
 if __name__=='__main__':main()
